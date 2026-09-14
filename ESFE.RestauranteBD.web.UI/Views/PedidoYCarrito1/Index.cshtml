@@ -8,7 +8,7 @@
         <div>
             <span class="eyebrow">Pedido</span>
             <h2>Tu carrito</h2>
-            <p>Revisa cantidades, personalizaciones y total antes de pagar.</p>
+            <p>Revisa cantidades, tipo de pedido y total antes de continuar. Si eliges consumir en restaurante, el sistema te llevará a reservar una mesa antes del pago.</p>
         </div>
         <a asp-controller="GestionDeMenu1" asp-action="Index" class="secondary-btn">← Seguir comprando</a>
     </div>
@@ -45,11 +45,28 @@
 
             <label class="field-label">
                 Tipo de pedido
-                <select id="orderType">
+                <select id="orderType" onchange="ESFERestaurante.cart.toggleDeliveryFields()">
                     <option value="Mesa">Consumir en restaurante</option>
                     <option value="Llevar">Para llevar</option>
+                    <option value="Domicilio">Pedido a domicilio</option>
                 </select>
             </label>
+            <div id="deliveryFields" class="delivery-fields hidden">
+                <div class="phone-country-field" data-phone-country-field data-default-country="sv">
+                    <label class="field-label">
+                        País
+                        <select data-country-select aria-label="País del teléfono de entrega"></select>
+                    </label>
+                    <label class="field-label phone-number-label">
+                        Teléfono de entrega
+                        <input id="deliveryPhone" name="deliveryPhone" type="text" inputmode="tel" autocomplete="tel" data-international-phone required />
+                    </label>
+                </div>
+                <label class="field-label">
+                    Dirección de entrega
+                    <textarea id="deliveryAddress" rows="3" minlength="5" maxlength="250" placeholder="Dirección completa, colonia, calle y referencia"></textarea>
+                </label>
+            </div>
 
             <label class="field-label">
                 Notas

@@ -1,5 +1,5 @@
 const ESFERestaurante = (() => {
-    const KEY = { cart:'esfe_carrito', orders:'esfe_pedidos', sales:'esfe_ventas', reservations:'esfe_reservas', user:'usuarioLogueado', ratings:'restaurantebd_calificaciones', notifications:'restaurantebd_notificaciones', productOverrides:'restaurantebd_product_overrides', productDeleted:'restaurantebd_product_deleted', customCategories:'restaurantebd_custom_categories', savedReports:'esfe_reportes_guardados', reportPeriod:'esfe_report_periodo_inicio', reportArchive:'esfe_reportes_semanales' };
+    const KEY = { cart:'esfe_carrito', orders:'esfe_pedidos', sales:'esfe_ventas', reservations:'esfe_reservas', user:'usuarioLogueado', ratings:'restaurantebd_calificaciones', notifications:'restaurantebd_notificaciones', productOverrides:'restaurantebd_product_overrides', productDeleted:'restaurantebd_product_deleted', customCategories:'restaurantebd_custom_categories', savedReports:'esfe_reportes_guardados' };
     const OPENING_HOUR = 6;
     const CLOSING_HOUR = 22;
     const money = value => new Intl.NumberFormat('es-SV',{style:'currency',currency:'USD'}).format(Number(value)||0);
@@ -101,18 +101,16 @@ const ESFERestaurante = (() => {
     function notificationsSave(list){write(KEY.notifications,list)}
     function notificationVisible(n){
         const role=currentRole();
-        if(n?.sent) return n?.user===currentUser();
         return n?.user===currentUser() || (Array.isArray(n?.roles) && n.roles.includes(role));
     }
     function addNotification(message,user,meta={}){
         const list=notificationsGet();
         list.unshift({
             id:uid('NOT'), user:user||null, roles:Array.isArray(meta.roles)?meta.roles:[], message,
-            date:new Date().toISOString(), read:false, starred:false, sent:false,
+            date:new Date().toISOString(), read:false, starred:false,
             type:meta.type||'general', orderId:meta.orderId||'',
             title:meta.title||'Notificación', detail:meta.detail||message,
-            action:meta.action||null, fromName:meta.fromName||'RestauranteBD', fromEmail:meta.fromEmail||'notificaciones@restaurantebd.local',
-            toName:meta.toName||'', toEmail:meta.toEmail||''
+            action:meta.action||null
         });
         notificationsSave(list);
         updateNotificationBadges();
@@ -289,52 +287,48 @@ const ESFERestaurante = (() => {
     const getInvoice = orderId => { try { return JSON.parse(localStorage.getItem(invoiceKey(orderId))||'null'); } catch { return null; } };
     // ===== FACTURA DIGITAL =====
     // Documento HTML autocontenido, pensado para pantalla, impresión y PDF desde el navegador.
-    // ===== FACTURA DIGITAL PREMIUM =====
-    // Comprobante autocontenido para pantalla, impresión y guardado como PDF.
     const invoiceHtml = invoice => {
         if(!invoice) return '';
-        const esc = value => String(value ?? '').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-        const paidDate = invoice.date || new Date().toISOString();
-        const rows = invoice.items.map((item,index)=>{
-            const qty=Math.max(0,Number(item.qty)||0), price=Math.max(0,Number(item.price)||0);
-            return `<tr><td class="num">${String(index+1).padStart(2,'0')}</td><td><div class="product-name">${esc(item.name)}</div><div class="product-sub">Consumo registrado</div></td><td class="center">${qty}</td><td class="right">${money(price)}</td><td class="right strong">${money(qty*price)}</td></tr>`;
-        }).join('');
+        const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+        const rows = invoice.items.map((item,index) => `
+            <tr>
+                <td class="num">${String(index+1).padStart(2,'0')}</td>
+                <td><strong>${esc(item.name)}</strong></td>
+                <td class="center">${Number(item.qty)||0}</td>
+                <td class="right">${money(item.price)}</td>
+                <td class="right"><strong>${money((Number(item.qty)||0)*(Number(item.price)||0))}</strong></td>
+            </tr>`).join('');
         const logoUrl = `${location.origin}/images/logo.jpg`;
-        const orderType = invoice.orderType || 'Consumo en restaurante';
-        const payment = invoice.payment || 'No indicado';
-        const locationText = String(orderType).toLowerCase().includes('domic') ? (invoice.deliveryAddress || 'Domicilio registrado') : (invoice.table || 'Atención en restaurante');
-        const code = `${invoice.invoiceNumber}-${String(invoice.orderId||'').replace(/[^A-Za-z0-9]/g,'').slice(-6).toUpperCase()}`;
         return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(invoice.invoiceNumber)} · RestauranteBD</title>
         <style>
-          :root{--ink:#172033;--muted:#64748b;--line:#e6ebf1;--soft:#f6f8fb;--paper:#fff;--accent:#b45309;--accent2:#7c2d12;--success:#166534;--successbg:#ecfdf3}
-          *{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#eef2f7,#f8fafc);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-          .page{width:min(960px,calc(100% - 28px));margin:26px auto 40px}.sheet{background:var(--paper);border:1px solid #dde4ec;border-radius:28px;box-shadow:0 28px 90px rgba(15,23,42,.12);overflow:hidden}
-          .ribbon{height:10px;background:linear-gradient(90deg,#111827 0 62%,var(--accent) 62% 100%)}
-          .header{padding:34px 42px 24px;display:flex;justify-content:space-between;gap:28px;border-bottom:1px solid var(--line)}
-          .brand{display:flex;align-items:center;gap:16px}.brand img{width:72px;height:72px;border-radius:20px;object-fit:cover;border:1px solid var(--line);box-shadow:0 7px 22px rgba(15,23,42,.08)}.brand h1{margin:0;font-size:28px;letter-spacing:-.04em}.brand p{margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.5}.brand small{display:inline-flex;margin-top:8px;padding:5px 8px;border-radius:999px;background:#f8fafc;color:#64748b;border:1px solid var(--line);font-weight:800;font-size:9px}
-          .invoice-head{text-align:right}.invoice-head .eyebrow{font-size:9px;letter-spacing:.16em;text-transform:uppercase;font-weight:900;color:var(--accent)}.invoice-head h2{margin:6px 0 0;font-size:25px;letter-spacing:-.025em}.invoice-head .meta{margin-top:8px;color:var(--muted);font-size:10px;line-height:1.7}
-          .hero{margin:22px 42px 0;padding:18px 20px;border:1px solid #eadfd8;border-radius:18px;background:linear-gradient(135deg,#fffbf7,#fff);display:flex;justify-content:space-between;gap:20px;align-items:center}.hero .label{font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:#9a5a32;font-weight:900}.hero .amount{margin-top:5px;font-size:29px;font-weight:900;letter-spacing:-.04em}.hero .status{display:inline-flex;align-items:center;gap:8px;padding:8px 11px;border-radius:999px;background:var(--successbg);color:var(--success);font-size:10px;font-weight:900}.dot{width:7px;height:7px;border-radius:50%;background:currentColor}
-          .summary{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:12px;padding:22px 42px 0}.card{border:1px solid var(--line);border-radius:16px;padding:15px 16px;background:#fff}.label{display:block;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8;font-weight:900}.value{display:block;margin-top:6px;font-size:12px;font-weight:850;line-height:1.45;overflow-wrap:anywhere}.sub{display:block;margin-top:4px;font-size:10px;color:var(--muted);line-height:1.45;overflow-wrap:anywhere}
-          main{padding:28px 42px 34px}.section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:26px 0 10px}.section-head:first-child{margin-top:0}.section-title{font-size:12px;font-weight:900}.section-note{font-size:9px;color:#94a3b8}
-          table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border:1px solid var(--line);border-radius:16px}thead th{padding:12px 12px;background:#fafbfd;color:#94a3b8;font-size:8px;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--line)}tbody td{padding:13px 12px;border-bottom:1px solid #f0f3f6;font-size:11px;vertical-align:middle}tbody tr:last-child td{border-bottom:0}th.right,td.right{text-align:right}.center{text-align:center}.num{width:44px;color:#a0a9b7;font-variant-numeric:tabular-nums}.product-name{font-weight:850}.product-sub{margin-top:3px;font-size:9px;color:#94a3b8}
-          .info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.info-card{border:1px solid var(--line);border-radius:16px;background:#fff;padding:15px 16px}.info-card h3{margin:0 0 10px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#64748b}.info-row{display:flex;justify-content:space-between;gap:20px;padding:7px 0;border-bottom:1px dashed #edf1f5;font-size:10px}.info-row:last-child{border-bottom:0}.info-row span{color:#94a3b8}.info-row strong{text-align:right;overflow-wrap:anywhere}
-          .totals{display:flex;justify-content:flex-end;margin-top:18px}.totals-box{width:min(390px,100%);border:1px solid var(--line);border-radius:18px;overflow:hidden}.total-row{display:flex;justify-content:space-between;padding:10px 15px;font-size:11px;border-bottom:1px solid #f0f3f6}.grand{display:flex;justify-content:space-between;align-items:center;padding:16px;background:#111827;color:#fff}.grand span{font-size:11px;font-weight:750}.grand strong{font-size:22px;letter-spacing:-.03em}
-          .closing{display:grid;grid-template-columns:1.4fr .8fr;gap:12px;margin-top:22px}.closing-card{border:1px solid var(--line);border-radius:16px;padding:16px;background:#fff}.closing-card strong{font-size:10px}.closing-card p{margin:6px 0 0;font-size:10px;color:var(--muted);line-height:1.6}.validation{background:#f8fafc}.validation-code{margin-top:8px;padding:10px 12px;border:1px dashed #cfd7e2;border-radius:12px;font-size:10px;font-weight:900;letter-spacing:.08em;word-break:break-all}
-          .footer{padding:20px 42px 30px;border-top:1px solid var(--line);text-align:center;color:#94a3b8;font-size:9px;line-height:1.7}.footer strong{color:#64748b}.actions{position:sticky;bottom:0;display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-top:1px solid var(--line)}button{border:1px solid #d8e0e9;background:#fff;border-radius:11px;padding:9px 13px;font:800 10px inherit;cursor:pointer}button.primary{background:#111827;color:#fff;border-color:#111827}
-          @media print{body{background:#fff}.page{width:100%;margin:0}.sheet{border:0;border-radius:0;box-shadow:none}.actions{display:none}.header,.summary,main,.footer{padding-left:24px;padding-right:24px}.hero{margin-left:24px;margin-right:24px}.ribbon{height:6px}}
-          @media(max-width:760px){.header,.hero,.summary,main,.footer{padding-left:16px;padding-right:16px}.hero{margin-left:16px;margin-right:16px;align-items:flex-start;flex-direction:column}.header{flex-direction:column}.invoice-head{text-align:left}.summary,.info-grid,.closing{grid-template-columns:1fr}.brand img{width:58px;height:58px}.brand h1{font-size:24px}.invoice-head h2{font-size:22px}}
-        </style></head><body><div class="page"><div class="sheet"><div class="ribbon"></div>
-        <header class="header"><div class="brand"><img src="${esc(logoUrl)}" alt="RestauranteBD"><div><h1>RestauranteBD</h1><p>Experiencia, sabor y servicio en un solo lugar.</p><small>COMPROBANTE DIGITAL</small></div></div><div class="invoice-head"><div class="eyebrow">Factura digital</div><h2>${esc(invoice.invoiceNumber)}</h2><div class="meta">Emitida: ${esc(formatDateTime(paidDate))}<br>Pedido: ${esc(invoice.orderId)}<br>${esc(orderType)}</div></div></header>
-        <section class="hero"><div><div class="label">Total pagado</div><div class="amount">${money(invoice.total)}</div></div><div class="status"><i class="dot"></i>Pago confirmado</div></section>
-        <section class="summary"><div class="card"><span class="label">Cliente</span><span class="value">${esc(invoice.customer)}</span><span class="sub">${esc(invoice.email||'Cliente registrado')}</span></div><div class="card"><span class="label">Atención</span><span class="value">${esc(orderType)}</span><span class="sub">${esc(locationText)}</span></div><div class="card"><span class="label">Estado</span><span class="value">Pagado</span><span class="sub">${esc(payment)}${invoice.paymentRef?` · ${esc(invoice.paymentRef)}`:''}</span></div></section>
-        <main><div class="section-head"><div class="section-title">Detalle de consumo</div><div class="section-note">${invoice.items.length} ${invoice.items.length===1?'línea':'líneas'} · Pedido ${esc(invoice.orderId)}</div></div>
-          <table><thead><tr><th class="num">#</th><th>Producto</th><th class="center">Cantidad</th><th class="right">Precio</th><th class="right">Importe</th></tr></thead><tbody>${rows}</tbody></table>
-          <div class="totals"><div class="totals-box"><div class="total-row"><span>Subtotal</span><strong>${money(invoice.subtotal)}</strong></div><div class="total-row"><span>IVA</span><strong>${money(invoice.tax)}</strong></div><div class="grand"><span>Total pagado</span><strong>${money(invoice.total)}</strong></div></div></div>
-          <div class="section-head"><div class="section-title">Información de la operación</div><div class="section-note">Datos asociados al pago</div></div>
-          <div class="info-grid"><div class="info-card"><h3>Pago</h3><div class="info-row"><span>Método</span><strong>${esc(payment)}</strong></div><div class="info-row"><span>Estado</span><strong>Pagado</strong></div><div class="info-row"><span>Referencia</span><strong>${esc(invoice.paymentRef||'No aplica')}</strong></div><div class="info-row"><span>Fecha</span><strong>${esc(formatDateTime(paidDate))}</strong></div></div>
-          <div class="info-card"><h3>Cliente y entrega</h3><div class="info-row"><span>Cliente</span><strong>${esc(invoice.customer)}</strong></div><div class="info-row"><span>Teléfono</span><strong>${esc(invoice.customerPhone||invoice.deliveryPhone||'No registrado')}</strong></div><div class="info-row"><span>Ubicación</span><strong>${esc(locationText)}</strong></div><div class="info-row"><span>Correo</span><strong>${esc(invoice.email||'No registrado')}</strong></div></div></div>
-          <div class="closing"><div class="closing-card"><strong>Gracias por elegir RestauranteBD</strong><p>Este comprobante digital resume la compra y el pago asociado al pedido. Conserva esta factura para futuras consultas relacionadas con tu consumo.</p></div><div class="closing-card validation"><strong>Identificador digital</strong><div class="validation-code">${esc(code)}</div></div></div>
-        </main><footer class="footer"><strong>RestauranteBD</strong> · Documento generado automáticamente por el sistema.<br>La factura digital es un comprobante de la transacción registrada en RestauranteBD.</footer></div><div class="actions"><button onclick="window.print()">Imprimir / Guardar PDF</button><button class="primary" onclick="window.close()">Cerrar</button></div></div></body></html>`;
+            :root{--ink:#172033;--muted:#64748b;--line:#e5eaf0;--soft:#f7f9fc;--accent:#b45309;--success:#166534}
+            *{box-sizing:border-box}body{margin:0;background:#f1f5f9;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+            .sheet{width:min(900px,calc(100% - 32px));margin:32px auto;background:#fff;border:1px solid #e1e7ee;border-radius:22px;box-shadow:0 22px 70px rgba(15,23,42,.10);overflow:hidden}
+            .topbar{height:8px;background:linear-gradient(90deg,#0f172a 0 50%,#b45309 50% 100%)}
+            header{padding:34px 38px 28px;display:flex;justify-content:space-between;gap:30px;border-bottom:1px solid var(--line)}
+            .brand{display:flex;gap:16px;align-items:center}.brand img{width:62px;height:62px;border-radius:16px;object-fit:cover;border:1px solid var(--line)}.brand h1{margin:0;font-size:25px;letter-spacing:-.03em}.brand p{margin:5px 0 0;color:var(--muted);font-size:12px}
+            .invoice-box{text-align:right}.invoice-box .eyebrow{font-size:10px;font-weight:900;letter-spacing:.14em;color:var(--accent);text-transform:uppercase}.invoice-box h2{margin:5px 0 0;font-size:22px}.invoice-box time{display:block;margin-top:6px;color:var(--muted);font-size:11px}
+            .summary{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:14px;padding:20px 38px;background:var(--soft);border-bottom:1px solid var(--line)}
+            .card{border:1px solid var(--line);background:#fff;border-radius:14px;padding:14px 16px}.label{font-size:9px;font-weight:900;letter-spacing:.07em;text-transform:uppercase;color:#94a3b8}.value{display:block;margin-top:5px;font-weight:800;font-size:12px;overflow-wrap:anywhere}.sub{margin-top:4px;color:var(--muted);font-size:10px}
+            main{padding:28px 38px}.status{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;background:#ecfdf3;color:var(--success);font-size:10px;font-weight:900}.dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+            table{width:100%;border-collapse:collapse;margin-top:18px}thead th{padding:12px 10px;border-bottom:2px solid #dfe5ec;text-align:left;color:#94a3b8;font-size:9px;text-transform:uppercase;letter-spacing:.07em}tbody td{padding:13px 10px;border-bottom:1px solid #eef2f6;font-size:11px}th.right,td.right{text-align:right}.center{text-align:center}.num{width:42px;color:#94a3b8;font-variant-numeric:tabular-nums}
+            .totals-wrap{display:flex;justify-content:flex-end;margin-top:22px}.totals{width:min(360px,100%);border:1px solid var(--line);border-radius:16px;overflow:hidden}.totals div{display:flex;justify-content:space-between;padding:10px 14px;font-size:11px}.totals .grand{margin-top:1px;background:#0f172a;color:#fff;padding:15px 14px;font-size:17px}.totals .grand span{font-weight:700}.totals .grand strong{font-size:20px}
+            .footer-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}.note{border:1px solid var(--line);border-radius:14px;padding:15px;background:#fff}.note strong{font-size:11px}.note p{margin:6px 0 0;color:var(--muted);font-size:10px;line-height:1.6}.thanks{margin-top:26px;padding:18px 0 0;border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:10px}.actions{position:sticky;bottom:0;display:flex;justify-content:flex-end;gap:8px;padding:14px 18px;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-top:1px solid var(--line)}button{border:1px solid #dbe2ea;background:#fff;border-radius:10px;padding:9px 13px;font:700 11px inherit;cursor:pointer}button.primary{background:#0f172a;color:#fff;border-color:#0f172a}
+            @media print{body{background:#fff}.sheet{width:100%;margin:0;border:0;box-shadow:none;border-radius:0}.actions{display:none}.topbar{height:5px}header,.summary,main{padding-left:22px;padding-right:22px}}
+            @media(max-width:700px){header{flex-direction:column}.invoice-box{text-align:left}.summary,.footer-grid{grid-template-columns:1fr}.sheet{width:min(100% - 14px,900px);margin:7px auto}.summary,main,header{padding-left:18px;padding-right:18px}.brand img{width:52px;height:52px}}
+        </style></head><body><div class="sheet"><div class="topbar"></div>
+        <header><div class="brand"><img src="${esc(logoUrl)}" alt="RestauranteBD"><div><h1>RestauranteBD</h1><p>Experiencia, sabor y servicio en un solo lugar.</p></div></div><div class="invoice-box"><div class="eyebrow">Factura digital</div><h2>${esc(invoice.invoiceNumber)}</h2><time>${esc(formatDateTime(invoice.date))}</time></div></header>
+        <section class="summary">
+            <div class="card"><span class="label">Cliente</span><span class="value">${esc(invoice.customer)}</span><span class="sub">${esc(invoice.email||'Cliente registrado')}</span></div>
+            <div class="card"><span class="label">Pedido</span><span class="value">${esc(invoice.orderId)}</span><span class="sub">${esc(invoice.orderType||'Pedido')}</span></div>
+            <div class="card"><span class="label">Estado del pago</span><span class="status"><i class="dot"></i>Pagado</span><span class="sub">${esc(invoice.payment||'Método no indicado')}${invoice.paymentRef?` · ${esc(invoice.paymentRef)}`:''}</span></div>
+        </section>
+        <main><span class="status"><i class="dot"></i>Pago confirmado</span>
+            <table><thead><tr><th class="num">#</th><th>Producto</th><th class="center">Cantidad</th><th class="right">Precio</th><th class="right">Importe</th></tr></thead><tbody>${rows}</tbody></table>
+            <div class="totals-wrap"><div class="totals"><div><span>Subtotal</span><strong>${money(invoice.subtotal)}</strong></div><div><span>IVA</span><strong>${money(invoice.tax)}</strong></div><div class="grand"><span>Total pagado</span><strong>${money(invoice.total)}</strong></div></div></div>
+            <div class="footer-grid"><div class="note"><strong>Información de pago</strong><p>Método: ${esc(invoice.payment||'No indicado')}<br>Referencia: ${esc(invoice.paymentRef||'No aplica')}<br>Fecha: ${esc(formatDateTime(invoice.date))}</p></div><div class="note"><strong>Comprobante digital</strong><p>Esta factura fue generada automáticamente por RestauranteBD y corresponde al pedido ${esc(invoice.orderId)}.</p></div></div>
+            <div class="thanks">Gracias por elegir RestauranteBD. Conserva este comprobante para cualquier consulta relacionada con tu compra.</div>
+        </main></div><div class="actions"><button onclick="window.print()">Imprimir / Guardar PDF</button><button class="primary" onclick="window.close()">Cerrar</button></div></body></html>`;
     };
     const showInvoice = orderId => { const invoice=getInvoice(orderId); if(!invoice){toast('La factura todavía no está disponible.','error');return;} const blob=new Blob([invoiceHtml(invoice)],{type:'text/html;charset=utf-8'}); const url=URL.createObjectURL(blob); const w=window.open(url,'_blank'); if(!w){toast('El navegador bloqueó la factura. Permite ventanas emergentes para verla.','error');} setTimeout(()=>URL.revokeObjectURL(url),60000); };
 
@@ -436,114 +430,13 @@ const ESFERestaurante = (() => {
         }
     };
 
-    // Generador PDF ligero para reportes locales. No depende de librerias externas.
-    function pdfAscii(value){return String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7E]/g,'?').replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');}
-    function makeSimplePdf(lines){
-        const pageW=595,pageH=842,margin=48,lineH=15,usable=746,maxLines=Math.max(1,Math.floor(usable/lineH));
-        const pages=[];for(let i=0;i<lines.length;i+=maxLines)pages.push(lines.slice(i,i+maxLines));
-        const objects=[];const add=o=>{objects.push(o);return objects.length;};
-        const catalog=add('<< /Type /Catalog /Pages 2 0 R >>');
-        const pageNums=[];const font=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
-        pages.forEach(pageLines=>{
-            let stream='BT /F1 11 Tf '+margin+' '+(pageH-margin)+' Td 0 -'+lineH+' Td';
-            pageLines.forEach((line,idx)=>{const txt=pdfAscii(line);if(idx===0)stream=`BT /F1 15 Tf ${margin} ${pageH-margin} Td (${txt}) Tj /F1 11 Tf 0 -24 Td`;else stream+=` 0 -${lineH} Td (${txt}) Tj`;});stream+=' ET';
-            const content=add(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
-            const page=add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /Font << /F1 ${font} 0 R >> >> /Contents ${content} 0 R >>`);pageNums.push(page);
-        });
-        objects[1]=`<< /Type /Pages /Kids [${pageNums.map(n=>n+' 0 R').join(' ')}] /Count ${pageNums.length} >>`;
-        let pdf='%PDF-1.4\n',offsets=[0];for(let i=0;i<objects.length;i++){offsets[i+1]=pdf.length;pdf+=`${i+1} 0 obj\n${objects[i]}\nendobj\n`;}const xref=pdf.length;pdf+=`xref\n0 ${objects.length+1}\n0000000000 65535 f \n`;for(let i=1;i<offsets.length;i++)pdf+=String(offsets[i]).padStart(10,'0')+' 00000 n \n';pdf+=`trailer\n<< /Size ${objects.length+1} /Root ${catalog} 0 R >>\nstartxref\n${xref}\n%%EOF`;return pdf;
-    }
-
     // ===== REPORTES =====
     const reports={
-        init(){this.ensureWeeklyCutoff();this.render();},
-        periodStart(){
-            const stored=localStorage.getItem(KEY.reportPeriod);
-            if(stored && /^\d{4}-\d{2}-\d{2}$/.test(stored)) return stored;
-            const today=localDate();localStorage.setItem(KEY.reportPeriod,today);return today;
-        },
-        currentSales(){
-            const start=this.periodStart();
-            return read(KEY.sales,[]).filter(s=>String(s.date||'').slice(0,10)>=start);
-        },
-        buildSnapshot(periodStart=this.periodStart(),periodEnd=localDate(),kind='manual'){
-            const sales=this.currentSales();
-            const total=sales.reduce((sum,x)=>sum+Number(x.total||0),0),orders=sales.length;
-            const reservations=read(KEY.reservations,[]).filter(r=>String(r.date||'').slice(0,10)>=periodStart&&String(r.date||'').slice(0,10)<=periodEnd&&r.status==='Confirmada').length;
-            return {
-                id:uid(kind==='weekly'?'SEM':'REP'),date:new Date().toISOString(),periodStart,periodEnd,kind,
-                sales:Number(total.toFixed(2)),orders,average:Number((orders?total/orders:0).toFixed(2)),reservations,
-                payments:{Efectivo:sales.filter(x=>x.payment==='Efectivo').length,Tarjeta:sales.filter(x=>x.payment==='Tarjeta').length,Transferencia:sales.filter(x=>x.payment==='Transferencia').length},
-                details:sales.slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).map(x=>({id:x.id,total:Number(x.total||0),payment:x.payment||'—',date:x.date,customer:x.customerName||x.customer||'Cliente'}))
-            };
-        },
-        save(downloadPdf=true,kind='manual'){
-            const periodStart=this.periodStart(),today=localDate();
-            const sales=this.currentSales();
-            if(!sales.length){toast('No hay ventas del periodo actual para guardar','error');return null;}
-            const snapshot=this.buildSnapshot(periodStart,today,kind);
-            const saved=read(KEY.savedReports,[]);saved.unshift(snapshot);write(KEY.savedReports,saved);
-            // Cierra el periodo actual sin eliminar pedidos: solo reinicia las ventas acumuladas.
-            write(KEY.reportArchive,[...read(KEY.reportArchive,[]),snapshot]);
-            write(KEY.sales,[]);
-            localStorage.setItem(KEY.reportPeriod,localDate());
-            this.render();
-            if(downloadPdf)this.downloadPdf(snapshot);
-            toast(kind==='weekly'?'Reporte semanal guardado y periodo reiniciado':'Reporte guardado y ventas reiniciadas');
-            return snapshot;
-        },
-        ensureWeeklyCutoff(){
-            const start=this.periodStart(),startDate=new Date(`${start}T00:00:00`),now=new Date();
-            const days=Math.floor((new Date(localDate(now)+'T00:00:00')-startDate)/86400000);
-            if(days>=7 && this.currentSales().length){this.save(false,'weekly');}
-            else if(days>=7){localStorage.setItem(KEY.reportPeriod,localDate());}
-        },
-        render(){
-            const sales=this.currentSales(),start=this.periodStart(),today=localDate();
-            const total=sales.reduce((sum,x)=>sum+Number(x.total||0),0),orders=sales.length;
-            const set=(id,value)=>{const e=document.getElementById(id);if(e)e.textContent=value;};
-            set('reportSales',money(total));set('reportOrders',orders);set('reportAverage',money(orders?total/orders:0));
-            set('reportPeriodLabel',`${start} · ${today}`);
-            set('reportReservations',read(KEY.reservations,[]).filter(r=>String(r.date||'').slice(0,10)>=start&&String(r.date||'').slice(0,10)<=today&&r.status==='Confirmada').length);
-            const list=document.getElementById('salesList');
-            if(list)list.innerHTML=sales.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,8).map(x=>`<div class="recent-row"><div><strong>${x.id}</strong><small>${x.payment||'—'} · ${formatDateTime(x.date)}</small></div><strong>${money(x.total)}</strong></div>`).join('')||'<div class="empty-state compact"><p>No hay ventas en el periodo actual.</p></div>';
-            const methods=['Efectivo','Tarjeta','Transferencia'],max=Math.max(1,...methods.map(m=>sales.filter(x=>x.payment===m).length));
-            const dist=document.getElementById('paymentDistribution');
-            if(dist)dist.innerHTML=methods.map(m=>{const n=sales.filter(x=>x.payment===m).length;return `<div class="distribution-row"><span>${m}</span><div><i style="width:${n/max*100}%"></i></div><strong>${n}</strong></div>`}).join('');
-            this.renderSaved();
-        },
-        downloadPdf(snapshot){
-            const lines=[
-                'RESTAURANTEBD · REPORTE DE VENTAS',
-                `Periodo: ${snapshot.periodStart} al ${snapshot.periodEnd}`,
-                `Generado: ${formatDateTime(snapshot.date)}`,
-                `Tipo: ${snapshot.kind==='weekly'?'Reporte semanal':'Reporte del periodo'}`,
-                '',
-                `Ventas totales: ${money(snapshot.sales)}`,
-                `Ordenes pagadas: ${snapshot.orders}`,
-                `Ticket promedio: ${money(snapshot.average)}`,
-                `Reservas confirmadas: ${snapshot.reservations}`,
-                '',
-                'DISTRIBUCION POR METODO DE PAGO',
-                `Efectivo: ${snapshot.payments.Efectivo}`,
-                `Tarjeta: ${snapshot.payments.Tarjeta}`,
-                `Transferencia: ${snapshot.payments.Transferencia}`,
-                '',
-                'DETALLE DE VENTAS'
-            ];
-            (snapshot.details||[]).forEach((x,i)=>lines.push(`${i+1}. ${x.id} · ${x.customer} · ${x.payment} · ${money(x.total)} · ${formatDateTime(x.date)}`));
-            const pdf=makeSimplePdf(lines),blob=new Blob([pdf],{type:'application/pdf'}),url=URL.createObjectURL(blob),a=document.createElement('a');
-            a.href=url;a.download=`Reporte_${snapshot.periodStart}_${snapshot.periodEnd}.pdf`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
-        },
-        downloadSaved(id){const saved=read(KEY.savedReports,[]),report=saved.find(r=>r.id===id);if(report)this.downloadPdf(report);},
-        clearSaved(){if(!confirm('¿Limpiar el historial de reportes guardados? Las ventas del periodo actual no se eliminarán.'))return;write(KEY.savedReports,[]);write(KEY.reportArchive,[]);this.renderSaved();toast('Historial de reportes limpiado','info');},
-        renderSaved(){
-            const box=document.getElementById('savedReportsList');if(!box)return;const saved=read(KEY.savedReports,[]);
-            box.innerHTML=saved.length?saved.slice(0,12).map(r=>`<div class="recent-row saved-report-row"><div><strong>${r.kind==='weekly'?'Semanal':'Reporte'} · ${r.periodStart} → ${r.periodEnd} · ${money(r.sales)}</strong><small>${r.orders} órdenes · ${r.reservations} reservas · ${formatDateTime(r.date)}</small></div><div class="saved-report-actions"><span class="status-pill success">Guardado</span><button type="button" class="secondary-btn small" onclick="ESFERestaurante.reports.downloadSaved('${this.escapeId(r.id)}')"><span class="action-icon">${this.iconPdf()}</span>PDF</button></div></div>`).join(''):'<div class="empty-state compact"><p>No hay reportes guardados.</p></div>';
-            document.getElementById('savedReportsCount')&&(document.getElementById('savedReportsCount').textContent=saved.length);
-        },
-        escapeId(id){return String(id||'').replace(/[^A-Za-z0-9_-]/g,'');},
-        iconPdf(){return '<svg viewBox="0 0 24 24" fill="none"><path d="M6 3h9l3 3v15H6z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M14 3v4h4M8.5 12h2.4a1.6 1.6 0 0 1 0 3.2H8.5zM13.5 15.2v-3.2h1.5a1.6 1.6 0 0 1 0 3.2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'}
+        init(){this.render();},
+        render(){const sales=read(KEY.sales,[]), today=localDate(), todays=sales.filter(s=>s.date.startsWith(today));const total=todays.reduce((sum,x)=>sum+Number(x.total||0),0),orders=todays.length;document.getElementById('reportSales').textContent=money(total);document.getElementById('reportOrders').textContent=orders;document.getElementById('reportAverage').textContent=money(orders?total/orders:0);document.getElementById('reportReservations').textContent=read(KEY.reservations,[]).filter(r=>r.date===today&&r.status==='Confirmada').length;document.getElementById('salesList').innerHTML=todays.slice(0,8).map(s=>`<div class="recent-row"><div><strong>${s.id}</strong><small>${s.payment} · ${new Date(s.date).toLocaleTimeString('es-SV',{hour:'2-digit',minute:'2-digit'})}</small></div><strong>${money(s.total)}</strong></div>`).join('')||'<div class="empty-state compact"><p>No hay ventas hoy.</p></div>';const methods=['Efectivo','Tarjeta','Transferencia'];const max=Math.max(1,...methods.map(m=>todays.filter(x=>x.payment===m).length));document.getElementById('paymentDistribution').innerHTML=methods.map(m=>{const n=todays.filter(x=>x.payment===m).length;return `<div class="distribution-row"><span>${m}</span><div><i style="width:${n/max*100}%"></i></div><strong>${n}</strong></div>`}).join('');this.renderSaved();},
+        save(){const sales=read(KEY.sales,[]),today=localDate(),todays=sales.filter(s=>s.date.startsWith(today)),total=todays.reduce((sum,x)=>sum+Number(x.total||0),0),snapshot={id:uid('REP'),date:new Date().toISOString(),period:today,sales:total,orders:todays.length,average:todays.length?Number((total/todays.length).toFixed(2)):0,reservations:read(KEY.reservations,[]).filter(r=>r.date===today&&r.status==='Confirmada').length,payments:{Efectivo:todays.filter(x=>x.payment==='Efectivo').length,Tarjeta:todays.filter(x=>x.payment==='Tarjeta').length,Transferencia:todays.filter(x=>x.payment==='Transferencia').length}};const saved=read(KEY.savedReports,[]);saved.unshift(snapshot);write(KEY.savedReports,saved);this.renderSaved();toast('Reporte guardado correctamente');},
+        clearSaved(){if(!confirm('¿Limpiar los reportes guardados? Las ventas y pedidos no se eliminarán.'))return;write(KEY.savedReports,[]);this.renderSaved();toast('Reportes guardados limpiados','info');},
+        renderSaved(){const box=document.getElementById('savedReportsList');if(!box)return;const saved=read(KEY.savedReports,[]);box.innerHTML=saved.length?saved.slice(0,10).map(r=>`<div class="recent-row"><div><strong>${r.period} · ${money(r.sales)}</strong><small>${r.orders} órdenes · ${r.reservations} reservas · ${new Date(r.date).toLocaleString('es-SV')}</small></div><span class="status-pill success">Guardado</span></div>`).join(''):'<div class="empty-state compact"><p>No hay reportes guardados.</p></div>';document.getElementById('savedReportsCount')&&(document.getElementById('savedReportsCount').textContent=saved.length);}
     };
 
     const adminProducts={
@@ -574,64 +467,36 @@ const ESFERestaurante = (() => {
     const notifications={
         filter:'all',
         search:'',
-        contacts:[],
-        draftSaveTimer:null,
-        attachments:[],
         escape(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));},
-        init(){
-            const host=document.getElementById('notificationContacts');
-            try{this.contacts=host?.dataset.contacts?JSON.parse(host.dataset.contacts):[];}catch{this.contacts=[];}
-            const fromName=document.getElementById('composeFromName');
-            const fromEmail=document.getElementById('composeFromEmail');
-            if(fromName)fromName.textContent=document.body?.dataset.userName||'Cuenta activa';
-            if(fromEmail)fromEmail.textContent=currentUser()||'cuenta@restaurantebd.local';
-            this.attachments=[];this.renderAttachments();
-            this.render();updateNotificationBadges();this.updateComposeState();this.restoreDraft();
-            document.getElementById('composeAttachmentInput')?.addEventListener('change',e=>this.addAttachments(e.target.files));
-            ['composeRecipient','composeCc','composeBcc','composeSubject','composeMessage'].forEach(id=>document.getElementById(id)?.addEventListener('input',()=>this.scheduleDraft()));
-            document.getElementById('composeRecipient')?.addEventListener('change',()=>this.updateComposeState());
-        },
-        icon(type){const icons={
-            factura:'<svg viewBox="0 0 24 24" fill="none"><path d="M6 3.5h9l3 3V20H6z" stroke="currentColor" stroke-width="1.8"/><path d="M14 3.5V7h4M8.5 11h7M8.5 15h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
-            pedido:'<svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
-            pago:'<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18M7 15h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
-            mensaje:'<svg viewBox="0 0 24 24" fill="none"><path d="M5 5.5h14a2 2 0 0 1 2 2V16a2 2 0 0 1-2 2H11l-5 3v-3.5H5a2 2 0 0 1-2-2V7.5a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 10h8M8 14h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
-            general:'<svg viewBox="0 0 24 24" fill="none"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
-            download:'<svg viewBox="0 0 24 24" fill="none"><path d="M12 4v11M8 11l4 4 4-4M5 20h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>', adjunto:'<svg viewBox="0 0 24 24" fill="none"><path d="m8.5 12.5 5.8-5.8a3.2 3.2 0 0 1 4.5 4.5l-7.1 7.1a4.3 4.3 0 0 1-6.1-6.1l7-7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>', default:'<svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="m5 7 7 5 7-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>'};return icons[type]||icons.default;},
-        typeLabel(type){return {factura:'Factura',pedido:'Pedido',pago:'Pago',mensaje:'Mensaje',general:'Aviso'}[type]||'Mensaje';},
-        sender(n){return n.fromName||'RestauranteBD';},
-        senderEmail(n){return n.fromEmail||'notificaciones@restaurantebd.local';},
-        recipientLabel(n){if(n.toName)return n.toName;if(n.roles?.length)return n.roles.length===1?n.roles[0]:'Equipo operativo';return n.user||'Destinatario';},
-        initials(name){const parts=String(name||'R').trim().split(/\s+/).slice(0,2);return parts.map(x=>x.charAt(0).toUpperCase()).join('')||'R';},
+        init(){this.render();updateNotificationBadges();},
+        icon(type){const icons={factura:'<svg viewBox="0 0 24 24" fill="none"><path d="M6 3.5h9l3 3V20H6z" stroke="currentColor" stroke-width="1.8"/><path d="M14 3.5V7h4M8.5 11h7M8.5 15h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',pedido:'<svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',pago:'<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18M7 15h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',general:'<svg viewBox="0 0 24 24" fill="none"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',default:'<svg viewBox="0 0 24 24" fill="none"><path d="M6 4h12a2 2 0 0 1 2 2v12H4V6a2 2 0 0 1 2-2Zm0 4h12" stroke="currentColor" stroke-width="1.7"/><path d="M8 13h8M8 16h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'};return icons[type]||icons.default;},
+        typeLabel(type){return {factura:'Factura',pedido:'Pedido',pago:'Pago',general:'Aviso'}[type]||'Mensaje';},
         render(){
             const box=document.getElementById('notificationList');if(!box)return;
             const visibleAll=notificationsGet().filter(notificationVisible);
-            const unreadCount=visibleAll.filter(x=>!x.read&&!x.sent).length;
-            const invoiceCount=visibleAll.filter(x=>x.type==='factura'&&!x.sent).length;
-            document.getElementById('notificationHeaderUnread')?.replaceChildren(document.createTextNode(String(unreadCount)));
-            document.getElementById('notificationHeaderInvoices')?.replaceChildren(document.createTextNode(String(invoiceCount)));
-            document.getElementById('mailUnreadSide')?.replaceChildren(document.createTextNode(String(unreadCount)));
-            let list=visibleAll.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
-            if(this.filter==='all')list=list.filter(x=>!x.sent);
-            if(this.filter==='unread')list=list.filter(x=>!x.read&&!x.sent);
-            if(this.filter==='invoice')list=list.filter(x=>x.type==='factura'&&!x.sent);
-            if(this.filter==='starred')list=list.filter(x=>x.starred);
-            if(this.filter==='sent')list=list.filter(x=>x.sent);
-            if(this.search)list=list.filter(x=>[x.title,x.message,x.detail,x.orderId,x.fromName,x.fromEmail,x.toName,x.toEmail].filter(Boolean).join(' ').toLowerCase().includes(this.search));
-            if(!list.length){box.innerHTML='<div class="mail-empty"><div class="mail-empty-icon">'+this.icon(this.filter==='sent'?'mensaje':'general')+'</div><strong>Esta bandeja está vacía</strong><p>No hay mensajes que coincidan con la vista seleccionada.</p></div>';return;}
+            const unreadCount=visibleAll.filter(x=>!x.read).length;
+            const invoiceCount=visibleAll.filter(x=>x.type==='factura').length;
+            const unreadHeader=document.getElementById('notificationHeaderUnread');
+            const invoiceHeader=document.getElementById('notificationHeaderInvoices');
+            if(unreadHeader)unreadHeader.textContent=unreadCount;
+            if(invoiceHeader)invoiceHeader.textContent=invoiceCount;
+            let list=notificationsGet().filter(notificationVisible);
+            if(this.filter==='unread')list=list.filter(x=>!x.read);
+            if(this.filter==='invoice')list=list.filter(x=>x.type==='factura');
+            if(this.search)list=list.filter(x=>[x.title,x.message,x.detail,x.orderId].filter(Boolean).join(' ').toLowerCase().includes(this.search));
+            if(!list.length){box.innerHTML='<div class="empty-state notification-empty"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><strong>No hay mensajes</strong><p>Tu bandeja está al día.</p></div>';return;}
             box.innerHTML=list.map(n=>{
-                const title=this.escape(n.title||'Sin asunto');
-                const snippet=this.escape((n.message||n.detail||'Sin contenido').replace(/\s+/g,' ').slice(0,160));
-                const date=this.escape(formatDateTime(n.date));
-                return `<article class="mail-row ${n.read?'read':'unread'} ${n.sent?'sent':''}" data-notification-id="${this.escape(n.id)}">
-                    <button type="button" class="mail-star ${n.starred?'active':''}" aria-label="${n.starred?'Quitar destacado':'Destacar'}" onclick="event.stopPropagation();ESFERestaurante.notifications.toggleStar('${this.escape(n.id)}')"><span class="ui-icon">${this.icon('default')}</span></button>
-                    <div class="mail-avatar">${this.escape(this.initials(this.sender(n)))}</div>
-                    <button type="button" class="mail-main" onclick="ESFERestaurante.notifications.markRead('${this.escape(n.id)}')">
-                        <div class="mail-main-top"><strong>${this.escape(this.sender(n))}</strong><span>${this.escape(n.sent?'Para: '+this.recipientLabel(n):this.recipientLabel(n))}</span><time>${date}</time></div>
-                        <div class="mail-subject"><span class="mail-type-icon">${this.icon(n.type)}</span><strong>${title}</strong>${n.orderId?`<em>${this.escape(n.orderId)}</em>`:''}</div>
-                        <p>${snippet}</p>
+                const title=this.escape(n.title||'Notificación'), detail=this.escape(n.detail||n.message||''), date=this.escape(formatDateTime(n.date));
+                const action=n.action==='invoice'&&n.orderId?`<button type="button" class="notification-action" onclick="event.stopPropagation();ESFERestaurante.invoices.show('${this.escape(n.orderId)}')"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M6 3.5h9l3 3V20H6zM14 3.5V7h4M8.5 11h7M8.5 15h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Factura</button>`:'';
+                return `<article class="notification-row ${n.read?'read':'unread'}" data-notification-id="${this.escape(n.id)}">
+                    <button type="button" class="notification-star ${n.starred?'active':''}" aria-label="${n.starred?'Quitar destacado':'Destacar'}" onclick="event.stopPropagation();ESFERestaurante.notifications.toggleStar('${this.escape(n.id)}')"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><path d="m12 4 2.35 4.76 5.25.76-3.8 3.7.9 5.24L12 16l-4.7 2.46.9-5.24-3.8-3.7 5.25-.76L12 4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span></button>
+                    <div class="notification-icon">${this.icon(n.type)}</div>
+                    <button type="button" class="notification-main" onclick="ESFERestaurante.notifications.markRead('${this.escape(n.id)}')">
+                        <div class="notification-main-top"><strong>${title}</strong><time>${date}</time></div>
+                        <div class="notification-subject">${this.escape(n.message||'')}</div>
+                        <p>${detail}</p>
                     </button>
-                    <div class="mail-row-actions"><button type="button" class="icon-btn" aria-label="${n.read?'Marcar no leída':'Marcar leída'}" onclick="event.stopPropagation();ESFERestaurante.notifications.toggleRead('${this.escape(n.id)}')"><span class="ui-icon">${n.read?'<svg viewBox="0 0 24 24" fill="none"><path d="M5 12a7 7 0 0 0 14 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="m9 12 2 2 4-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>':'<svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="m5 7 7 5 7-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>'}</span></button></div>
+                    <div class="notification-row-actions">${action}<button type="button" class="notification-action icon-only" aria-label="${n.read?'Marcar no leída':'Marcar leída'}" onclick="event.stopPropagation();ESFERestaurante.notifications.toggleRead('${this.escape(n.id)}')"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none">${n.read?'<path d="M4 12a8 8 0 0 0 16 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M8 12l3 3 5-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>':'<rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="m5 7 7 5 7-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>'}</svg></span></button></div>
                 </article>`;
             }).join('');
         },
@@ -640,121 +505,61 @@ const ESFERestaurante = (() => {
         open(id){
             const n=notificationsGet().find(x=>x.id===id&&notificationVisible(x));if(!n)return;
             const modal=document.getElementById('notificationDetailModal');if(!modal)return;
-            const order=read(KEY.orders,[]).find(o=>o.id===n.orderId);const invoice=n.orderId?getInvoice(n.orderId):null;const esc=this.escape.bind(this);
-            const title=n.title||'Sin asunto', body=n.detail||n.message||'Has recibido un mensaje de RestauranteBD.';const renderedBody=this.renderMessageBody(body);const attachmentHtml=this.renderReaderAttachments(n.attachments||[]);
-            const items=order?.items||[];const customerName=order?.customerName||order?.customer||'';
-            const summaryCard=(label,value,extra='')=>`<div><span>${esc(label)}</span><strong>${esc(value||'No registrado')}</strong>${extra?`<small>${esc(extra)}</small>`:''}</div>`;
-            const itemsHtml=items.length?`<section class="reader-section"><div class="reader-section-head"><div><span class="reader-section-icon">${this.icon('pedido')}</span><strong>Detalle de productos</strong></div><small>${items.length} ${items.length===1?'producto':'productos'}</small></div><div class="reader-items">${items.map(i=>`<div class="reader-item"><div><strong>${esc(i.name)}</strong><small>${Number(i.qty)||0} unidad(es)</small></div><span>${money(Number(i.price)||0)}</span><strong>${money((Number(i.price)||0)*(Number(i.qty)||0))}</strong></div>`).join('')}</div></section>`:'';
-            const orderHtml=order?`<section class="reader-section"><div class="reader-section-head"><div><span class="reader-section-icon">${this.icon('pedido')}</span><strong>Información del pedido</strong></div><span class="reader-status">${esc(order.status||'Actualizado')}</span></div><div class="reader-grid">${summaryCard('Número de pedido',order.id)}${summaryCard('Fecha',formatDateTime(order.date))}${summaryCard('Tipo de pedido',order.orderType||'No especificado')}${summaryCard('Cliente',customerName||currentUser())}${summaryCard('Subtotal',money(Number(order.subtotal)||0))}${summaryCard('IVA',money(Number(order.tax)||0))}${summaryCard('Total',money(Number(order.total)||0))}${summaryCard('Estado',order.status||'Actualizado')}</div></section>`:'';
-            const paymentHtml=order?`<section class="reader-section"><div class="reader-section-head"><div><span class="reader-section-icon">${this.icon('pago')}</span><strong>Información del pago</strong></div><span class="reader-status ${order.paymentStatus==='Pagado'?'paid':''}">${esc(order.paymentStatus||'Pendiente')}</span></div><div class="reader-grid">${summaryCard('Método',order.payment)}${summaryCard('Referencia',order.paymentRef||'No aplica')}${summaryCard('Fecha de pago',order.paidAt?formatDateTime(order.paidAt):'Aún no registrado')}${summaryCard('Factura',invoice?.invoiceNumber||'Disponible al confirmar')}</div></section>`:'';
-            const deliveryHtml=order&&(order.orderType||'').toLowerCase().includes('domic')?`<section class="reader-section"><div class="reader-section-head"><div><span class="reader-section-icon">${this.icon('pedido')}</span><strong>Entrega a domicilio</strong></div></div><div class="reader-grid">${summaryCard('Teléfono',order.deliveryPhone||order.customerPhone)}${summaryCard('Dirección',order.deliveryAddress)}</div></section>`:'';
-            const noteHtml=order?.note?`<section class="reader-note"><span class="reader-section-icon">${this.icon('mensaje')}</span><div><strong>Observación</strong><p>${esc(order.note)}</p></div></section>`:'';
-            const mailMeta=`<section class="reader-meta"><div>${summaryCard('De',this.sender(n),this.senderEmail(n))}${summaryCard('Para',n.sent?this.recipientLabel(n):currentUser(),n.toEmail||('Área: '+(currentRole()||'Operación')))}</div><div>${summaryCard('Enviado',formatDateTime(n.date))}${summaryCard('Identificador',n.id)}</div></section>`;
-            const html=`<div class="reader-intro"><div class="reader-message-rendered">${renderedBody}</div></div>${attachmentHtml}${mailMeta}${orderHtml}${itemsHtml}${paymentHtml}${deliveryHtml}${noteHtml}${invoice?`<section class="reader-invoice-banner"><div><strong>Factura digital disponible</strong><span>${esc(invoice.invoiceNumber)} · ${money(invoice.total)}</span></div><button class="primary-btn small" onclick="ESFERestaurante.invoices.show('${esc(n.orderId)}')">Abrir factura</button></section>`:''}`;
+            const order=read(KEY.orders,[]).find(o=>o.id===n.orderId);
+            const invoice=n.orderId?getInvoice(n.orderId):null;
+            const esc=this.escape.bind(this);
+            const title=n.title||'Notificación';
+            const body= n.detail || n.message || 'Has recibido una nueva notificación de RestauranteBD.';
+            const customerName=order?.customerName||order?.customer||'';
+            const items=order?.items||[];
+            const itemsHtml=items.length?`<section class="mail-section"><div class="mail-section-title"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M6 4h12v16H6zM9 8h6M9 12h6M9 16h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><strong>Detalle de productos</strong><span class="mail-section-count">${items.length} ${items.length===1?'producto':'productos'}</span></div><div class="mail-items-table"><div class="mail-items-head"><span>Producto</span><span>Cantidad</span><span>Precio</span><span>Importe</span></div>${items.map(i=>`<div class="mail-item-row"><span>${esc(i.name)}</span><strong>${Number(i.qty)||0}</strong><span>${money(Number(i.price)||0)}</span><strong>${money((Number(i.price)||0)*(Number(i.qty)||0))}</strong></div>`).join('')}</div></section>`:'';
+            const orderHtml=order?`<section class="mail-section"><div class="mail-section-title"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span><strong>Información del pedido</strong><span class="status-pill ${order.status==='Entregado'?'success':order.status==='Listo'?'success':'warning'}">${esc(order.status||'Actualizado')}</span></div><div class="mail-info-grid">
+                <div><span>Número de pedido</span><strong>${esc(order.id)}</strong></div>
+                <div><span>Fecha del pedido</span><strong>${esc(formatDateTime(order.date))}</strong></div>
+                <div><span>Tipo de pedido</span><strong>${esc(order.orderType||'No especificado')}</strong></div>
+                <div><span>Cliente</span><strong>${esc(customerName||currentUser())}</strong></div>
+                <div><span>Total</span><strong>${money(Number(order.total)||0)}</strong></div>
+                <div><span>Estado del pedido</span><strong>${esc(order.status||'Actualizado')}</strong></div>
+            </div></section>`:'';
+            const paymentHtml=order?`<section class="mail-section"><div class="mail-section-title"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3 10h18M7 15h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span><strong>Información del pago</strong><span class="status-pill ${order.paymentStatus==='Pagado'?'success':'warning'}">${esc(order.paymentStatus||'Pendiente')}</span></div><div class="mail-info-grid">
+                <div><span>Método</span><strong>${esc(order.payment||'No especificado')}</strong></div>
+                <div><span>Estado</span><strong>${esc(order.paymentStatus||'Pendiente')}</strong></div>
+                <div><span>Referencia</span><strong>${esc(order.paymentRef||'Pendiente de confirmación')}</strong></div>
+                <div><span>Fecha del pago</span><strong>${esc(order.paidAt?formatDateTime(order.paidAt):'Aún no registrado')}</strong></div>
+                <div><span>Subtotal</span><strong>${money(Number(order.subtotal)||0)}</strong></div>
+                <div><span>IVA</span><strong>${money(Number(order.tax)||0)}</strong></div>
+                <div><span>Total pagado</span><strong>${money(Number(order.total)||0)}</strong></div>
+                <div><span>Factura</span><strong>${invoice?esc(invoice.invoiceNumber):'Se generará al confirmar el pago'}</strong></div>
+            </div></section>`:'';
+            const deliveryHtml=order&&(order.orderType||'').toLowerCase().includes('domic')?`<section class="mail-section"><div class="mail-section-title"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h10v11H4zM14 10h4l3 3v4h-7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="8" cy="18" r="1.5" stroke="currentColor" stroke-width="1.6"/><circle cx="18" cy="18" r="1.5" stroke="currentColor" stroke-width="1.6"/></svg></span><strong>Entrega a domicilio</strong></div><div class="mail-info-grid">
+                <div><span>Teléfono</span><strong>${esc(order.deliveryPhone||order.customerPhone||'No registrado')}</strong></div>
+                <div><span>Dirección</span><strong>${esc(order.deliveryAddress||'No registrada')}</strong></div>
+            </div></section>`:'';
+            const noteHtml=order?.note?`<section class="mail-note"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M5 4h14v16H5z" stroke="currentColor" stroke-width="1.7"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><div><strong>Observación del pedido</strong><p>${esc(order.note)}</p></div></section>`:'';
+            const html=`<div class="mail-intro"><p>${esc(body)}</p><div class="mail-reference"><span>Identificador del mensaje</span><strong>${esc(n.id)}</strong></div></div>${orderHtml}${itemsHtml}${paymentHtml}${deliveryHtml}${noteHtml}<div class="mail-received"><span>Recibido</span><strong>${esc(formatDateTime(n.date))}</strong></div>`;
             modal.classList.add('show');
             modal.querySelector('[data-notification-detail-title]').textContent=title;
             modal.querySelector('[data-notification-detail-icon]').innerHTML=this.detailIcon(n.type);
             modal.querySelector('[data-notification-detail-type]').textContent=this.typeLabel(n.type);
-            modal.querySelector('[data-notification-detail-sender]').textContent=this.sender(n);
-            modal.querySelector('[data-notification-detail-sender-email]').textContent=this.senderEmail(n);
-            modal.querySelector('[data-notification-detail-recipient]').textContent=n.sent?`para ${this.recipientLabel(n)}`:`para ${currentUser()||'mí'}`;
-            modal.querySelector('[data-notification-detail-avatar]').textContent=this.initials(this.sender(n));
+            modal.querySelector('[data-notification-detail-sender]').textContent='RestauranteBD';
+            modal.querySelector('[data-notification-detail-sender-email]').textContent='notificaciones@restaurantebd.local';
+            modal.querySelector('[data-notification-detail-recipient]').textContent=`para ${currentUser()||'mí'} · área ${({Dueno:'Administración',Cocina:'Cocina',Barra:'Barra',Repartidor:'Reparto',Cliente:'Cliente'}[currentRole()]||'Operación')}`;
+            modal.querySelector('[data-notification-detail-avatar]').textContent='R';
             modal.querySelector('[data-notification-detail-date]').textContent=formatDateTime(n.date);
             modal.querySelector('[data-notification-detail-body]').innerHTML=html;
-            const star=modal.querySelector('[data-notification-detail-star]');if(star){star.classList.toggle('active',!!n.starred);star.onclick=()=>this.toggleStar(n.id);}
-            const reply=modal.querySelector('[data-notification-detail-reply]');if(reply){reply.style.display=n.sent?'none':'inline-flex';reply.onclick=()=>{this.close();this.openCompose({to:n.fromEmail||n.user||'',subject:(title.startsWith('Re:')?'':'Re: ')+title,body:'\n\n--- Mensaje original ---\n'+body});};}
-            const action=modal.querySelector('[data-notification-detail-action]');if(action){action.innerHTML=invoice&&n.orderId?'<span class="action-icon">'+this.icon('factura')+'</span>Ver factura':'';action.style.display=invoice&&n.orderId?'inline-flex':'none';action.onclick=()=>{if(invoice&&n.orderId)showInvoice(n.orderId);};}
-        },
-        renderMessageBody(text){
-            const escaped=this.escape(text).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/_(.+?)_/g,'<em>$1</em>').replace(/^> (.*)$/gm,'<blockquote>$1</blockquote>').replace(/^• (.*)$/gm,'<li>$1</li>').replace(/\n/g,'<br>');
-            return escaped.replace(/(<li>.*?<\/li>)(?:<br>)?/gs,'<ul class="reader-message-list">$1</ul>');
-        },
-        renderReaderAttachments(attachments){
-            if(!Array.isArray(attachments)||!attachments.length)return '';
-            return `<section class="reader-attachments"><div class="reader-section-head"><div><span class="reader-section-icon">${this.icon('adjunto')}</span><strong>Archivos adjuntos</strong><small>${attachments.length} archivo${attachments.length===1?'':'s'}</small></div></div><div class="reader-attachment-list">${attachments.map(a=>`<a class="reader-attachment" href="${a.data}" download="${this.escape(a.name)}"><span class="reader-attachment-icon">${this.icon('adjunto')}</span><span><strong>${this.escape(a.name)}</strong><small>${(Number(a.size||0)/1024/1024).toFixed(2)} MB</small></span><span class="action-icon">${this.icon('download')}</span></a>`).join('')}</div></section>`;
+            const star=modal.querySelector('[data-notification-detail-star]');
+            if(star){star.classList.toggle('active',!!n.starred);star.onclick=()=>this.toggleStar(n.id);}
+            const action=modal.querySelector('[data-notification-detail-action]');
+            if(action){action.innerHTML=invoice&&n.orderId?'<span class="action-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M6 3.5h9l3 3V20H6zM14 3.5V7h4M8.5 11h7M8.5 15h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Ver factura':'';action.style.display=invoice&&n.orderId?'inline-flex':'none';action.onclick=()=>{if(invoice&&n.orderId)showInvoice(n.orderId);};}
         },
         close(){document.getElementById('notificationDetailModal')?.classList.remove('show');},
         toggleRead(id){const list=notificationsGet();const n=list.find(x=>x.id===id&&notificationVisible(x));if(n)n.read=!n.read;notificationsSave(list);this.render();updateNotificationBadges();},
         toggleStar(id){const list=notificationsGet();const n=list.find(x=>x.id===id&&notificationVisible(x));if(n)n.starred=!n.starred;notificationsSave(list);this.render();updateNotificationBadges();if(document.getElementById('notificationDetailModal')?.classList.contains('show'))this.open(id);},
-        markAllRead(){const list=notificationsGet();list.forEach(n=>{if(notificationVisible(n)&&!n.sent)n.read=true});notificationsSave(list);this.render();updateNotificationBadges();},
+        markAllRead(){const list=notificationsGet();list.forEach(n=>{if(notificationVisible(n))n.read=true});notificationsSave(list);this.render();updateNotificationBadges();},
         setFilter(filter){this.filter=filter;document.querySelectorAll('[data-notification-filter]').forEach(b=>b.classList.toggle('active',b.dataset.notificationFilter===filter));this.render();},
-        searchFor(value){this.search=String(value||'').trim().toLowerCase();this.render();},
-        openCompose(prefill={}){
-            const modal=document.getElementById('composeMailModal');if(!modal)return;
-            this.close();modal.classList.add('show');
-            const recipient=document.getElementById('composeRecipient');const subject=document.getElementById('composeSubject');const message=document.getElementById('composeMessage');
-            const cc=document.getElementById('composeCc');const bcc=document.getElementById('composeBcc');
-            recipient.value=prefill.to||'';subject.value=prefill.subject||'';message.value=prefill.body||'';
-            if(cc)cc.value=''; if(bcc)bcc.value='';
-            document.getElementById('composeCcRow')?.setAttribute('hidden','');document.getElementById('composeBccRow')?.setAttribute('hidden','');
-            this.clearDraft();this.attachments=[];this.renderAttachments();this.updateComposeState();setTimeout(()=>recipient.focus(),80);
-        },
-        closeCompose(){document.getElementById('composeMailModal')?.classList.remove('show');},
-        updateComposeState(){
-            const input=document.getElementById('composeRecipient');if(!input)return;
-            const count=this.parseEmailList(input.value).length;
-            const hint=currentRole()==='Dueno'
-                ? 'Puedes escribir uno o varios correos directamente. Para envíos a un área completa utiliza los destinatarios internos autorizados.'
-                : 'Escribe el correo electrónico de la persona o área a la que quieres contactar. Tu cuenta no tiene destinatarios masivos.';
-            const suffix=count?` · ${count} destinatario${count===1?'':'s'} detectado${count===1?'':'s'}`:'';
-            document.getElementById('composeRecipientHint')?.replaceChildren(document.createTextNode(hint+suffix));
-        },
-        parseEmailList(value){return String(value||'').split(/[;,]/).map(x=>x.trim().toLowerCase()).filter(Boolean);},
-        isValidEmail(email){return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);},
-        addAttachments(fileList){
-            const files=Array.from(fileList||[]);if(!files.length)return;
-            const MAX_FILE=200*1024*1024,MAX_TOTAL=200*1024*1024,MAX_FILES=5;
-            if(this.attachments.length>=MAX_FILES){toast('Máximo 5 archivos por mensaje','error');return;}
-            let total=this.attachments.reduce((n,f)=>n+Number(f.size||0),0);
-            let pending=files.slice(0,MAX_FILES-this.attachments.length);
-            let chain=Promise.resolve();
-            pending.forEach(file=>{chain=chain.then(()=>{
-                if(file.size>MAX_FILE){toast(`${file.name}: máximo 200 MB`,'error');return;}
-                if(total+file.size>MAX_TOTAL){toast('Los adjuntos no pueden superar 200 MB en total','error');return;}
-                return new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>{this.attachments.push({name:file.name,size:file.size,type:file.type||'application/octet-stream',data:reader.result});total+=file.size;this.renderAttachments();this.scheduleDraft();resolve();};reader.onerror=()=>{toast(`No se pudo leer ${file.name}`,'error');resolve();};reader.readAsDataURL(file);});
-            });});
-            chain.then(()=>{const input=document.getElementById('composeAttachmentInput');if(input)input.value='';});
-        },
-        removeAttachment(index){this.attachments.splice(Number(index),1);this.renderAttachments();this.scheduleDraft();},
-        renderAttachments(){
-            const box=document.getElementById('composeAttachments');if(!box)return;
-            if(!this.attachments.length){box.innerHTML='';box.hidden=true;return;}
-            box.hidden=false;box.innerHTML=this.attachments.map((a,i)=>`<span class="compose-attachment-chip"><span class="ui-icon">${this.icon('adjunto')}</span><span title="${this.escape(a.name)}">${this.escape(a.name)}</span><small>${(a.size/1024/1024).toFixed(2)} MB</small><button type="button" aria-label="Quitar ${this.escape(a.name)}" onclick="ESFERestaurante.notifications.removeAttachment(${i})">×</button></span>`).join('');
-        },
-        toggleFormatTools(){document.getElementById('composeFormatPanel')?.classList.toggle('show');},
-        insertFormat(token){const ta=document.getElementById('composeMessage');if(!ta)return;const a=ta.selectionStart,b=ta.selectionEnd,selected=ta.value.slice(a,b)||'texto';const wrapped=token==='bold'?`**${selected}**`:token==='italic'?`_${selected}_`:token==='quote'?`> ${selected}`:`• ${selected}`;ta.setRangeText(wrapped,a,b,'end');ta.focus();this.scheduleDraft();},
-        sendCompose(){
-            const recipientInput=document.getElementById('composeRecipient'),subject=document.getElementById('composeSubject'),message=document.getElementById('composeMessage');
-            const ccInput=document.getElementById('composeCc'),bccInput=document.getElementById('composeBcc');
-            const toList=this.parseEmailList(recipientInput?.value),title=subject?.value.trim()||'',body=message?.value.trim()||'',cc=this.parseEmailList(ccInput?.value),bcc=this.parseEmailList(bccInput?.value);
-            const me=currentUser().toLowerCase(),role=currentRole();
-            if(!toList.length){toast('Escribe el correo del destinatario','error');recipientInput?.focus();return;}
-            if(toList.some(x=>!this.isValidEmail(x))){toast('Revisa los correos del campo Para','error');recipientInput?.focus();return;}
-            if(role!=='Dueno'&&toList.length>1){toast('Tu cuenta puede enviar a un destinatario por mensaje.','error');return;}
-            if(toList.includes(me)){toast('No puedes enviarte el mensaje a tu propia cuenta.','error');return;}
-            if(!title){toast('Escribe un asunto','error');return;}
-            if(body.length<2){toast('Escribe el contenido del mensaje','error');return;}
-            const allCc=cc.filter(this.isValidEmail).filter(x=>x!==me),allBcc=bcc.filter(this.isValidEmail).filter(x=>x!==me);
-            if(cc.length!==allCc.length||bcc.length!==allBcc.length){toast('Hay un correo inválido en Cc o Cco','error');return;}
-            const duplicateSet=new Set(toList);
-            if(allCc.some(x=>duplicateSet.has(x))||allBcc.some(x=>duplicateSet.has(x))){toast('No repitas al destinatario en Para, Cc o Cco','error');return;}
-            const now=new Date().toISOString(),id=uid('MAIL'),attachments=this.attachments.map(a=>({name:a.name,size:a.size,type:a.type,data:a.data}));
-            const allRecipients=[...toList,...allCc,...allBcc].filter((v,i,a)=>a.indexOf(v)===i);
-            const list=notificationsGet();
-            allRecipients.forEach((email,index)=>{
-                const contact=this.contacts.find(c=>String(c.Email||c.email||'').toLowerCase()===email);
-                const recipientType=toList.includes(email)?'Para':allCc.includes(email)?'Cc':'Cco';
-                list.unshift({id:uid('MAIL'),date:now,title,message:body,detail:body,type:'mensaje',read:false,starred:false,action:null,fromName:(document.body.dataset.userName||'Usuario RestauranteBD'),fromEmail:currentUser(),toName:contact?.Nombre||contact?.nombre||email,toEmail:email,user:email,roles:[],cc:allCc.filter(x=>x!==email),bcc:[],toList:[email],recipientType,orderId:'',attachments,sent:false});
-            });
-            list.unshift({id,user:currentUser(),roles:[],date:now,title,message:body,detail:body,type:'mensaje',read:true,starred:false,action:null,fromName:(document.body.dataset.userName||'Usuario RestauranteBD'),fromEmail:currentUser(),toName:toList.length===1?(this.contacts.find(c=>String(c.Email||c.email||'').toLowerCase()===toList[0])?.Nombre||toList[0]):`${toList.length} destinatarios`,toEmail:toList.join(', '),cc:allCc,bcc:allBcc,toList,recipientType:'Enviado',orderId:'',attachments,sent:true});
-            notificationsSave(list);this.clearDraft();this.closeCompose();this.filter='sent';this.render();updateNotificationBadges();toast(`Mensaje enviado a ${allRecipients.length} destinatario${allRecipients.length===1?'':'s'}`);setTimeout(()=>this.setFilter('all'),900);
-        },
-        scheduleDraft(){clearTimeout(this.draftSaveTimer);this.draftSaveTimer=setTimeout(()=>this.saveDraft(),350);},
-        saveDraft(){const draft={to:document.getElementById('composeRecipient')?.value||'',cc:document.getElementById('composeCc')?.value||'',bcc:document.getElementById('composeBcc')?.value||'',subject:document.getElementById('composeSubject')?.value||'',body:document.getElementById('composeMessage')?.value||'',attachments:this.attachments,savedAt:new Date().toISOString()};localStorage.setItem('restaurantebd_mail_draft',JSON.stringify(draft));document.getElementById('composeDraftStatus')?.replaceChildren(document.createTextNode('Borrador guardado automáticamente'));},
-        restoreDraft(){try{const d=JSON.parse(localStorage.getItem('restaurantebd_mail_draft')||'null');if(d?.subject||d?.body||d?.to){const recipient=document.getElementById('composeRecipient');const cc=document.getElementById('composeCc');const bcc=document.getElementById('composeBcc');const subject=document.getElementById('composeSubject');const message=document.getElementById('composeMessage');if(recipient)recipient.value=d.to||'';if(cc)cc.value=d.cc||'';if(bcc)bcc.value=d.bcc||'';if(subject)subject.value=d.subject||'';if(message)message.value=d.body||'';this.attachments=Array.isArray(d.attachments)?d.attachments.slice(0,5):[];this.renderAttachments();this.updateComposeState();document.getElementById('composeDraftStatus')?.replaceChildren(document.createTextNode('Borrador recuperado'));}}catch{}},
-        clearDraft(){localStorage.removeItem('restaurantebd_mail_draft');document.getElementById('composeDraftStatus')?.replaceChildren(document.createTextNode(''));},
+        searchFor(value){this.search=String(value||'').trim().toLowerCase();this.render();}
     };
-    setInterval(()=>{updateNotificationBadges();reports.ensureWeeklyCutoff();const box=document.getElementById('notificationList');if(box)notifications.render();},3000);
+    setInterval(()=>{updateNotificationBadges();const box=document.getElementById('notificationList');if(box)notifications.render();},3000);
     function setupInputRules(scope=document){
         const root=scope||document;
         root.querySelectorAll?.('[data-letters-only]').forEach(input=>{if(input.dataset.rulesBound)return;input.dataset.rulesBound='1';input.addEventListener('input',()=>{input.value=input.value.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñÀ-ÿ' -]/g,'').replace(/\s{2,}/g,' ');});});

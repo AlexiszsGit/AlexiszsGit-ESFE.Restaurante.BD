@@ -8,7 +8,7 @@
         <div>
             <span class="eyebrow">Entrega</span>
             <h2>Pedidos listos</h2>
-            <p>Busca rápidamente por nombre del cliente, correo o número de pedido y entrega sin perderte entre las órdenes.</p>
+            <p>Busca por nombre, correo, ID del pedido, teléfono o DUI y entrega sin perderte entre las órdenes.</p>
         </div>
         <span id="readyCounter" class="result-count">0 disponibles</span>
     </div>
@@ -16,8 +16,8 @@
     <section class="panel">
         <div class="toolbar-row ready-toolbar">
             <div class="search-box small ready-search">
-                <span>⌕</span>
-                <input id="readySearch" placeholder="Buscar por nombre, correo o número..." autocomplete="off" />
+                <span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+                <input id="readySearch" placeholder="Nombre, correo, ID, teléfono o DUI..." autocomplete="off" />
             </div>
             <button class="secondary-btn" type="button" onclick="ESFERestaurante.ready.clearSearch()">Limpiar</button>
         </div>

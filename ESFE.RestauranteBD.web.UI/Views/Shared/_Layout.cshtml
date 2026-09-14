@@ -3,8 +3,15 @@
     var mostrarApp = controller != "IniciarSesion1";
     var rol = Context.Session.GetString("RolUsuario") ?? "Cliente";
     var esDueno = rol == "Dueno";
+    var esCocina = rol == "Cocina";
+    var esBarra = rol == "Barra";
+    var esRepartidor = rol == "Repartidor";
     var usuario = Context.Session.GetString("UsuarioLogueado") ?? string.Empty;
+    var autenticado = !string.IsNullOrWhiteSpace(usuario);
     var nombreUsuario = Context.Session.GetString("NombreUsuario") ?? (esDueno ? "Dueño" : "Cliente");
+    var telefonoUsuario = Context.Session.GetString("TelefonoUsuario") ?? "";
+    var duiUsuario = Context.Session.GetString("DuiUsuario") ?? "";
+    var direccionUsuario = Context.Session.GetString("DireccionUsuario") ?? "";
 }
 
 <!DOCTYPE html>
@@ -17,15 +24,28 @@
     <link rel="stylesheet" href="~/css/tailwind.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
-<body class="app-body" data-role="@rol" data-user="@usuario" data-user-name="@nombreUsuario">
+<body class="app-body" data-role="@(autenticado ? rol : "Publico")" data-auth="@autenticado" data-user="@usuario" data-user-name="@nombreUsuario" data-phone="@telefonoUsuario" data-dui="@duiUsuario" data-address="@direccionUsuario">
 
-    @if (mostrarApp)
+    @if (mostrarApp && !autenticado)
+    {
+        <main class="public-menu-shell">
+            <header class="public-menu-header">
+                <a asp-controller="GestionDeMenu1" asp-action="Index" class="brand-link public-brand">
+                    <span class="brand-mark"><img src="~/images/logo.jpg" alt="Logo del restaurante" /><span class="brand-fallback">R</span></span>
+                    <strong>RestauranteBD</strong>
+                </a>
+                <a asp-controller="IniciarSesion1" asp-action="Index" class="primary-btn public-login-btn">Iniciar sesión <span>→</span></a>
+            </header>
+            @RenderBody()
+        </main>
+    }
+    else if (mostrarApp)
     {
         <div id="mobileOverlay" class="mobile-overlay" onclick="ESFERestaurante.layout.toggleSidebar(false)"></div>
 
         <aside id="appSidebar" class="app-sidebar">
             <div class="brand-area">
-                <a asp-controller="Inicio1" asp-action="Index" class="brand-link">
+                <a asp-controller="GestionDeMenu1" asp-action="Index" class="brand-link">
                     <span class="brand-mark">
                         <!-- IMAGEN DEL LOGO: colocar /wwwroot/images/logo.png, formato PNG, cuadrado, fondo transparente -->
                         <img src="~/images/logo.jpg" alt="Logo del restaurante" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" />
@@ -35,7 +55,7 @@
                         <strong>RestauranteBD</strong>
                     </span>
                 </a>
-                <button type="button" class="icon-btn sidebar-close" onclick="ESFERestaurante.layout.toggleSidebar(false)">×</button>
+                <button type="button" class="icon-btn sidebar-close" onclick="ESFERestaurante.layout.toggleSidebar(false)" aria-label="Cerrar navegación"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span></button>
             </div>
 
             <div class="side-status">
@@ -47,51 +67,62 @@
             </div>
 
             <nav class="side-nav" aria-label="Navegación principal">
-                <a asp-controller="Inicio1" asp-action="Index"><span>⌂</span><span>Inicio</span></a>
-                <a asp-controller="GestionDeMenu1" asp-action="Index"><span>☷</span><span>Menú</span></a>
-
-                @if (!esDueno)
-                {
-                    <a asp-controller="PedidoyCarrito1" asp-action="Index"><span>🛒</span><span>Carrito</span><b data-cart-badge>0</b></a>
-                }
-
                 @if (esDueno)
                 {
-                    <a asp-controller="GestionDePedidos1" asp-action="Index"><span>▣</span><span>Pedidos</span></a>
-                    <a asp-controller="PantallaDeCocina1" asp-action="Index"><span>◈</span><span>Cocina</span></a>
-                    <a asp-controller="PedidoListo1" asp-action="Index"><span>✓</span><span>Entregas</span></a>
+                    <a asp-controller="Inicio1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m4 10 8-6 8 6v9a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span><span>Inicio</span></a>
+                    <a asp-controller="GestionDeMenu1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span>Menú</span></a>
+                    <a asp-controller="GestionDePedidos1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="3.5" width="16" height="17" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span>Pedidos</span></a>
+                    <a asp-controller="PantallaDeCocina1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 11V6m4 5V4m4 7V5m3 6a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 14v5h8v-5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span><span>Cocina</span></a>
+                    <a asp-controller="PedidoListo1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M3.5 6.5h10v10h-10zM13.5 10h4l3 3.2v3.3h-7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="7" cy="18.5" r="1.5" stroke="currentColor" stroke-width="1.6"/><circle cx="17.5" cy="18.5" r="1.5" stroke="currentColor" stroke-width="1.6"/></svg></span><span>Entregas</span></a>
+                    <a asp-controller="ReservarMesas1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 3.5v4M16 3.5v4M4 9h16M8 13h3M8 16h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span>Reservas</span></a>
+                    <a asp-controller="Trabajadores1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span>Trabajadores</span></a>
+                    <a asp-controller="Clientes1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M5 20a7 7 0 0 1 14 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span>Clientes</span></a>
+                    <a asp-controller="CalificarServicio1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m12 4 2.3 4.8 5.2.8-3.8 3.7.9 5.2-4.6-2.5-4.6 2.5.9-5.2-3.8-3.7 5.2-.8L12 4Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span><span>Calificaciones</span></a>
+                    <a asp-controller="Reportes1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 19V9M12 19V5M19 19v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span>Reportes</span></a>
+                }
+                else if (esCocina)
+                {
+                    <a asp-controller="PantallaDeCocina1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 11V6m4 5V4m4 7V5m3 6a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 14v5h8v-5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span><span>Cocina</span></a>
+                }
+                else if (esBarra)
+                {
+                    <a asp-controller="GestionDePedidos1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="3.5" width="16" height="17" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span>Pedidos</span></a>
+                    <a asp-controller="PedidoListo1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M3.5 6.5h10v10h-10zM13.5 10h4l3 3.2v3.3h-7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="7" cy="18.5" r="1.5" stroke="currentColor" stroke-width="1.6"/><circle cx="17.5" cy="18.5" r="1.5" stroke="currentColor" stroke-width="1.6"/></svg></span><span>Entregas</span></a>
+                    <a asp-controller="Clientes1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M5 20a7 7 0 0 1 14 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span>Clientes</span></a>
+                    <a asp-controller="ReservarMesas1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 3.5v4M16 3.5v4M4 9h16M8 13h3M8 16h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span>Reservas</span></a>
+                }
+                else if (esRepartidor)
+                {
+                    <a asp-controller="PedidoListo1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M3.5 6.5h10v10h-10zM13.5 10h4l3 3.2v3.3h-7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="7" cy="18.5" r="1.5" stroke="currentColor" stroke-width="1.6"/><circle cx="17.5" cy="18.5" r="1.5" stroke="currentColor" stroke-width="1.6"/></svg></span><span>Entregas</span></a>
                 }
                 else
                 {
-                    <a asp-controller="GestionDePedidos1" asp-action="Index"><span>▣</span><span>Mis pedidos</span></a>
-                }
+                    <a asp-controller="Inicio1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m4 10 8-6 8 6v9a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span><span>Inicio</span></a>
+                    <a asp-controller="GestionDeMenu1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span>Menú</span></a>
+                    <a asp-controller="PedidoyCarrito1" asp-action="Index"><span class="nav-icon cart-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M3 4h2l1.7 10.1a2 2 0 0 0 2 1.9h7.8a2 2 0 0 0 1.9-1.5L20 8H7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="19" r="1.4" fill="currentColor"/><circle cx="17" cy="19" r="1.4" fill="currentColor"/></svg></span><span>Carrito</span><b data-cart-badge>0</b></a>
+                    <a asp-controller="GestionDePedidos1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="3.5" width="16" height="17" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span>Mis pedidos</span></a>
+                    <a asp-controller="ReservarMesas1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 3.5v4M16 3.5v4M4 9h16M8 13h3M8 16h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><span>Reservas</span></a>
+                    <a asp-controller="CalificarServicio1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m12 4 2.3 4.8 5.2.8-3.8 3.7.9 5.2-4.6-2.5-4.6 2.5.9-5.2-3.8-3.7 5.2-.8L12 4Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span><span>Calificar servicio</span></a>
 
-                <a asp-controller="ReservarMesas1" asp-action="Index"><span>▦</span><span>Reservas</span></a>
-
-                @if (esDueno)
-                {
-                    <a asp-controller="CalificarServicio1" asp-action="Index"><span>★</span><span>Calificaciones</span></a>
-                    <a asp-controller="Reportes1" asp-action="Index"><span>▤</span><span>Reportes</span></a>
+                    <a asp-controller="Informacion1" asp-action="Index"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.8"/><path d="M12 10v6M12 7.2h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span>Información</span></a>
                 }
-                else
-                {
-                    <a asp-controller="CalificarServicio1" asp-action="Index"><span>★</span><span>Calificar servicio</span></a>
-                    <a asp-controller="NotificacionesController1" asp-action="Index"><span>✉</span><span>Notificaciones</span><b id="notificationBadge">0</b></a>
-                }
-
-                <a asp-controller="Informacion1" asp-action="Index"><span>ⓘ</span><span>Información</span></a>
+                @* Centro de notificaciones compartido: todos los roles autenticados tienen acceso. *@
+                <a asp-controller="NotificacionesController1" asp-action="Index" class="nav-notifications-link">
+                    <span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8A2.5 2.5 0 0 1 17.5 17H11l-4.2 3v-3h-.3A2.5 2.5 0 0 1 4 14.5v-8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 9h8M8 12.5h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+                    <span>Notificaciones</span><b id="notificationBadge">0</b>
+                </a>
             </nav>
 
             <div class="sidebar-bottom">
                 <div class="user-mini">
                     <div class="avatar" id="avatarUsuario">A</div>
                     <div class="user-copy">
-                        <strong id="usuarioNombreSide">@(esDueno ? "Dueño" : "Cliente")</strong>
-                        <span>@(esDueno ? "Administrador" : "Cliente")</span>
+                        <strong id="usuarioNombreSide">@(esDueno ? "Administrador" : nombreUsuario)</strong>
+                        <span>@(esDueno ? "Administrador" : rol == "Cocina" ? "Cocina" : rol == "Barra" ? "Barra" : rol == "Repartidor" ? "Repartidor" : "Cliente")</span>
                     </div>
                 </div>
                 <a asp-controller="IniciarSesion1" asp-action="CerrarSesion" class="logout-link" onclick="localStorage.removeItem('usuarioLogueado')">
-                    <span>↪</span>Cerrar sesión
+                    <span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M10 5H6.5A1.5 1.5 0 0 0 5 6.5v11A1.5 1.5 0 0 0 6.5 19H10M14 8l4 4-4 4M18 12H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Cerrar sesión
                 </a>
             </div>
         </aside>
@@ -99,23 +130,24 @@
         <div class="app-shell">
             <header class="topbar">
                 <div class="topbar-left">
-                    <button type="button" class="icon-btn mobile-menu" onclick="ESFERestaurante.layout.toggleSidebar(true)">☰</button>
+                    <button type="button" class="icon-btn mobile-menu" onclick="ESFERestaurante.layout.toggleSidebar(true)" aria-label="Abrir navegación"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span></button>
                     <div>
                         <span class="eyebrow">RestauranteBD</span>
                         <h1>@ViewData["Title"]</h1>
                     </div>
                 </div>
                 <div class="topbar-actions">
-                    @if (!esDueno)
+                    @if (autenticado && rol == "Cliente")
                     {
                         <a asp-controller="PedidoyCarrito1" asp-action="Index" class="cart-pill">
-                            <span>🛒</span><span>Carrito</span><b data-cart-badge>0</b>
+                            <span class="nav-icon cart-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M3 4h2l1.7 10.1a2 2 0 0 0 2 1.9h7.8a2 2 0 0 0 1.9-1.5L20 8H7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="19" r="1.4" fill="currentColor"/><circle cx="17" cy="19" r="1.4" fill="currentColor"/></svg></span><span>Carrito</span><b data-cart-badge>0</b>
                         </a>
                     }
-                    <div class="top-user">
+                    <a asp-controller="Perfil1" asp-action="Index" class="top-user top-profile-link" aria-label="Abrir mi perfil">
                         <span class="avatar small" id="avatarUsuarioTop">A</span>
-                        <span id="usuarioNombreTop">@(esDueno ? "Dueño" : "Cliente")</span>
-                    </div>
+                        <span id="usuarioNombreTop">@(esDueno ? "Administrador" : nombreUsuario)</span>
+                        <span class="profile-chevron ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m7 9 5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    </a>
                 </div>
             </header>
 
@@ -124,23 +156,23 @@
             </main>
         </div>
 
-        @if (!esDueno)
+        @if (autenticado && rol == "Cliente")
         {
             <button type="button" id="floatingCart" class="floating-cart" onclick="window.location.href='/PedidoyCarrito1/Index'" aria-label="Abrir carrito">
-                <span>🛒</span><b data-cart-badge>0</b>
+                <span class="cart-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M3 4h2l1.7 10.1a2 2 0 0 0 2 1.9h7.8a2 2 0 0 0 1.9-1.5L20 8H7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="19" r="1.4" fill="currentColor"/><circle cx="17" cy="19" r="1.4" fill="currentColor"/></svg></span><b data-cart-badge>0</b>
             </button>
         }
 
         <section id="chatbot" class="chatbot" aria-label="Asistente de ayuda">
             <div class="chat-header">
                 <div class="chat-agent">
-                    <span class="agent-orb">✦</span>
+                    <span class="agent-orb"><svg viewBox="0 0 24 24" fill="none"><path d="M7 10.5a5 5 0 0 1 10 0v3.1a3.9 3.9 0 0 1-3.9 3.9H11l-2.8 2v-2.8A4 4 0 0 1 5 12.8v-1.4a5 5 0 0 1 2-0.9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 12h.01M15 12h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span>
                     <div>
                         <strong>Asistente RestauranteBD</strong>
                         <small>Ayuda para ordenar</small>
                     </div>
                 </div>
-                <button type="button" class="icon-btn" onclick="ESFERestaurante.chat.toggle(false)">×</button>
+                <button type="button" class="icon-btn" onclick="ESFERestaurante.chat.toggle(false)" aria-label="Cerrar asistente"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span></button>
             </div>
 
             <div id="chatMessages" class="chat-messages"></div>
@@ -153,11 +185,11 @@
 
             <form class="chat-input" onsubmit="event.preventDefault();ESFERestaurante.chat.send()">
                 <input id="chatInput" autocomplete="off" placeholder="Escribe tu pregunta..." />
-                <button type="submit">➤</button>
+                <button type="submit" aria-label="Enviar mensaje"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m4 5 16 7-16 7 3.5-7L4 5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7.5 12H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></button>
             </form>
         </section>
 
-        <button type="button" class="chat-launcher" onclick="ESFERestaurante.chat.toggle(true)" aria-label="Abrir asistente">✦</button>
+        <button type="button" class="chat-launcher" onclick="ESFERestaurante.chat.toggle(true)" aria-label="Abrir asistente"><svg viewBox="0 0 24 24" fill="none"><path d="M7 10.5a5 5 0 0 1 10 0v3.1a3.9 3.9 0 0 1-3.9 3.9H11l-2.8 2v-2.8A4 4 0 0 1 5 12.8v-1.4a5 5 0 0 1 2-0.9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 12h.01M15 12h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
         <div id="toast-container" class="toast-container"></div>
     }
     else
@@ -166,6 +198,11 @@
     }
 
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/modules/local-orders.js" asp-append-version="true"></script>
+    <script src="~/js/modules/validation.js" asp-append-version="true"></script>
+    <script src="~/js/modules/chatbot.js" asp-append-version="true"></script>
+    <script src="~/js/modules/payment.js" asp-append-version="true"></script>
+    <script src="~/js/modules/cart.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 
 </body>

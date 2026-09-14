@@ -1,0 +1,101 @@
+@model ESFE.RestauranteBD.web.UI.Models.UserAccount
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Mi perfil";
+    var displayRole = Model.Rol == "Dueno" ? "Administrador" : Model.Rol;
+}
+
+<section class="page-shell narrow-page">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Cuenta</span>
+            <h2>Mi perfil</h2>
+            <p>Tu información personal y de contacto. El rol lo administra exclusivamente el administrador.</p>
+        </div>
+        <span class="role-badge role-@Model.Rol.ToLowerInvariant()">@displayRole</span>
+    </div>
+
+    @if (TempData["ProfileError"] != null)
+    {
+        <div class="alert-error">@TempData["ProfileError"]</div>
+    }
+
+    @if (TempData["ProfileSuccess"] != null)
+    {
+        <div class="alert-success">@TempData["ProfileSuccess"]</div>
+    }
+
+    <div class="profile-layout">
+        <section class="panel profile-summary-panel">
+            <div class="profile-hero profile-hero-large">
+                <div class="profile-avatar">@Model.Nombre.FirstOrDefault().ToString().ToUpperInvariant()</div>
+                <div>
+                    <span class="eyebrow">Cuenta activa</span>
+                    <h3>@Model.Nombre</h3>
+                    <p>@Model.Email</p>
+                </div>
+            </div>
+
+            <div class="profile-data">
+                <div><span>Nombre</span><strong>@Model.Nombre</strong></div>
+                <div><span>Correo</span><strong>@Model.Email</strong></div>
+                <div><span>DUI</span><strong>@Model.Dui</strong></div>
+                <div><span>Teléfono</span><strong>@Model.Telefono</strong></div>
+                <div class="profile-data-wide"><span>Dirección</span><strong>@Model.Direccion</strong></div>
+                <div><span>Cuenta creada</span><strong>@Model.CreadoEn.ToLocalTime().ToString("dd/MM/yyyy")</strong></div>
+            </div>
+
+            <div class="profile-protection-note">
+                <span>Seguridad de la cuenta</span>
+                <strong>El rol no se puede cambiar desde este perfil.</strong>
+                <p>Los permisos se determinan en el servidor según el rol asignado por el administrador.</p>
+            </div>
+        </section>
+
+        <section class="panel">
+            <span class="eyebrow">Editar información</span>
+            <h3>Datos personales</h3>
+            <form asp-action="Actualizar" method="post" class="form-stack profile-edit-form">
+                @Html.AntiForgeryToken()
+
+                <label class="field-label">
+                    Nombre completo
+                    <input name="nombre" value="@Model.Nombre" data-letters-only minlength="3" maxlength="80" required />
+                </label>
+
+                <label class="field-label">
+                    Correo electrónico
+                    <input value="@Model.Email" type="email" readonly aria-readonly="true" />
+                    <small class="field-hint">El correo identifica la cuenta y no se cambia desde aquí.</small>
+                </label>
+
+                <label class="field-label">
+                    DUI
+                    <input name="dui" value="@Model.Dui" data-dui inputmode="numeric" maxlength="10" pattern="[0-9]{8}-[0-9]" required />
+                </label>
+
+                <div class="phone-country-field" data-phone-country-field data-default-country="sv">
+                    <label class="field-label">
+                        País
+                        <select data-country-select aria-label="País del teléfono"></select>
+                    </label>
+                    <label class="field-label phone-number-label">
+                        Teléfono
+                        <input name="telefono" value="@Model.Telefono" data-international-phone inputmode="tel" autocomplete="tel" required />
+                    </label>
+                </div>
+
+                <label class="field-label">
+                    Dirección
+                    <textarea name="direccion" minlength="5" maxlength="250" rows="4" required>@Model.Direccion</textarea>
+                </label>
+
+                <button class="primary-btn large full" type="submit">Guardar cambios</button>
+            </form>
+        </section>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/modules/validation.js" asp-append-version="true"></script>
+}

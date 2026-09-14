@@ -1,0 +1,73 @@
+@model IReadOnlyCollection<ESFE.RestauranteBD.web.UI.Models.UserAccount>
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Clientes";
+    var query = ViewBag.Query as string ?? string.Empty;
+    var rol = Context.Session.GetString("RolUsuario") ?? string.Empty;
+    var esAdmin = rol == "Dueno";
+}
+
+<section class="page-shell">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Relación con clientes</span>
+            <h2>Clientes registrados</h2>
+            <p>Consulta únicamente cuentas que pertenecen al rol Cliente. Los trabajadores no aparecen en este apartado.</p>
+        </div>
+        <span class="result-count">@Model.Count clientes</span>
+    </div>
+
+    <section class="panel customer-search-panel">
+        <div class="panel-head">
+            <div>
+                <span class="eyebrow">Búsqueda</span>
+                <h3>Encontrar cliente</h3>
+            </div>
+        </div>
+
+        <form method="get" class="customer-search-form">
+            <div class="search-box customer-search-input">
+                <span>⌕</span>
+                <input name="q" value="@query" autocomplete="off" placeholder="Nombre, correo, teléfono o DUI..." />
+            </div>
+            <button class="primary-btn" type="submit">Buscar</button>
+            <a class="secondary-btn" asp-action="Index">Limpiar</a>
+        </form>
+    </section>
+
+    <section class="customer-grid">
+        @foreach (var customer in Model)
+        {
+            <article class="customer-card">
+                <div class="customer-card-head">
+                    <div class="profile-avatar customer-avatar">@customer.Nombre.FirstOrDefault().ToString().ToUpperInvariant()</div>
+                    <div>
+                        <span class="status-pill success">Cliente</span>
+                        <h3>@customer.Nombre</h3>
+                        <p>@customer.Email</p>
+                    </div>
+                </div>
+                <div class="customer-details">
+                    <div><span>Teléfono</span><strong>@(string.IsNullOrWhiteSpace(customer.Telefono) ? "No registrado" : customer.Telefono)</strong></div>
+                    <div><span>DUI</span><strong>@(string.IsNullOrWhiteSpace(customer.Dui) ? "No registrado" : customer.Dui)</strong></div>
+                    <div class="customer-detail-wide"><span>Dirección</span><strong>@(string.IsNullOrWhiteSpace(customer.Direccion) ? "No registrada" : customer.Direccion)</strong></div>
+                    <div><span>Cuenta</span><strong>@customer.CreadoEn.ToLocalTime().ToString("dd/MM/yyyy")</strong></div>
+                    <div><span>Estado</span><strong>@(customer.Activo ? "Activa" : "Inactiva")</strong></div>
+                </div>
+                @if (!esAdmin)
+                {
+                    <div class="customer-readonly-note">Vista operativa. La barra puede consultar datos, pero no cambiar roles ni cuentas.</div>
+                }
+            </article>
+        }
+
+        @if (Model.Count == 0)
+        {
+            <div class="empty-state compact customer-empty">
+                <span>◌</span>
+                <strong>No encontramos clientes</strong>
+                <p>Prueba con otro nombre, correo, teléfono o DUI.</p>
+            </div>
+        }
+    </section>
+</section>

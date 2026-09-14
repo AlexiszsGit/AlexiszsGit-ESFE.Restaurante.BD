@@ -15,24 +15,43 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body class="login-body">
-    <div class="login-bg-shape shape-a"></div>
-    <div class="login-bg-shape shape-b"></div>
+    <div class="login-bg-glow glow-one"></div>
+    <div class="login-bg-glow glow-two"></div>
 
-    <div class="login-wrap">
-        <div class="login-brand">
-            <div class="login-logo">
+    <div class="login-intro-splash" aria-hidden="true">
+        <div class="login-intro-mark">
+            <img src="~/images/logo.jpg" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" />
+            <span>R</span>
+        </div>
+        <span class="eyebrow">RestauranteBD</span>
+        <h1>Bienvenido</h1>
+        <p>Qué gusto tenerte aquí.</p>
+    </div>
+
+    <main class="login-page-shell">
+        <section class="login-welcome">
+            <div class="login-logo login-logo-large">
                 <img src="~/images/logo.jpg" alt="Logo del restaurante" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" />
                 <span>R</span>
             </div>
             <span class="eyebrow">RestauranteBD</span>
-            <h1>RestauranteBD</h1>
-            <p>Gestión, pedidos y atención en un solo lugar.</p>
-        </div>
+            <h1>Nos alegra recibirte</h1>
+            <p class="login-welcome-copy">Entra a tu cuenta y disfruta una experiencia sencilla, clara y hecha para que pedir, reservar o trabajar en el restaurante se sienta natural.</p>
+            <div class="login-info-grid login-info-grid-single">
+                <article>
+                    <span class="login-info-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.7"/><path d="M12 7v5l3.2 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    <div>
+                        <strong>Horario de atención</strong>
+                        <span>Todos los días · 06:00 a. m. a 10:00 p. m.</span>
+                    </div>
+                </article>
+            </div>
+        </section>
 
-        <div class="login-card">
-            <div class="login-tabs" role="tablist" aria-label="Acceso a RestauranteBD">
-                <button type="button" class="login-tab @(activeTab == "login" ? "active" : "")" onclick="showLoginTab('login')">Iniciar sesión</button>
-                <button type="button" class="login-tab @(activeTab == "register" ? "active" : "")" onclick="showLoginTab('register')">Crear cuenta</button>
+        <section class="login-card login-card-professional">
+            <div class="login-tabs login-tabs-professional" role="tablist" aria-label="Acceso a RestauranteBD">
+                <button type="button" class="login-tab @(activeTab == "login" ? "active" : "")" data-login-tab="login">Iniciar sesión</button>
+                <button type="button" class="login-tab @(activeTab == "register" ? "active" : "")" data-login-tab="register">Crear cuenta</button>
             </div>
 
             @if (ViewBag.Error != null)
@@ -45,114 +64,120 @@
             }
 
             <div id="loginPanel" class="login-panel @(activeTab == "login" ? "" : "hidden")">
-                <div class="login-heading">
-                    <div>
-                        <span class="eyebrow">Acceso seguro</span>
-                        <h2>Bienvenido</h2>
-                        <p>Ingresa con tu cuenta para continuar.</p>
-                    </div>
-                    <span class="security-badge">● Activo</span>
+                <div class="login-heading login-heading-centered">
+                    <span class="eyebrow">Acceso seguro</span>
+                    <h2>Iniciar sesión</h2>
+                    <p>Usa las credenciales de tu cuenta para continuar.</p>
                 </div>
 
-                <form asp-controller="IniciarSesion1" asp-action="Login" method="post" class="login-form">
+                <form asp-controller="IniciarSesion1" asp-action="Login" method="post" class="login-form login-form-centered" novalidate>
+                    @Html.AntiForgeryToken()
                     <label>
                         Correo electrónico
-                        <input name="email" type="email" value="@(ViewBag.Email ?? "")" autocomplete="username" placeholder="admin@restaurante.com" required />
+                        <input name="email" type="email" value="@(ViewBag.Email ?? "")" autocomplete="username" placeholder="correo@ejemplo.com" maxlength="120" required />
                     </label>
 
                     <label>
                         Contraseña
                         <div class="password-field">
-                            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Tu contraseña" required />
-                            <button type="button" onclick="togglePassword('password')">◉</button>
+                            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Tu contraseña" minlength="1" required />
+                            <button type="button" class="password-toggle" data-toggle-password="password" aria-label="Mostrar contraseña" title="Mostrar contraseña"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M2.8 12s3.3-5.5 9.2-5.5 9.2 5.5 9.2 5.5-3.3 5.5-9.2 5.5S2.8 12 2.8 12Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.7"/></svg></span></button>
                         </div>
                     </label>
 
                     <div class="login-options">
                         <label class="check-row">
-                            <input type="checkbox" name="remember" value="true" />Recordarme
+                            <input type="checkbox" name="remember" value="true" />
+                            Recordarme
                         </label>
-                        <span>Acceso protegido</span>
+                        <span>Sesión protegida</span>
                     </div>
 
-                    <button class="primary-btn large" type="submit">
-                        Ingresar al sistema <span>→</span>
-                    </button>
+                    <button class="primary-btn large full login-submit" type="submit">Iniciar sesión</button>
                 </form>
 
-                <div class="demo-access">
-                    <strong>Acceso demo</strong>
-                    <span>admin@restaurante.com · 123</span>
-                    <small>Cliente demo: cliente@restaurante.com · 1234</small>
+                <div class="login-switch-note">
+                    <span>¿Todavía no tienes una cuenta?</span>
+                    <button type="button" data-switch-tab="register">Crear cuenta</button>
                 </div>
             </div>
 
             <div id="registerPanel" class="login-panel @(activeTab == "register" ? "" : "hidden")">
-                <div class="login-heading">
-                    <div>
-                        <span class="eyebrow">Nuevo cliente</span>
-                        <h2>Crear cuenta</h2>
-                        <p>Regístrate para guardar tus pedidos y acceder al sistema.</p>
-                    </div>
+                <div class="login-heading login-heading-centered">
+                    <span class="eyebrow">Registro de cliente</span>
+                    <h2>Crear cuenta</h2>
+                    <p>Completa todos los datos. Luego podrás pedir, reservar y consultar tus pedidos.</p>
                 </div>
 
-                <form asp-controller="IniciarSesion1" asp-action="Registrar" method="post" class="login-form">
+                <form asp-controller="IniciarSesion1" asp-action="Registrar" method="post" class="login-form login-form-centered" id="registerForm" novalidate>
+                    @Html.AntiForgeryToken()
+
                     <label>
                         Nombre completo
-                        <input name="nombre" type="text" value="@(ViewBag.RegisterName ?? "")" autocomplete="name" placeholder="Tu nombre completo" minlength="3" required />
+                        <input name="nombre" type="text" data-letters-only value="@(ViewBag.RegisterName ?? "")" autocomplete="name" placeholder="Tu nombre completo" minlength="3" maxlength="80" required />
                     </label>
 
                     <label>
                         Correo electrónico
-                        <input name="email" type="email" value="@(ViewBag.RegisterEmail ?? "")" autocomplete="email" placeholder="correo@ejemplo.com" required />
+                        <input name="email" type="email" value="@(ViewBag.RegisterEmail ?? "")" autocomplete="email" placeholder="correo@ejemplo.com" maxlength="120" required />
+                    </label>
+
+                    <div class="phone-country-field login-phone-country" data-phone-country-field data-default-country="sv">
+                        <label class="field-label">
+                            País
+                            <select data-country-select aria-label="País del teléfono"></select>
+                        </label>
+                        <label class="field-label phone-number-label">
+                            Teléfono
+                            <input name="telefono" value="@(ViewBag.RegisterPhone ?? "")" data-international-phone inputmode="tel" autocomplete="tel" required />
+                        </label>
+                    </div>
+
+                    <label>
+                        DUI
+                        <input name="dui" type="text" data-dui inputmode="numeric" value="@(ViewBag.RegisterDui ?? "")" placeholder="00000000-0" maxlength="10" pattern="[0-9]{8}-[0-9]" required />
                     </label>
 
                     <label>
-                        Teléfono <span class="muted-text">(opcional)</span>
-                        <input name="telefono" type="tel" value="@(ViewBag.RegisterPhone ?? "")" autocomplete="tel" placeholder="0000-0000" inputmode="tel" />
+                        Dirección
+                        <textarea name="direccion" minlength="5" maxlength="250" rows="3" autocomplete="street-address" placeholder="Colonia, calle, número y referencia" required>@(ViewBag.RegisterAddress ?? "")</textarea>
                     </label>
 
                     <label>
                         Contraseña
                         <div class="password-field">
                             <input id="registerPassword" name="password" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres" minlength="8" required />
-                            <button type="button" onclick="togglePassword('registerPassword')">◉</button>
+                            <button type="button" class="password-toggle" data-toggle-password="registerPassword" aria-label="Mostrar contraseña" title="Mostrar contraseña"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M2.8 12s3.3-5.5 9.2-5.5 9.2 5.5 9.2 5.5-3.3 5.5-9.2 5.5S2.8 12 2.8 12Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.7"/></svg></span></button>
                         </div>
                     </label>
 
                     <label>
                         Confirmar contraseña
-                        <input name="confirmPassword" type="password" autocomplete="new-password" placeholder="Repite tu contraseña" minlength="8" required />
+                        <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Repite tu contraseña" minlength="8" required />
                     </label>
 
-                    <small class="form-help">Usa una contraseña con mayúscula, minúscula y número.</small>
+                    <div class="password-policy">
+                        <span>La contraseña debe incluir</span>
+                        <div><i data-password-rule="length"></i>8 caracteres</div>
+                        <div><i data-password-rule="upper"></i>1 mayúscula</div>
+                        <div><i data-password-rule="lower"></i>1 minúscula</div>
+                        <div><i data-password-rule="number"></i>1 número</div>
+                    </div>
 
-                    <button class="primary-btn large" type="submit">
-                        Crear mi cuenta <span>✓</span>
-                    </button>
+                    <button class="primary-btn large full login-submit" type="submit">Crear cuenta</button>
                 </form>
+
+                <div class="login-switch-note">
+                    <span>¿Ya tienes una cuenta?</span>
+                    <button type="button" data-switch-tab="login">Iniciar sesión</button>
+                </div>
             </div>
-        </div>
+        </section>
+    </main>
 
-        <p class="login-footer">RestauranteBD · Sistema de gestión gastronómica</p>
-    </div>
+    <footer class="login-footer professional-footer">RestauranteBD · Acceso y gestión del restaurante</footer>
 
-    <script>
-            function togglePassword(id) {
-                const i = document.getElementById(id);
-                if (i) i.type = i.type === 'password' ? 'text' : 'password';
-            }
-
-            function showLoginTab(tab) {
-                document.getElementById('loginPanel').classList.toggle('hidden', tab !== 'login');
-                document.getElementById('registerPanel').classList.toggle('hidden', tab !== 'register');
-                document.querySelectorAll('.login-tab').forEach((b, i) => b.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1)));
-            }
-
-            const user = '@TempData["UsuarioLogueado"]';
-            if (user) {
-                localStorage.setItem('usuarioLogueado', user);
-            }
-    </script>
+    <script src="~/js/modules/validation.js" asp-append-version="true"></script>
+    <script src="~/js/modules/auth.js" asp-append-version="true"></script>
 </body>
 </html>

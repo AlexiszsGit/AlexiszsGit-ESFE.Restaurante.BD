@@ -1,0 +1,182 @@
+@model IReadOnlyCollection<ESFE.RestauranteBD.web.UI.Models.UserAccount>
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Trabajadores";
+    var clients = ViewBag.Clients as IReadOnlyCollection<ESFE.RestauranteBD.web.UI.Models.UserAccount> ?? Array.Empty<ESFE.RestauranteBD.web.UI.Models.UserAccount>();
+    string roleName(string role) => role == "Dueno" ? "Administrador" : role;
+}
+
+<section class="page-shell">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Administración de personal</span>
+            <h2>Trabajadores y roles</h2>
+            <p>Solo aparecen cuentas que ya fueron convertidas en trabajadores. Las cuentas de clientes se gestionan en su apartado independiente.</p>
+        </div>
+        <span class="result-count">@Model.Count trabajadores</span>
+    </div>
+
+    @if (ViewBag.WorkerError != null)
+    {
+        <div class="alert-error">@ViewBag.WorkerError</div>
+    }
+
+    @if (ViewBag.WorkerSuccess != null)
+    {
+        <div class="alert-success">@ViewBag.WorkerSuccess</div>
+    }
+
+    <div class="worker-admin-grid">
+        <section class="panel">
+            <div class="panel-head">
+                <div>
+                    <span class="eyebrow">Personal actual</span>
+                    <h3>Todos los trabajadores</h3>
+                </div>
+                <span class="result-count">@Model.Count activos / inactivos</span>
+            </div>
+
+            <div class="worker-search-toolbar">
+                <div class="search-box">
+                    <span>⌕</span>
+                    <input id="workerSearch" type="search" placeholder="Buscar por nombre, correo, DUI o teléfono..." autocomplete="off" />
+                </div>
+            </div>
+
+            <div class="worker-list" id="workerList">
+                @foreach (var worker in Model)
+                {
+                    <article class="worker-card" data-search="@($"{worker.Nombre} {worker.Email} {worker.Dui} {worker.Telefono}")">
+                        <div class="avatar">@worker.Nombre.FirstOrDefault().ToString().ToUpperInvariant()</div>
+                        <div class="worker-main">
+                            <div class="worker-name-line">
+                                <strong>@worker.Nombre</strong>
+                                <span class="status-pill @(worker.Activo ? "success" : "warning")">@(worker.Activo ? "Activo" : "Inactivo")</span>
+                            </div>
+                            <small>@worker.Email</small>
+                            <small>Teléfono: @worker.Telefono · DUI: @worker.Dui</small>
+                            <small>@worker.Direccion</small>
+                        </div>
+                        <div class="worker-role">
+                            <span class="role-badge role-@worker.Rol.ToLowerInvariant()">@roleName(worker.Rol)</span>
+                        </div>
+
+                        @if (!worker.Rol.Equals("Dueno", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <div class="worker-actions">
+                                <form asp-action="CambiarRol" method="post" class="inline-form">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="email" value="@worker.Email" />
+                                    <label class="inline-label">
+                                        Rol
+                                        <select name="rol" aria-label="Nuevo rol de @worker.Nombre">
+                                            @if (worker.Rol == "Cocina")
+                                            {
+                                                <option value="Cocina" selected="selected">Cocina</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="Cocina">Cocina</option>
+                                            }
+                                            @if (worker.Rol == "Barra")
+                                            {
+                                                <option value="Barra" selected="selected">Barra</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="Barra">Barra</option>
+                                            }
+                                            @if (worker.Rol == "Repartidor")
+                                            {
+                                                <option value="Repartidor" selected="selected">Repartidor</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="Repartidor">Repartidor</option>
+                                            }
+                                        </select>
+                                    </label>
+                                    <button class="secondary-btn small" type="submit">Actualizar rol</button>
+                                </form>
+                                <form asp-action="CambiarEstado" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="email" value="@worker.Email" />
+                                    <button class="@(worker.Activo ? "danger-btn" : "secondary-btn") small" type="submit">
+                                        @(worker.Activo ? "Desactivar" : "Activar")
+                                    </button>
+                                </form>
+                                <form asp-action="CambiarACliente" method="post" onsubmit="return confirm('¿Convertir esta cuenta nuevamente en Cliente?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="email" value="@worker.Email" />
+                                    <button class="secondary-btn small" type="submit">Volver a Cliente</button>
+                                </form>
+                            </div>
+                        }
+                    </article>
+                }
+
+                @if (Model.Count == 0)
+                {
+                    <div class="empty-state compact">
+                        <span>◌</span>
+                        <strong>Aún no hay trabajadores</strong>
+                        <p>Busca primero una cuenta de cliente y asígnale un rol.</p>
+                    </div>
+                }
+            </div>
+        </section>
+
+        <aside class="panel worker-promotion-panel">
+            <span class="eyebrow">Alta de trabajador</span>
+            <h3>Convertir cliente en trabajador</h3>
+            <p class="form-help">El trabajador debe crear primero una cuenta normal. Aquí buscas su correo y solamente después le asignas el área y una contraseña de trabajador.</p>
+
+            <form asp-action="AgregarDesdeCliente" method="post" class="form-stack" id="workerPromotionForm">
+                @Html.AntiForgeryToken()
+
+                <label class="field-label">
+                    Buscar cliente por correo
+                    <input id="workerEmailSearch" name="email" type="email" list="workerClientList" maxlength="120" autocomplete="email" placeholder="cliente@correo.com" required />
+                </label>
+
+                <datalist id="workerClientList">
+                    @foreach (var client in clients)
+                    {
+                        <option value="@client.Email">@client.Nombre · @client.Email</option>
+                    }
+                </datalist>
+
+                <div id="workerClientPreview" class="worker-client-preview">
+                    <span>Cuenta pendiente de selección</span>
+                    <strong>Escribe un correo registrado como Cliente.</strong>
+                </div>
+
+                <label class="field-label">
+                    Nuevo rol
+                    <select name="rol" required>
+                        <option value="Cocina">Cocina</option>
+                        <option value="Barra">Barra</option>
+                        <option value="Repartidor">Repartidor</option>
+                    </select>
+                </label>
+
+                <label class="field-label">
+                    Nueva contraseña de trabajador
+                    <input name="password" type="password" minlength="8" autocomplete="new-password" placeholder="Mínimo 8 caracteres" required />
+                </label>
+
+                <div class="role-permission-summary">
+                    <div><strong>Cocina</strong><span>Solo operación de cocina.</span></div>
+                    <div><strong>Barra</strong><span>Pedidos, reservas, entregas y clientes.</span></div>
+                    <div><strong>Repartidor</strong><span>Solo entregas.</span></div>
+                </div>
+
+                <button class="primary-btn large full" type="submit">Agregar a trabajadores <span>+</span></button>
+            </form>
+        </aside>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/modules/workers.js" asp-append-version="true"></script>
+}

@@ -8,74 +8,79 @@
         <div>
             <span class="eyebrow">Checkout seguro</span>
             <h2>Procesar pago</h2>
-            <p>Selecciona cómo deseas pagar. El método quedará registrado junto al pedido.</p>
+            <p>Revisa el pedido, selecciona el método y valida todos los datos antes de confirmar.</p>
+            <div id="paymentOrderContext" class="order-context"></div>
         </div>
-        <div class="pay-total">
+        <div class="pay-total premium-pay-total">
             <span>Total</span>
             <strong id="paymentTotal">$0.00</strong>
+            <small>IVA incluido</small>
         </div>
     </div>
 
-    <div class="checkout-grid">
-        <section class="panel">
+    <div class="checkout-grid payment-layout-premium">
+        <section class="panel payment-main-panel">
             <div class="panel-head">
                 <div>
-                    <h3>Método de pago</h3>
-                    <p>Los datos sensibles de tarjeta no se guardan en el navegador ni en el pedido.</p>
+                    <span class="eyebrow">Método</span>
+                    <h3>¿Cómo deseas pagar?</h3>
+                    <p>La tarjeta es una simulación local. No se realiza ningún cargo real.</p>
                 </div>
+                <div class="payment-security-badge"><span>✓</span> Datos protegidos</div>
             </div>
 
-            <div class="payment-methods">
+            <div class="payment-methods payment-methods-premium">
                 <button type="button" class="payment-method active" data-method="Efectivo" onclick="ESFERestaurante.payment.selectMethod('Efectivo')">
-                    <span>💵</span>
-                    <div>
-                        <strong>Efectivo</strong>
-                        <small>Pago en persona</small>
-                    </div>
+                    <span class="payment-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M6 10h5M6 14h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+                    <div><strong>Efectivo</strong><small>Pago en persona</small></div>
                 </button>
-
                 <button type="button" class="payment-method" data-method="Tarjeta" onclick="ESFERestaurante.payment.selectMethod('Tarjeta')">
-                    <span>💳</span>
-                    <div>
-                        <strong>Tarjeta</strong>
-                        <small>Confirmación inmediata</small>
-                    </div>
+                    <span class="payment-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3 10h18M7 15h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+                    <div><strong>Tarjeta</strong><small>Vista previa y validación</small></div>
                 </button>
-
                 <button type="button" class="payment-method" data-method="Transferencia" onclick="ESFERestaurante.payment.selectMethod('Transferencia')">
-                    <span>🏦</span>
-                    <div>
-                        <strong>Transferencia</strong>
-                        <small>Con referencia</small>
-                    </div>
+                    <span class="payment-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 7h14M6 12h12M8 17h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 5h16v14H4z" stroke="currentColor" stroke-width="1.7"/></svg></span>
+                    <div><strong>Transferencia</strong><small>Referencia de operación</small></div>
                 </button>
             </div>
 
             <div id="paymentFields" class="payment-fields"></div>
+
+            <div id="cardPreviewWrap" class="card-preview-wrap hidden">
+                <div class="card-stage">
+                    <div id="cardPreview" class="bank-card bank-card-premium">
+                        <div class="bank-card-shine"></div>
+                        <div class="bank-card-top">
+                            <span>RestauranteBD</span>
+                            <span id="cardBrand" class="card-brand-icon" aria-label="Identificador de tarjeta"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3 10h18M7 15h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+                        </div>
+                        <div id="cardPreviewNumber" class="bank-card-number">•••• •••• •••• ••••</div>
+                        <div class="bank-card-bottom">
+                            <div>
+                                <small>TITULAR</small>
+                                <strong id="cardPreviewName">NOMBRE DEL TITULAR</strong>
+                            </div>
+                            <div>
+                                <small>VENCE</small>
+                                <strong id="cardPreviewExpiry">MM/AA</strong>
+                            </div>
+                        </div>
+                        <span id="cardPreviewType" class="card-preview-type">0 dígitos</span>
+                    </div>
+                </div>
+                <p class="card-preview-caption">La tarjeta se actualiza automáticamente mientras completas los campos.</p>
+            </div>
         </section>
 
-        <aside class="panel order-summary">
-            <span class="eyebrow">Detalle</span>
-            <h3>Resumen del pedido</h3>
-
+        <aside class="panel order-summary premium-order-summary">
+            <span class="eyebrow">Resumen</span>
+            <h3>Tu pedido</h3>
             <div id="paymentItems" class="payment-items"></div>
-
-            <div class="summary-row">
-                <span>Subtotal</span>
-                <strong id="paymentSubtotal">$0.00</strong>
-            </div>
-            <div class="summary-row">
-                <span>IVA 13%</span>
-                <strong id="paymentTax">$0.00</strong>
-            </div>
-            <div class="summary-row total-row">
-                <span>Total</span>
-                <strong id="paymentTotalAside">$0.00</strong>
-            </div>
-
-            <button type="button" class="primary-btn large full" onclick="ESFERestaurante.payment.complete()">
-                Confirmar y crear pedido <span>✓</span>
-            </button>
+            <div class="summary-row"><span>Subtotal</span><strong id="paymentSubtotal">$0.00</strong></div>
+            <div class="summary-row"><span>IVA 13%</span><strong id="paymentTax">$0.00</strong></div>
+            <div class="summary-row total-row"><span>Total</span><strong id="paymentTotalAside">$0.00</strong></div>
+            <button type="button" class="primary-btn large full payment-confirm-button" onclick="ESFERestaurante.payment.complete()">Confirmar y crear pedido</button>
+            <small class="payment-final-note">Antes de confirmar se revisan permisos, carrito, reserva, entrega y datos de pago.</small>
         </aside>
     </div>
 </section>

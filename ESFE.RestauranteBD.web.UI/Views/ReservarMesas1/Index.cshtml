@@ -1,15 +1,16 @@
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Reservas";
-    var esDueno = Context.Session.GetString("RolUsuario") == "Dueno";
+    var rol = Context.Session.GetString("RolUsuario") ?? "Cliente";
+    var esTrabajador = rol == "Dueno" || rol == "Barra";
 }
 
 <section class="page-shell">
     <div class="page-head">
         <div>
-            <span class="eyebrow">@(esDueno ? "Control de mesas" : "Reservación")</span>
-            <h2>@(esDueno ? "Estado de las mesas" : "Reserva tu mesa")</h2>
-            <p>@(esDueno ? "Consulta qué mesas están disponibles u ocupadas. El dueño no realiza reservas desde este panel." : "Selecciona una mesa, fecha y hora para reservar.")</p>
+            <span class="eyebrow">@(esTrabajador ? "Control de mesas" : "Reservación")</span>
+            <h2>@(esTrabajador ? "Estado de las mesas" : "Reserva tu mesa")</h2>
+            <p>@(esTrabajador ? "Consulta todas las reservas, disponibilidad y si el cliente ya llegó." : "Selecciona una mesa, fecha y hora para reservar. Horario oficial: 6:00 a. m. a 10:00 p. m.")</p>
         </div>
         <span class="legend">
             <i class="legend-dot available"></i>Disponible
@@ -36,7 +37,7 @@
             </div>
         </section>
 
-        @if (!esDueno)
+        @if (!esTrabajador)
         {
             <aside class="panel reservation-form-panel">
                 <span class="eyebrow">Detalles</span>
@@ -51,7 +52,7 @@
                 <div class="form-stack">
                     <label class="field-label">
                         Nombre completo
-                        <input id="reserveName" required placeholder="Nombre del cliente" />
+                        <input id="reserveName" type="text" data-letters-only minlength="3" maxlength="80" pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñÀ-ÿ' -]+" required placeholder="Nombre del cliente" />
                     </label>
 
                     <label class="field-label">
@@ -88,8 +89,36 @@
         else
         {
             <aside class="panel reservation-form-panel owner-table-summary">
-                <span class="eyebrow">Solo consulta</span>
-                <h3>Disponibilidad</h3>
+                <span class="eyebrow">Operación de sala</span>
+                <h3>Reserva y llegada presencial</h3>
+                <p class="form-help">Barra y administrador pueden registrar una reserva cuando el cliente llega personalmente.</p>
+
+                <div class="walkin-form-block">
+                    <label class="field-label">
+                        Mesa
+                        <select id="walkInTable"></select>
+                    </label>
+                    <label class="field-label">
+                        Nombre del cliente
+                        <input id="walkInName" type="text" data-letters-only minlength="3" maxlength="80" required />
+                    </label>
+                    <label class="field-label">
+                        Personas
+                        <input id="walkInPeople" type="number" min="1" max="12" step="1" value="2" required />
+                    </label>
+                    <div class="two-col">
+                        <label class="field-label">
+                            Fecha
+                            <input id="walkInDate" type="date" />
+                        </label>
+                        <label class="field-label">
+                            Hora
+                            <input id="walkInTime" type="time" />
+                        </label>
+                    </div>
+                    <button type="button" class="primary-btn full" onclick="ESFERestaurante.reservas.createWalkIn()">Registrar reserva presencial</button>
+                </div>
+
                 <div class="table-status-key">
                     <div>
                         <i class="legend-dot available"></i>
@@ -98,8 +127,13 @@
                     </div>
                     <div>
                         <i class="legend-dot occupied"></i>
-                        <strong>Ocupada / reservada</strong>
-                        <small>No está disponible en el horario consultado.</small>
+                        <strong>Reservada</strong>
+                        <small>Bloqueada para una reserva válida en ese horario.</small>
+                    </div>
+                    <div>
+                        <i class="legend-dot warning"></i>
+                        <strong>Fuera de horario</strong>
+                        <small>La mesa permanece disponible, pero la reserva queda registrada para control.</small>
                     </div>
                 </div>
             </aside>
@@ -110,7 +144,7 @@
         <div class="panel-head">
             <div>
                 <span class="eyebrow">Agenda</span>
-                <h3>Reservas de hoy</h3>
+                <h3>Reservas y llegadas de hoy</h3>
             </div>
             <span id="reservationCount" class="result-count">0</span>
         </div>
@@ -119,6 +153,7 @@
 </section>
 
 @section Scripts {
+    <script src="~/js/modules/reservations.js" asp-append-version="true"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => ESFERestaurante.reservas.init());
     </script>

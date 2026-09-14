@@ -1,149 +1,50 @@
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Inicio";
-    var esDueno = Context.Session.GetString("RolUsuario") == "Dueno";
+    var rol = Context.Session.GetString("RolUsuario") ?? "Cliente";
+    var esDueno = rol == "Dueno";
+    var esCocina = rol == "Cocina";
+    var esBarra = rol == "Barra";
 }
-
 <section class="page-shell">
-    <div class="hero-panel">
-        <div>
-            <span class="eyebrow">Panel principal</span>
-            <h2>Controla el restaurante desde una sola vista.</h2>
-            <p>Pedidos, menú, reservas, pagos y cocina conectados con almacenamiento local del navegador.</p>
+    @if (esCocina)
+    {
+        <div class="hero-panel compact"><div><span class="eyebrow">Área de cocina</span><h2>Bienvenido al área de preparación.</h2><p>Tu acceso está limitado a la operación de cocina.</p></div><a asp-controller="PantallaDeCocina1" asp-action="Index" class="primary-btn">Abrir cocina <span><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></div>
+    }
+    else if (esBarra)
+    {
+        <div class="hero-panel compact"><div><span class="eyebrow">Área de barra</span><h2>Bienvenido al área de atención.</h2><p>Gestiona pedidos, reservas y entregas asignadas a barra.</p></div><a asp-controller="GestionDePedidos1" asp-action="Index" class="primary-btn">Abrir pedidos <span><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></div>
+    }
+    else
+    {
+        <div class="hero-panel">
+            <div><span class="eyebrow">Panel principal</span><h2>Controla el restaurante desde una sola vista.</h2><p>Pedidos, menú, reservas, pagos y cocina conectados con almacenamiento local del navegador.</p></div>
+            <div class="hero-actions"><a asp-controller="GestionDeMenu1" asp-action="Index" class="primary-btn">Abrir menú <span><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a><a asp-controller="@(esDueno ? "GestionDePedidos1" : "ReservarMesas1")" asp-action="Index" class="secondary-btn">@(esDueno ? "Ver pedidos" : "Reservar mesa")</a></div>
         </div>
-        <div class="hero-actions">
-            <a asp-controller="GestionDeMenu1" asp-action="Index" class="primary-btn">
-                Abrir menú <span>→</span>
-            </a>
-            @if (!esDueno)
-            {
-                <a asp-controller="ReservarMesas1" asp-action="Index" class="secondary-btn">Reservar mesa</a>
-            }
-            else
-            {
-                <a asp-controller="GestionDePedidos1" asp-action="Index" class="secondary-btn">Ver pedidos</a>
-            }
+        <div class="stats-grid">
+            <div class="stat-card"><span>Pedidos de hoy</span><strong id="cardPedidosHoy">0</strong><small>Pedidos registrados</small></div>
+            <div class="stat-card"><span>En preparación</span><strong id="cardEnPreparacion">0</strong><small>En cocina ahora</small></div>
+            <div class="stat-card"><span>@(esDueno ? "Ventas de hoy" : "Mis pagos hoy")</span><strong id="cardVentasHoy">$0.00</strong><small>@(esDueno ? "Total cobrado" : "Total de mis pedidos pagados")</small></div>
+            <div class="stat-card"><span>@(esDueno ? "Mesas disponibles" : "Mis reservas hoy")</span><strong id="cardMesas">@(esDueno ? "12" : "0")</strong><small>@(esDueno ? "Según reservas" : "Reservas confirmadas")</small></div>
         </div>
-    </div>
-
-    <div class="stats-grid">
-        <div class="stat-card">
-            <span>Pedidos de hoy</span>
-            <strong id="cardPedidosHoy">0</strong>
-            <small>Pedidos registrados</small>
-        </div>
-        <div class="stat-card">
-            <span>En preparación</span>
-            <strong id="cardEnPreparacion">0</strong>
-            <small>En cocina ahora</small>
-        </div>
-        <div class="stat-card">
-            <span>@(esDueno ? "Ventas de hoy" : "Mis pagos hoy")</span>
-            <strong id="cardVentasHoy">$0.00</strong>
-            <small>@(esDueno ? "Total cobrado" : "Total de mis pedidos pagados")</small>
-        </div>
-        <div class="stat-card">
-            <span>@(esDueno ? "Mesas disponibles" : "Mis reservas hoy")</span>
-            <strong id="cardMesas">@(esDueno ? "12" : "0")</strong>
-            <small>@(esDueno ? "Según reservas" : "Reservas confirmadas")</small>
-        </div>
-    </div>
-
-    <div class="dashboard-grid">
-        <section class="panel">
-            <div class="panel-head">
-                <div>
-                    <span class="eyebrow">Operación</span>
-                    <h3>Accesos rápidos</h3>
-                    <p>Las áreas que más vas a usar.</p>
-                </div>
-            </div>
-            <div class="quick-grid">
-                <a asp-controller="GestionDeMenu1" asp-action="Index" class="quick-card">
-                    <span>☷</span>
-                    <div>
-                        <strong>Menú y productos</strong>
-                        <small>Categorías, detalle e ingredientes.</small>
-                    </div>
-                    →
-                </a>
-
-                @if (!esDueno)
+        <div class="dashboard-grid">
+            <section class="panel"><div class="panel-head"><div><span class="eyebrow">Operación</span><h3>Accesos rápidos</h3><p>Las áreas que más vas a usar.</p></div></div><div class="quick-grid">
+                @if (esDueno)
                 {
-                    <a asp-controller="PedidoyCarrito1" asp-action="Index" class="quick-card">
-                        <span>🛒</span>
-                        <div>
-                            <strong>Carrito y checkout</strong>
-                            <small>Revisa tu pedido y paga.</small>
-                        </div>
-                        →
-                    </a>
+                    <a asp-controller="GestionDePedidos1" asp-action="Index" class="quick-card"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="3.5" width="16" height="17" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><div><strong>Pedidos</strong><small>Administra las órdenes recibidas.</small></div><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
+                    <a asp-controller="PantallaDeCocina1" asp-action="Index" class="quick-card"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 11V6m4 5V4m4 7V5m3 6a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 14v5h8v-5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span><div><strong>Pantalla de cocina</strong><small>Avanza cada orden por estado.</small></div><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
+                    <a asp-controller="Trabajadores1" asp-action="Index" class="quick-card"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><div><strong>Trabajadores</strong><small>Asigna roles y controla accesos.</small></div><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
+                    <a asp-controller="Reportes1" asp-action="Index" class="quick-card"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 19V9M12 19V5M19 19v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><div><strong>Reportes</strong><small>Ventas y actividad registrada.</small></div><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
                 }
                 else
                 {
-                    <a asp-controller="GestionDePedidos1" asp-action="Index" class="quick-card">
-                        <span>▣</span>
-                        <div>
-                            <strong>Pedidos</strong>
-                            <small>Administra las órdenes recibidas.</small>
-                        </div>
-                        →
-                    </a>
-                    <a asp-controller="PantallaDeCocina1" asp-action="Index" class="quick-card">
-                        <span>◈</span>
-                        <div>
-                            <strong>Pantalla de cocina</strong>
-                            <small>Avanza cada orden por estado.</small>
-                        </div>
-                        →
-                    </a>
-                    <a asp-controller="Reportes1" asp-action="Index" class="quick-card">
-                        <span>▤</span>
-                        <div>
-                            <strong>Reportes</strong>
-                            <small>Ventas y actividad registrada.</small>
-                        </div>
-                        →
-                    </a>
+                    <a asp-controller="GestionDeMenu1" asp-action="Index" class="quick-card"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><div><strong>Menú y productos</strong><small>Categorías, detalle e ingredientes.</small></div><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
+                    <a asp-controller="PedidoyCarrito1" asp-action="Index" class="quick-card"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M4 9h16" stroke="currentColor" stroke-width="1.8"/></svg></span><div><strong>Carrito y checkout</strong><small>Revisa tu pedido y paga.</small></div><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
                 }
-            </div>
-        </section>
-
-        <aside class="panel side-summary">
-            <span class="eyebrow">Resumen</span>
-            <h3>Estado operativo</h3>
-            <div class="summary-row">
-                <span>Sistema</span>
-                <strong class="text-success">Operativo</strong>
-            </div>
-            <div class="summary-row">
-                <span>Productos</span>
-                <strong id="cardProductos">32</strong>
-            </div>
-            <div class="summary-row">
-                <span>Última actualización</span>
-                <strong id="ultimaActualizacion">Ahora</strong>
-            </div>
-            <a asp-controller="Informacion1" asp-action="Index" class="text-link">Ver información del sistema →</a>
-        </aside>
-    </div>
-
-    <section class="panel">
-        <div class="panel-head">
-            <div>
-                <span class="eyebrow">Actividad</span>
-                <h3>Pedidos recientes</h3>
-            </div>
-            <a asp-controller="GestionDePedidos1" asp-action="Index" class="text-link">Ver todos →</a>
+            </div></section>
+            <aside class="panel side-summary"><span class="eyebrow">Resumen</span><h3>Estado operativo</h3><div class="summary-row"><span>Sistema</span><strong class="text-success">Operativo</strong></div><div class="summary-row"><span>Productos</span><strong id="cardProductos">32</strong></div><div class="summary-row"><span>Última actualización</span><strong id="ultimaActualizacion">Ahora</strong></div><a asp-controller="Informacion1" asp-action="Index" class="text-link">Ver información del sistema <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></aside>
         </div>
-        <div id="recentOrders" class="recent-list"></div>
-    </section>
+        <section class="panel"><div class="panel-head"><div><span class="eyebrow">Actividad</span><h3>Pedidos recientes</h3></div><a asp-controller="GestionDePedidos1" asp-action="Index" class="text-link">Ver todos <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></div><div id="recentOrders" class="recent-list"></div></section>
+    }
 </section>
-
-@section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            ESFERestaurante.dashboard.init();
-        });
-    </script>
-}
+@section Scripts { <script>document.addEventListener('DOMContentLoaded',()=>{ if(document.getElementById('cardPedidosHoy')) ESFERestaurante.dashboard.init(); });</script> }

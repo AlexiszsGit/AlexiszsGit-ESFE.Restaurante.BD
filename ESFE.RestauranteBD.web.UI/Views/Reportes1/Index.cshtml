@@ -6,13 +6,13 @@
 <section class="page-shell">
     <div class="page-head">
         <div>
-            <span class="eyebrow">Analítica</span>
+            <span class="eyebrow">Analítica · <span id="reportPeriodLabel">Periodo actual</span></span>
             <h2>Reportes</h2>
             <p>Resumen de ventas y actividad registrada localmente.</p>
         </div>
         <div class="hero-actions">
-            <button class="primary-btn" type="button" onclick="ESFERestaurante.reports.save()">
-                Guardar reporte <span>✓</span>
+            <button class="primary-btn" type="button" onclick="ESFERestaurante.reports.save(true)">
+                Guardar y descargar PDF <span><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             </button>
             <button class="secondary-btn" type="button" onclick="ESFERestaurante.reports.clearSaved()">
                 Limpiar reporte
