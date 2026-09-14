@@ -1,12 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.AspNetCore.Mvc;
 namespace ESFE.RestauranteBD.web.UI.Controllers
 {
     public class Informacion1Controller : Controller
     {
-        public IActionResult Index()
-        {
-            return View();
-        }
+        public IActionResult Index() => View();
     }
 }

@@ -1,13 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.AspNetCore.Mvc;
 namespace ESFE.RestauranteBD.web.UI.Controllers
 {
     public class MenuDigital1Controller : Controller
     {
-        public IActionResult Index(string buscar, string categoria)
-        {
-            return View();
-        }
+        public IActionResult Index() => RedirectToAction("Index", "GestionDeMenu1");
     }
 }
-

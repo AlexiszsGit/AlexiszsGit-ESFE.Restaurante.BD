@@ -1,133 +1,28 @@
-﻿@{
-    ViewData["Title"] = "Calificar servicio";
+@{ Layout = "_Layout"; ViewData["Title"] = Context.Session.GetString("RolUsuario") == "Dueno" ? "Calificaciones" : "Calificar servicio"; var esDueno = Context.Session.GetString("RolUsuario") == "Dueno"; }
+@if (esDueno)
+{
+<section class="page-shell">
+    <div class="page-head"><div><span class="eyebrow">Opiniones de clientes</span><h2>Calificaciones</h2><p>Aquí puedes revisar las estrellas y comentarios enviados por los clientes.</p></div></div>
+    <div class="stats-grid"><div class="stat-card"><span>Promedio</span><strong id="ratingAverage">0.0 ★</strong><small>Calificación general</small></div><div class="stat-card"><span>Reseñas</span><strong id="ratingCount">0</strong><small>Opiniones recibidas</small></div><div class="stat-card"><span>5 estrellas</span><strong id="ratingFive">0</strong><small>Clientes satisfechos</small></div><div class="stat-card"><span>1 estrella</span><strong id="ratingOne">0</strong><small>Opiniones por revisar</small></div></div>
+    <section class="panel"><div id="ratingList"></div></section>
+</section>
 }
-
-<div class="min-h-full bg-slate-100 text-slate-800">
-
-    <div class="w-full px-5 py-7 sm:px-8 lg:px-10 xl:px-12">
-
-        <div class="mb-8">
-
-            <p class="text-sm font-semibold text-amber-600">
-                ESFE.RestauranteBD
-            </p>
-
-            <h1 class="mt-1 text-3xl font-black tracking-tight text-slate-900 lg:text-4xl">
-                Calificar servicio
-            </h1>
-
-            <p class="mt-2 text-sm text-slate-500">
-                Comparte tu experiencia y ayúdanos a mejorar nuestro servicio.
-            </p>
-
-        </div>
-
-        <div class="flex justify-center">
-
-            <div class="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-sm">
-
-                <div class="border-b border-slate-200 px-6 py-6 sm:px-8">
-
-                    <div class="flex items-center gap-4">
-
-                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
-                            <span class="text-2xl">★</span>
-                        </div>
-
-                        <div>
-
-                            <h2 class="text-lg font-black text-slate-900">
-                                ¿Cómo fue tu experiencia?
-                            </h2>
-
-                            <p class="mt-1 text-sm text-slate-500">
-                                Tu opinión nos ayuda a mejorar.
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="px-6 py-7 sm:px-8">
-
-                    <div class="mb-7">
-
-                        <label class="mb-3 block text-sm font-bold text-slate-700">
-                            Calificación
-                        </label>
-
-                        <div class="flex items-center gap-2">
-
-                            <button type="button"
-                                    class="text-3xl text-amber-400 transition hover:scale-110 hover:text-amber-500">
-                                ★
-                            </button>
-
-                            <button type="button"
-                                    class="text-3xl text-amber-400 transition hover:scale-110 hover:text-amber-500">
-                                ★
-                            </button>
-
-                            <button type="button"
-                                    class="text-3xl text-amber-400 transition hover:scale-110 hover:text-amber-500">
-                                ★
-                            </button>
-
-                            <button type="button"
-                                    class="text-3xl text-amber-400 transition hover:scale-110 hover:text-amber-500">
-                                ★
-                            </button>
-
-                            <button type="button"
-                                    class="text-3xl text-amber-400 transition hover:scale-110 hover:text-amber-500">
-                                ★
-                            </button>
-
-                        </div>
-
-                        <p class="mt-2 text-xs text-slate-400">
-                            Selecciona de 1 a 5 estrellas.
-                        </p>
-
-                    </div>
-
-                    <div class="mb-6">
-
-                        <label class="mb-2 block text-sm font-bold text-slate-700">
-                            Comentario
-                            <span class="font-normal text-slate-400">
-                                (opcional)
-                            </span>
-                        </label>
-
-                        <textarea rows="5"
-                                  placeholder="Cuéntanos cómo fue tu experiencia..."
-                                  class="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-amber-500 focus:bg-white"></textarea>
-
-                    </div>
-
-                    <div class="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">
-
-                        <button type="button"
-                                class="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition hover:border-amber-400 hover:text-amber-600">
-                            Cancelar
-                        </button>
-
-                        <button type="button"
-                                class="rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800">
-                            Enviar calificación
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
+else
+{
+<section class="page-shell">
+    <div class="page-head"><div><span class="eyebrow">Tu opinión importa</span><h2>Calificar servicio</h2><p>Comparte tu experiencia con RestauranteBD mediante estrellas y un comentario.</p></div></div>
+    <div class="flex justify-center"><div id="formCalificacion" class="w-full max-w-2xl rounded-2xl border-slate-200 bg-white shadow-sm"><div class="border-b border-slate-200 px-6 py-6 sm:px-8"><h2 class="text-lg font-black text-slate-900">¿Cómo fue tu experiencia?</h2><p class="mt-1 text-sm text-slate-500">Selecciona de 1 a 5 estrellas y deja tu comentario.</p></div><div class="px-6 py-7 sm:px-8"><div class="mb-7"><label class="mb-3 block text-sm font-bold text-slate-700">Calificación</label><div id="estrellas" class="flex items-center gap-2"><button type="button" data-valor="1" class="estrella text-4xl text-slate-300">★</button><button type="button" data-valor="2" class="estrella text-4xl text-slate-300">★</button><button type="button" data-valor="3" class="estrella text-4xl text-slate-300">★</button><button type="button" data-valor="4" class="estrella text-4xl text-slate-300">★</button><button type="button" data-valor="5" class="estrella text-4xl text-slate-300">★</button></div><p id="textoCalificacion" class="mt-2 text-xs text-slate-400">Selecciona de 1 a 5 estrellas.</p></div><div class="mb-6"><label class="mb-2 block text-sm font-bold text-slate-700">Comentario</label><textarea id="comentario" maxlength="500" rows="5" placeholder="Cuéntanos cómo fue tu experiencia..." class="w-full resize-none rounded-xl border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none"></textarea></div><button type="button" onclick="enviarCalificacion()" class="rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white">Enviar calificación</button></div></div></div>
+    <div id="mensajeGracias" class="hidden mt-6 text-center"><h2 class="text-2xl font-black">¡Gracias por tu calificación!</h2><p class="mt-2 text-sm text-slate-500">Tu opinión fue registrada correctamente.</p></div>
+</section>
+}
+@section Scripts {
+<script>
+const esDueno=@(esDueno.ToString().ToLower());
+let calificacionSeleccionada=0;
+const textos=['','Malo','Regular','Bueno','Muy bueno','Excelente'];
+if(!esDueno){document.querySelectorAll('.estrella').forEach(e=>e.addEventListener('click',()=>{calificacionSeleccionada=Number(e.dataset.valor);actualizarEstrellas(calificacionSeleccionada);document.getElementById('textoCalificacion').textContent=textos[calificacionSeleccionada]}));document.getElementById('estrellas').addEventListener('mouseleave',()=>actualizarEstrellas(calificacionSeleccionada));}
+function actualizarEstrellas(v){document.querySelectorAll('.estrella').forEach(e=>e.classList.toggle('text-amber-400',Number(e.dataset.valor)<=v));document.querySelectorAll('.estrella').forEach(e=>e.classList.toggle('text-slate-300',Number(e.dataset.valor)>v));}
+function enviarCalificacion(){if(!calificacionSeleccionada){ESFERestaurante.ui.mostrarToast('Selecciona una calificación','error');return}const list=JSON.parse(localStorage.getItem('restaurantebd_calificaciones')||'[]');list.unshift({id:'R-'+Date.now(),user:localStorage.getItem('usuarioLogueado')||'cliente@restaurante.com',stars:calificacionSeleccionada,comment:document.getElementById('comentario').value.trim(),date:new Date().toISOString()});localStorage.setItem('restaurantebd_calificaciones',JSON.stringify(list));document.getElementById('formCalificacion').classList.add('hidden');document.getElementById('mensajeGracias').classList.remove('hidden');ESFERestaurante.ui.mostrarToast('Calificación enviada correctamente','success');}
+if(esDueno){const list=JSON.parse(localStorage.getItem('restaurantebd_calificaciones')||'[]');const avg=list.length?list.reduce((a,x)=>a+x.stars,0)/list.length:0;document.getElementById('ratingAverage').textContent=avg.toFixed(1)+' ★';document.getElementById('ratingCount').textContent=list.length;document.getElementById('ratingFive').textContent=list.filter(x=>x.stars===5).length;document.getElementById('ratingOne').textContent=list.filter(x=>x.stars===1).length;document.getElementById('ratingList').innerHTML=list.length?list.map(x=>`<article class="notification-item"><div class="notification-icon">★</div><div><strong>${'★'.repeat(x.stars)}${'☆'.repeat(5-x.stars)}</strong><small>${x.user} · ${new Date(x.date).toLocaleString('es-SV')}</small><p>${x.comment||'Sin comentario.'}</p></div></article>`).join(''):'<div class="empty-state"><strong>Aún no hay calificaciones</strong><p>Cuando un cliente califique el servicio aparecerá aquí.</p></div>';}
+</script>
+}

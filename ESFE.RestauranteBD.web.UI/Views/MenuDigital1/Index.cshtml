@@ -1,561 +1,252 @@
 ﻿@{
+    Layout = "_Layout";
     ViewData["Title"] = "Menú";
 }
 
 <div class="min-h-full bg-slate-100 text-slate-900">
-
     <div class="w-full px-5 py-7 sm:px-8 lg:px-10 xl:px-12">
 
-        <div class="mb-8 flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-
+        <div class="mb-8 flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
             <div>
-
-                <p class="text-sm font-semibold text-amber-600">
-                    Catálogo
-                </p>
-
-                <h1 class="mt-1 text-3xl font-black tracking-tight text-slate-900 lg:text-4xl">
-                    Menú del Restaurante
-                </h1>
-
-                <p class="mt-2 text-sm text-slate-500">
-                    Consulta y administra los productos disponibles.
-                </p>
-
+                <p class="text-sm font-semibold text-amber-600">Catálogo</p>
+                <h1 class="mt-1 text-3xl font-black tracking-tight text-slate-900 lg:text-4xl">Menú del Restaurante</h1>
+                <p class="mt-2 text-sm text-slate-500">Consulta y administra los productos disponibles.</p>
             </div>
-
-            <button class="rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800">
+            <button onclick="ESFERestaurante.ui.mostrarToast('Próximamente: Crear producto', 'info')" class="rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800">
                 + Nuevo producto
             </button>
-
         </div>
 
-        <div class="mb-8 grid grid-cols-2 gap-4 xl:grid-cols-4">
-
-            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-
-                <p class="text-sm font-medium text-slate-500">
-                    Productos
-                </p>
-
-                <p class="mt-2 text-3xl font-black text-slate-900">
-                    24
-                </p>
-
-                <p class="mt-1 text-xs font-medium text-emerald-600">
-                    Disponibles
-                </p>
-
+        <div class="mb-8 grid-cols-2 gap-4 xl:grid-cols-4">
+            <div class="rounded-2xl border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-sm font-medium text-slate-500">Productos</p>
+                <p id="totalProductos" class="mt-2 text-3xl font-black text-slate-900">8</p>
+                <p class="mt-1 text-xs font-medium text-emerald-600">Disponibles</p>
             </div>
-
-            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-
-                <p class="text-sm font-medium text-slate-500">
-                    Platillos
-                </p>
-
-                <p class="mt-2 text-3xl font-black text-slate-900">
-                    12
-                </p>
-
-                <p class="mt-1 text-xs text-slate-400">
-                    Categoría principal
-                </p>
-
+            <div class="rounded-2xl border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-sm font-medium text-slate-500">Platillos</p>
+                <p class="mt-2 text-3xl font-black text-slate-900">4</p>
+                <p class="mt-1 text-xs text-slate-400">Categoría principal</p>
             </div>
-
-            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-
-                <p class="text-sm font-medium text-slate-500">
-                    Postres
-                </p>
-
-                <p class="mt-2 text-3xl font-black text-slate-900">
-                    6
-                </p>
-
-                <p class="mt-1 text-xs text-slate-400">
-                    Disponibles
-                </p>
-
+            <div class="rounded-2xl border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-sm font-medium text-slate-500">Postres</p>
+                <p class="mt-2 text-3xl font-black text-slate-900">2</p>
+                <p class="mt-1 text-xs text-slate-400">Disponibles</p>
             </div>
-
-            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-
-                <p class="text-sm font-medium text-slate-500">
-                    Bebidas
-                </p>
-
-                <p class="mt-2 text-3xl font-black text-slate-900">
-                    6
-                </p>
-
-                <p class="mt-1 text-xs text-slate-400">
-                    Disponibles
-                </p>
-
+            <div class="rounded-2xl border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-sm font-medium text-slate-500">Bebidas</p>
+                <p class="mt-2 text-3xl font-black text-slate-900">2</p>
+                <p class="mt-1 text-xs text-slate-400">Disponibles</p>
             </div>
-
         </div>
 
-        <div class="mb-8 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:flex-row">
-
-            <input type="text"
-                   placeholder="Buscar producto..."
-                   class="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-100" />
-
-            <select class="rounded-xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm text-slate-600 outline-none transition focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-100">
-
-                <option>Todas las categorías</option>
-                <option>Platillos</option>
-                <option>Postres</option>
-                <option>Bebidas</option>
-                <option>Combos</option>
-
+        <div class="mb-8 flex-col gap-3 rounded-2xl border-slate-200 bg-white p-4 shadow-sm md:flex-row">
+            <input id="buscadorMenu" type="text" placeholder="Buscar producto..." class="min-w-0 flex-1 rounded-xl border-slate-200 bg-slate-50 px-5 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-100" />
+            <select id="filtroCategoria" class="rounded-xl border-slate-200 bg-slate-50 px-5 py-3 text-sm text-slate-600 outline-none transition focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-100">
+                <option value="Todos">Todas las categorías</option>
+                <option value="Platillos">Platillos</option>
+                <option value="Postres">Postres</option>
+                <option value="Bebidas">Bebidas</option>
             </select>
-
-            <button class="rounded-xl bg-slate-900 px-7 py-3 text-sm font-bold text-white transition hover:bg-slate-800">
-                Buscar
-            </button>
-
+            <button onclick="filtrarMenu()" class="rounded-xl bg-slate-900 px-7 py-3 text-sm font-bold text-white transition hover:bg-slate-800">Buscar</button>
         </div>
 
         <div class="mb-5 flex items-end justify-between">
-
             <div>
-
-                <h2 class="text-xl font-black text-slate-900">
-                    Productos destacados
-                </h2>
-
-                <p class="mt-1 text-sm text-slate-500">
-                    Selección del menú disponible
-                </p>
-
+                <h2 class="text-xl font-black text-slate-900">Productos destacados</h2>
+                <p class="mt-1 text-sm text-slate-500">Selección del menú disponible</p>
             </div>
-
-            <span class="hidden text-sm text-slate-400 sm:block">
-                12 productos mostrados
-            </span>
-
+            <span id="contadorMostrados" class="hidden text-sm text-slate-400 sm:block">8 productos mostrados</span>
         </div>
 
-        <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        <div id="gridProductos" class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
 
-            <article class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-
+            <article class="producto-card group overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg" data-categoria="Platillos" data-nombre="Hamburguesa Artesanal">
                 <div class="relative h-52 overflow-hidden bg-slate-100">
-
-                    <img src="~/images/hamburguesa-artesanal.jpg"
-                         alt="Hamburguesa artesanal"
-                         class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-
-                    <span class="absolute left-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-bold text-amber-700 shadow-sm">
-                        DESTACADO
-                    </span>
-
+                    <img src="~/images/hamburguesa-artesanal.jpg" alt="Hamburguesa artesanal" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                    <span class="absolute left-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-bold text-amber-700 shadow-sm">DESTACADO</span>
                 </div>
-
                 <div class="p-5">
-
                     <div class="flex justify-between gap-3">
-
                         <div>
-
-                            <h3 class="font-bold text-slate-900">
-                                Hamburguesa Artesanal
-                            </h3>
-
-                            <p class="mt-1 text-xs text-slate-400">
-                                PR_01 · Platillos
-                            </p>
-
+                            <h3 class="font-bold text-slate-900">Hamburguesa Artesanal</h3>
+                            <p class="mt-1 text-xs text-slate-400">PR_01 · Platillos</p>
                         </div>
-
-                        <span class="font-black text-amber-600">
-                            $8.50
-                        </span>
-
+                        <span class="precio font-black text-amber-600">$8.50</span>
                     </div>
-
-                    <p class="mt-3 text-sm leading-6 text-slate-500">
-                        Carne artesanal, vegetales frescos y acompañamiento.
-                    </p>
-
-                    <button class="mt-4 w-full rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-amber-500 hover:text-amber-600">
-                        Ver producto
-                    </button>
-
+                    <p class="mt-3 text-sm leading-6 text-slate-500">Carne artesanal, vegetales frescos y acompañamiento.</p>
+                    <button onclick="agregarAlCarrito('PR_01', 'Hamburguesa Artesanal', 8.50)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
                 </div>
-
             </article>
 
-            <article class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-
+            <article class="producto-card group overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg" data-categoria="Platillos" data-nombre="Pizza Especial">
                 <div class="relative h-52 overflow-hidden bg-slate-100">
-
-                    <img src="~/images/pizza.jpg"
-                         alt="Pizza"
-                         class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-
-                    <span class="absolute left-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700 shadow-sm">
-                        PLATILLO
-                    </span>
-
+                    <img src="~/images/pizza.jpg" alt="Pizza" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                    <span class="absolute left-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700 shadow-sm">PLATILLO</span>
                 </div>
-
                 <div class="p-5">
-
                     <div class="flex justify-between gap-3">
-
                         <div>
-
-                            <h3 class="font-bold text-slate-900">
-                                Pizza Especial
-                            </h3>
-
-                            <p class="mt-1 text-xs text-slate-400">
-                                PR_02 · Platillos
-                            </p>
-
+                            <h3 class="font-bold text-slate-900">Pizza Especial</h3>
+                            <p class="mt-1 text-xs text-slate-400">PR_02 · Platillos</p>
                         </div>
-
-                        <span class="font-black text-amber-600">
-                            $9.75
-                        </span>
-
+                        <span class="precio font-black text-amber-600">$9.75</span>
                     </div>
-
-                    <p class="mt-3 text-sm leading-6 text-slate-500">
-                        Pizza preparada con ingredientes seleccionados.
-                    </p>
-
-                    <button class="mt-4 w-full rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-amber-500 hover:text-amber-600">
-                        Ver producto
-                    </button>
-
+                    <p class="mt-3 text-sm leading-6 text-slate-500">Pizza preparada con ingredientes seleccionados.</p>
+                    <button onclick="agregarAlCarrito('PR_02', 'Pizza Especial', 9.75)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
                 </div>
-
             </article>
 
-            <article class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-
+            <article class="producto-card group overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg" data-categoria="Platillos" data-nombre="Tacos Especiales">
                 <div class="relative h-52 overflow-hidden bg-slate-100">
-
-                    <img src="~/images/tacos.jpg"
-                         alt="Tacos"
-                         class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-
-                    <span class="absolute left-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700 shadow-sm">
-                        PLATILLO
-                    </span>
-
+                    <img src="~/images/tacos.jpg" alt="Tacos" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                    <span class="absolute left-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700 shadow-sm">PLATILLO</span>
                 </div>
-
                 <div class="p-5">
-
                     <div class="flex justify-between gap-3">
-
                         <div>
-
-                            <h3 class="font-bold text-slate-900">
-                                Tacos Especiales
-                            </h3>
-
-                            <p class="mt-1 text-xs text-slate-400">
-                                PR_03 · Platillos
-                            </p>
-
+                            <h3 class="font-bold text-slate-900">Tacos Especiales</h3>
+                            <p class="mt-1 text-xs text-slate-400">PR_03 · Platillos</p>
                         </div>
-
-                        <span class="font-black text-amber-600">
-                            $7.25
-                        </span>
-
+                        <span class="precio font-black text-amber-600">$7.25</span>
                     </div>
-
-                    <p class="mt-3 text-sm leading-6 text-slate-500">
-                        Tacos acompañados de vegetales y salsa de la casa.
-                    </p>
-
-                    <button class="mt-4 w-full rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-amber-500 hover:text-amber-600">
-                        Ver producto
-                    </button>
-
+                    <p class="mt-3 text-sm leading-6 text-slate-500">Tacos acompañados de vegetales y salsa de la casa.</p>
+                    <button onclick="agregarAlCarrito('PR_03', 'Tacos Especiales', 7.25)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
                 </div>
-
             </article>
 
-            <article class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-
+            <article class="producto-card group overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg" data-categoria="Platillos" data-nombre="Pasta Alfredo">
                 <div class="relative h-52 overflow-hidden bg-slate-100">
-
-                    <img src="~/images/pasta.jpg"
-                         alt="Pasta"
-                         class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-
-                    <span class="absolute left-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700 shadow-sm">
-                        PLATILLO
-                    </span>
-
+                    <img src="~/images/pasta.jpg" alt="Pasta" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                    <span class="absolute left-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700 shadow-sm">PLATILLO</span>
                 </div>
-
                 <div class="p-5">
-
                     <div class="flex justify-between gap-3">
-
                         <div>
-
-                            <h3 class="font-bold text-slate-900">
-                                Pasta Alfredo
-                            </h3>
-
-                            <p class="mt-1 text-xs text-slate-400">
-                                PR_04 · Platillos
-                            </p>
-
+                            <h3 class="font-bold text-slate-900">Pasta Alfredo</h3>
+                            <p class="mt-1 text-xs text-slate-400">PR_04 · Platillos</p>
                         </div>
-
-                        <span class="font-black text-amber-600">
-                            $8.95
-                        </span>
-
+                        <span class="precio font-black text-amber-600">$8.95</span>
                     </div>
-
-                    <p class="mt-3 text-sm leading-6 text-slate-500">
-                        Pasta cremosa preparada al estilo de la casa.
-                    </p>
-
-                    <button class="mt-4 w-full rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-amber-500 hover:text-amber-600">
-                        Ver producto
-                    </button>
-
+                    <p class="mt-3 text-sm leading-6 text-slate-500">Pasta cremosa preparada al estilo de la casa.</p>
+                    <button onclick="agregarAlCarrito('PR_04', 'Pasta Alfredo', 8.95)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
                 </div>
-
             </article>
 
-            <article class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-
+            <article class="producto-card group overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg" data-categoria="Postres" data-nombre="Cheesecake">
                 <div class="relative h-52 overflow-hidden bg-slate-100">
-
-                    <img src="~/images/cheesecake.jpg"
-                         alt="Cheesecake"
-                         class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-
-                    <span class="absolute left-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700 shadow-sm">
-                        POSTRE
-                    </span>
-
+                    <img src="~/images/cheesecake.jpg" alt="Cheesecake" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                    <span class="absolute left-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700 shadow-sm">POSTRE</span>
                 </div>
-
                 <div class="p-5">
-
                     <div class="flex justify-between gap-3">
-
                         <div>
-
-                            <h3 class="font-bold text-slate-900">
-                                Cheesecake
-                            </h3>
-
-                            <p class="mt-1 text-xs text-slate-400">
-                                POST_01 · Postres
-                            </p>
-
+                            <h3 class="font-bold text-slate-900">Cheesecake</h3>
+                            <p class="mt-1 text-xs text-slate-400">POST_01 · Postres</p>
                         </div>
-
-                        <span class="font-black text-amber-600">
-                            $4.50
-                        </span>
-
+                        <span class="precio font-black text-amber-600">$4.50</span>
                     </div>
-
-                    <p class="mt-3 text-sm leading-6 text-slate-500">
-                        Cheesecake cremoso acompañado de fruta fresca.
-                    </p>
-
-                    <button class="mt-4 w-full rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-amber-500 hover:text-amber-600">
-                        Ver producto
-                    </button>
-
+                    <p class="mt-3 text-sm leading-6 text-slate-500">Cheesecake cremoso acompañado de fruta fresca.</p>
+                    <button onclick="agregarAlCarrito('POST_01', 'Cheesecake', 4.50)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
                 </div>
-
             </article>
 
-            <article class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-
+            <article class="producto-card group overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg" data-categoria="Postres" data-nombre="Pastel de Chocolate">
                 <div class="relative h-52 overflow-hidden bg-slate-100">
-
-                    <img src="~/images/pastel-chocolate.jpg"
-                         alt="Pastel de chocolate"
-                         class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-
-                    <span class="absolute left-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700 shadow-sm">
-                        POSTRE
-                    </span>
-
+                    <img src="~/images/pastel-chocolate.jpg" alt="Pastel de chocolate" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                    <span class="absolute left-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700 shadow-sm">POSTRE</span>
                 </div>
-
                 <div class="p-5">
-
                     <div class="flex justify-between gap-3">
-
                         <div>
-
-                            <h3 class="font-bold text-slate-900">
-                                Pastel de Chocolate
-                            </h3>
-
-                            <p class="mt-1 text-xs text-slate-400">
-                                POST_02 · Postres
-                            </p>
-
+                            <h3 class="font-bold text-slate-900">Pastel de Chocolate</h3>
+                            <p class="mt-1 text-xs text-slate-400">POST_02 · Postres</p>
                         </div>
-
-                        <span class="font-black text-amber-600">
-                            $4.25
-                        </span>
-
+                        <span class="precio font-black text-amber-600">$4.25</span>
                     </div>
-
-                    <p class="mt-3 text-sm leading-6 text-slate-500">
-                        Pastel de chocolate con cobertura cremosa.
-                    </p>
-
-                    <button class="mt-4 w-full rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-amber-500 hover:text-amber-600">
-                        Ver producto
-                    </button>
-
+                    <p class="mt-3 text-sm leading-6 text-slate-500">Pastel de chocolate con cobertura cremosa.</p>
+                    <button onclick="agregarAlCarrito('POST_02', 'Pastel de Chocolate', 4.25)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
                 </div>
-
             </article>
 
-            <article class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-
+            <article class="producto-card group overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg" data-categoria="Bebidas" data-nombre="Limonada de Fresa">
                 <div class="relative h-52 overflow-hidden bg-slate-100">
-
-                    <img src="~/images/limonada-fresa.jpg"
-                         alt="Limonada de fresa"
-                         class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-
-                    <span class="absolute left-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700 shadow-sm">
-                        BEBIDA
-                    </span>
-
+                    <img src="~/images/limonada-fresa.jpg" alt="Limonada de fresa" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                    <span class="absolute left-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700 shadow-sm">BEBIDA</span>
                 </div>
-
                 <div class="p-5">
-
                     <div class="flex justify-between gap-3">
-
                         <div>
-
-                            <h3 class="font-bold text-slate-900">
-                                Limonada de Fresa
-                            </h3>
-
-                            <p class="mt-1 text-xs text-slate-400">
-                                BE_01 · Bebidas
-                            </p>
-
+                            <h3 class="font-bold text-slate-900">Limonada de Fresa</h3>
+                            <p class="mt-1 text-xs text-slate-400">BE_01 · Bebidas</p>
                         </div>
-
-                        <span class="font-black text-amber-600">
-                            $2.75
-                        </span>
-
+                        <span class="precio font-black text-amber-600">$2.75</span>
                     </div>
-
-                    <p class="mt-3 text-sm leading-6 text-slate-500">
-                        Bebida natural de fresa con limón.
-                    </p>
-
-                    <button class="mt-4 w-full rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-amber-500 hover:text-amber-600">
-                        Ver producto
-                    </button>
-
+                    <p class="mt-3 text-sm leading-6 text-slate-500">Bebida natural de fresa con limón.</p>
+                    <button onclick="agregarAlCarrito('BE_01', 'Limonada de Fresa', 2.75)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
                 </div>
-
             </article>
 
-            <article class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-
+            <article class="producto-card group overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg" data-categoria="Bebidas" data-nombre="Café de la Casa">
                 <div class="relative h-52 overflow-hidden bg-slate-100">
-
-                    <img src="~/images/cafe.jpg"
-                         alt="Café"
-                         class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-
-                    <span class="absolute left-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700 shadow-sm">
-                        BEBIDA
-                    </span>
-
+                    <img src="~/images/cafe.jpg" alt="Café" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                    <span class="absolute left-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-700 shadow-sm">BEBIDA</span>
                 </div>
-
                 <div class="p-5">
-
                     <div class="flex justify-between gap-3">
-
                         <div>
-
-                            <h3 class="font-bold text-slate-900">
-                                Café de la Casa
-                            </h3>
-
-                            <p class="mt-1 text-xs text-slate-400">
-                                BE_02 · Bebidas
-                            </p>
-
+                            <h3 class="font-bold text-slate-900">Café de la Casa</h3>
+                            <p class="mt-1 text-xs text-slate-400">BE_02 · Bebidas</p>
                         </div>
-
-                        <span class="font-black text-amber-600">
-                            $2.25
-                        </span>
-
+                        <span class="precio font-black text-amber-600">$2.25</span>
                     </div>
-
-                    <p class="mt-3 text-sm leading-6 text-slate-500">
-                        Café preparado con granos seleccionados.
-                    </p>
-
-                    <button class="mt-4 w-full rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-amber-500 hover:text-amber-600">
-                        Ver producto
-                    </button>
-
+                    <p class="mt-3 text-sm leading-6 text-slate-500">Café preparado con granos seleccionados.</p>
+                    <button onclick="agregarAlCarrito('BE_02', 'Café de la Casa', 2.25)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
                 </div>
-
             </article>
 
         </div>
-
-        <div class="mt-10 flex justify-center">
-
-            <div class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
-
-                <button class="rounded-lg px-4 py-2 text-sm text-slate-400">
-                    Anterior
-                </button>
-
-                <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white">
-                    1
-                </button>
-
-                <button class="rounded-lg px-4 py-2 text-sm text-slate-600 transition hover:bg-slate-100">
-                    2
-                </button>
-
-                <button class="rounded-lg px-4 py-2 text-sm text-slate-600 transition hover:bg-slate-100">
-                    3
-                </button>
-
-                <button class="rounded-lg px-4 py-2 text-sm text-slate-600 transition hover:bg-slate-100">
-                    Siguiente
-                </button>
-
-            </div>
-
-        </div>
-
     </div>
-
 </div>
+
+@section Scripts {
+    <script>
+        document.getElementById('buscadorMenu').addEventListener('keyup', filtrarMenu);
+        document.getElementById('filtroCategoria').addEventListener('change', filtrarMenu);
+
+        function filtrarMenu() {
+            let texto = document.getElementById('buscadorMenu').value.toLowerCase();
+            let categoria = document.getElementById('filtroCategoria').value;
+            let contador = 0;
+
+            document.querySelectorAll('.producto-card').forEach(card => {
+                let nombre = card.getAttribute('data-nombre').toLowerCase();
+                let cat = card.getAttribute('data-categoria');
+                let coincideTexto = nombre.includes(texto);
+                let coincideCat = categoria === 'Todos' || cat === categoria;
+
+                if (coincideTexto && coincideCat) {
+                    card.style.display = '';
+                    contador++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            document.getElementById('contadorMostrados').innerText = contador + ' productos mostrados';
+        }
+
+        function agregarAlCarrito(id, nombre, precio) {
+            let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+            let item = carrito.find(p => p.id === id);
+
+            if (item) {
+                item.cantidad++;
+            } else {
+                carrito.push({ id: id, nombre: nombre, precio: precio, cantidad: 1 });
+            }
+
+            localStorage.setItem('carrito', JSON.stringify(carrito));
+            ESFERestaurante.ui.mostrarToast(`${nombre} agregado al carrito`, 'success');
+        }
+    </script>
+}

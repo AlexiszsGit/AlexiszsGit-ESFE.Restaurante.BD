@@ -1,13 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
-namespace ESFE.Restaurante.BD.Controllers
+using Microsoft.AspNetCore.Mvc;
+namespace ESFE.RestauranteBD.web.UI.Controllers
 {
     public class PedidoListo1Controller : Controller
     {
-        // GET: /PedidoListo/
-        public IActionResult Index()
-        {
-            return View();
-        }
+        public IActionResult Index() { if (HttpContext.Session.GetString("RolUsuario") != "Dueno") return RedirectToAction("Index", "GestionDePedidos1"); return View(); }
     }
 }
