@@ -17,40 +17,4 @@
 @media(max-width:1050px){.menu-filter-grid{grid-template-columns:repeat(2,1fr)}.search-wide{grid-column:1/-1}.filter-clear{width:100%}.admin-work-grid{grid-template-columns:1fr}.admin-category-panel{position:static}}
 @media(max-width:650px){.menu-search-title{align-items:flex-start;flex-direction:column}.menu-filter-grid{grid-template-columns:1fr}.search-wide{grid-column:auto}.page-head-actions{width:100%;flex-direction:column}.page-head-actions>*{width:100%;justify-content:center}.admin-work-grid{gap:12px}}
 
-<<<<<<< HEAD
-body {
-  margin-bottom: 60px;
-}
-
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
-}
-
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
-}
-
-/* Estilos para el ejercicio del Laboratorio JS */
-.card-js {
-    background-color: #ffffff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    margin: 30px auto;
-    max-width: 400px;
-}
-
-.btn-js {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-}
-=======
 .ready-toolbar{display:flex;gap:10px;justify-content:space-between;align-items:center}.ready-search{flex:1;max-width:620px}.cash-note span{display:block;margin-top:4px;color:var(--muted)}.order-status-note{font-size:10px;color:var(--muted);align-self:center}
->>>>>>> ya estan todos los cambios revicen que funcione

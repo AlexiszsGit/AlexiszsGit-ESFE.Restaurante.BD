@@ -1,17 +1,253 @@
-@{ Layout = "_Layout"; ViewData["Title"] = "Menú"; var esDueno = Context.Session.GetString("RolUsuario") == "Dueno"; }
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Menú";
+    var esDueno = Context.Session.GetString("RolUsuario") == "Dueno";
+}
+
 @if (esDueno)
 {
-<section class="page-shell">
- <div class="page-head"><div><span class="eyebrow">Administración del catálogo</span><h2>Gestiona tu menú sin complicarte</h2><p>Agrega productos y nuevas categorías desde un panel claro. Las imágenes quedan preparadas para que tú coloques las fotografías reales.</p></div><div class="page-head-actions"><button class="secondary-btn" onclick="document.getElementById('categoryAdminModal')?.classList.remove('hidden')">+ Nueva categoría</button><button class="primary-btn" onclick="ESFERestaurante.adminProducts.open()">+ Nuevo producto</button></div></div>
- <div class="stats-grid compact"><div class="stat-card"><span>Productos</span><strong id="adminProductCount">0</strong><small>En el catálogo</small></div><div class="stat-card"><span>Categorías</span><strong id="adminCategoryCount">0</strong><small>Base + personalizadas</small></div><div class="stat-card"><span>Imágenes</span><strong>JPG/PNG</strong><small>Archivo o ruta</small></div><div class="stat-card"><span>Guardado</span><strong>Local</strong><small>Sin cambiar la BD</small></div></div>
- <section class="admin-work-grid"><section class="panel"><div class="panel-head"><div><span class="eyebrow">Catálogo actual</span><h3>Productos registrados</h3><p>Edita la información sin perder el resto del menú.</p></div></div><div id="adminProductList" class="admin-product-list"></div></section><aside class="panel admin-category-panel"><div class="panel-head"><div><span class="eyebrow">Estructura</span><h3>Categorías del menú</h3><p>Las nuevas categorías aparecen automáticamente al crear productos.</p></div></div><div id="adminCategoryList" class="admin-category-list"></div></aside></section>
-</section>
-<div id="productAdminModal" class="modal-backdrop hidden" onclick="if(event.target===this)ESFERestaurante.adminProducts.close()"><div class="category-modal admin-modal"><button class="modal-close" onclick="ESFERestaurante.adminProducts.close()">×</button><div class="modal-heading"><span class="eyebrow">Nuevo producto</span><h2 id="productModalTitle">Datos del producto</h2><p class="modal-help">Completa cada campo y deja preparada la ruta de imagen. Puedes añadir la fotografía real después.</p></div><div class="admin-form-grid"><label class="field-label">Nombre del producto<input id="adminName" placeholder="Ej. Pollo a la parrilla"></label><label class="field-label">Categoría<select id="adminCategory"></select><small class="field-hint">Las categorías nuevas se crean desde “Nueva categoría”.</small></label><label class="field-label">Precio<input id="adminPrice" type="number" step="0.01" min="0.01" placeholder="0.00"></label><label class="field-label">Fotografía<input id="adminImageFile" type="file" accept="image/jpeg,image/png,image/webp"><small class="field-hint">Opcional. JPG, PNG o WEBP.</small></label><label class="field-label full-field">Ruta de imagen<input id="adminImage" placeholder="/images/productos/mi-plato.jpg"><small class="field-hint"><!-- IMAGEN DEL PRODUCTO: coloca la fotografía en wwwroot/images/productos/ -->Si todavía no tienes la foto, déjala vacía y luego puedes reemplazar la ruta.</small></label><label class="field-label full-field">Descripción<textarea id="adminDesc" rows="3" placeholder="Describe brevemente el plato y qué lo hace especial."></textarea></label><label class="field-label full-field">Ingredientes<input id="adminIngredients" placeholder="Ej. Pollo, arroz, ensalada, salsa de la casa"><small class="field-hint">Sepáralos por comas.</small></label></div><div class="modal-actions"><button class="secondary-btn" onclick="ESFERestaurante.adminProducts.close()">Cancelar</button><button class="primary-btn" onclick="ESFERestaurante.adminProducts.save()">Guardar producto</button></div></div></div>
-<div id="categoryAdminModal" class="modal-backdrop hidden" onclick="if(event.target===this)this.classList.add('hidden')"><div class="category-modal admin-modal category-admin-modal"><button class="modal-close" onclick="document.getElementById('categoryAdminModal')?.classList.add('hidden')">×</button><div class="modal-heading"><span class="eyebrow">Organización del menú</span><h2>Nueva categoría</h2><p class="modal-help">Crea una sección para que después puedas añadir productos dentro de ella.</p></div><div class="admin-form-grid"><label class="field-label">Nombre de la categoría<input id="adminNewCategoryName" placeholder="Ej. Desayunos"></label><label class="field-label">Ruta de imagen<input id="adminNewCategoryImage" placeholder="/images/categorias/desayunos.jpg"><small class="field-hint"><!-- IMAGEN DE CATEGORÍA: coloca la fotografía en wwwroot/images/categorias/ --></small></label><label class="field-label full-field">Descripción<textarea id="adminNewCategoryDesc" rows="3" placeholder="Ej. Opciones para comenzar el día."></textarea></label></div><div class="modal-actions"><button class="secondary-btn" onclick="document.getElementById('categoryAdminModal')?.classList.add('hidden')">Cancelar</button><button class="primary-btn" onclick="if(ESFERestaurante.adminProducts.addCategory())document.getElementById('categoryAdminModal')?.classList.add('hidden')">Guardar categoría</button></div></div></div>
+    <section class="page-shell">
+        <div class="page-head">
+            <div>
+                <span class="eyebrow">Administración del catálogo</span>
+                <h2>Gestiona tu menú sin complicarte</h2>
+                <p>Agrega productos y nuevas categorías desde un panel claro. Las imágenes quedan preparadas para que tú coloques las fotografías reales.</p>
+            </div>
+            <div class="page-head-actions">
+                <button class="secondary-btn" onclick="document.getElementById('categoryAdminModal')?.classList.remove('hidden')">+ Nueva categoría</button>
+                <button class="primary-btn" onclick="ESFERestaurante.adminProducts.open()">+ Nuevo producto</button>
+            </div>
+        </div>
+
+        <div class="stats-grid compact">
+            <div class="stat-card">
+                <span>Productos</span>
+                <strong id="adminProductCount">0</strong>
+                <small>En el catálogo</small>
+            </div>
+            <div class="stat-card">
+                <span>Categorías</span>
+                <strong id="adminCategoryCount">0</strong>
+                <small>Base + personalizadas</small>
+            </div>
+            <div class="stat-card">
+                <span>Imágenes</span>
+                <strong>JPG/PNG</strong>
+                <small>Archivo o ruta</small>
+            </div>
+            <div class="stat-card">
+                <span>Guardado</span>
+                <strong>Local</strong>
+                <small>Sin cambiar la BD</small>
+            </div>
+        </div>
+
+        <section class="admin-work-grid">
+            <section class="panel">
+                <div class="panel-head">
+                    <div>
+                        <span class="eyebrow">Catálogo actual</span>
+                        <h3>Productos registrados</h3>
+                        <p>Edita la información sin perder el resto del menú.</p>
+                    </div>
+                </div>
+                <div id="adminProductList" class="admin-product-list"></div>
+            </section>
+
+            <aside class="panel admin-category-panel">
+                <div class="panel-head">
+                    <div>
+                        <span class="eyebrow">Estructura</span>
+                        <h3>Categorías del menú</h3>
+                        <p>Las nuevas categorías aparecen automáticamente al crear productos.</p>
+                    </div>
+                </div>
+                <div id="adminCategoryList" class="admin-category-list"></div>
+            </aside>
+        </section>
+    </section>
+
+    <div id="productAdminModal" class="modal-backdrop hidden" onclick="if(event.target===this)ESFERestaurante.adminProducts.close()">
+        <div class="category-modal admin-modal">
+            <button class="modal-close" onclick="ESFERestaurante.adminProducts.close()">×</button>
+            <div class="modal-heading">
+                <span class="eyebrow">Nuevo producto</span>
+                <h2 id="productModalTitle">Datos del producto</h2>
+                <p class="modal-help">Completa cada campo y deja preparada la ruta de imagen. Puedes añadir la fotografía real después.</p>
+            </div>
+            <div class="admin-form-grid">
+                <label class="field-label">
+                    Nombre del producto
+                    <input id="adminName" placeholder="Ej. Pollo a la parrilla">
+                </label>
+                <label class="field-label">
+                    Categoría
+                    <select id="adminCategory"></select>
+                    <small class="field-hint">Las categorías nuevas se crean desde “Nueva categoría”.</small>
+                </label>
+                <label class="field-label">
+                    Precio
+                    <input id="adminPrice" type="number" step="0.01" min="0.01" placeholder="0.00">
+                </label>
+                <label class="field-label">
+                    Fotografía
+                    <input id="adminImageFile" type="file" accept="image/jpeg,image/png,image/webp">
+                    <small class="field-hint">Opcional. JPG, PNG o WEBP.</small>
+                </label>
+                <label class="field-label full-field">
+                    Ruta de imagen
+                    <input id="adminImage" placeholder="/images/productos/mi-plato.jpg">
+                    <small class="field-hint"><!-- IMAGEN DEL PRODUCTO: coloca la fotografía en wwwroot/images/productos/ -->Si todavía no tienes la foto, déjala vacía y luego puedes reemplazar la ruta.</small>
+                </label>
+                <label class="field-label full-field">
+                    Descripción
+                    <textarea id="adminDesc" rows="3" placeholder="Describe brevemente el plato y qué lo hace especial."></textarea>
+                </label>
+                <label class="field-label full-field">
+                    Ingredientes
+                    <input id="adminIngredients" placeholder="Ej. Pollo, arroz, ensalada, salsa de la casa">
+                    <small class="field-hint">Sepáralos por comas.</small>
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button class="secondary-btn" onclick="ESFERestaurante.adminProducts.close()">Cancelar</button>
+                <button class="primary-btn" onclick="ESFERestaurante.adminProducts.save()">Guardar producto</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="categoryAdminModal" class="modal-backdrop hidden" onclick="if(event.target===this)this.classList.add('hidden')">
+        <div class="category-modal admin-modal category-admin-modal">
+            <button class="modal-close" onclick="document.getElementById('categoryAdminModal')?.classList.add('hidden')">×</button>
+            <div class="modal-heading">
+                <span class="eyebrow">Organización del menú</span>
+                <h2>Nueva categoría</h2>
+                <p class="modal-help">Crea una sección para que después puedas añadir productos dentro de ella.</p>
+            </div>
+            <div class="admin-form-grid">
+                <label class="field-label">
+                    Nombre de la categoría
+                    <input id="adminNewCategoryName" placeholder="Ej. Desayunos">
+                </label>
+                <label class="field-label">
+                    Ruta de imagen
+                    <input id="adminNewCategoryImage" placeholder="/images/categorias/desayunos.jpg">
+                    <small class="field-hint"><!-- IMAGEN DE CATEGORÍA: coloca la fotografía en wwwroot/images/categorias/ --></small>
+                </label>
+                <label class="field-label full-field">
+                    Descripción
+                    <textarea id="adminNewCategoryDesc" rows="3" placeholder="Ej. Opciones para comenzar el día."></textarea>
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button class="secondary-btn" onclick="document.getElementById('categoryAdminModal')?.classList.add('hidden')">Cancelar</button>
+                <button class="primary-btn" onclick="if(ESFERestaurante.adminProducts.addCategory())document.getElementById('categoryAdminModal')?.classList.add('hidden')">Guardar categoría</button>
+            </div>
+        </div>
+    </div>
 }
 else
 {
-<section class="page-shell"><div class="page-head"><div><span class="eyebrow">Carta completa</span><h2>Encuentra tu próximo plato</h2><p>Busca por nombre, categoría o ingrediente y combina filtros para encontrar exactamente lo que quieres.</p></div><a asp-controller="PedidoyCarrito1" asp-action="Index" class="cart-head-link"><span>Carrito</span><b data-cart-badge>0</b></a></div><section class="menu-search-panel"><div class="menu-search-title"><div><span class="eyebrow">Búsqueda inteligente</span><h3>Filtra el menú</h3></div><span id="menuResultHint" class="filter-hint">Todos los productos</span></div><div class="menu-filter-grid"><label class="filter-field search-wide"><span>Buscar</span><div class="search-box"><span>⌕</span><input id="menuSearch" placeholder="Ej. pollo, pizza, queso..." autocomplete="off" /></div></label><label class="filter-field"><span>Categoría</span><select id="menuFilterCategory"><option value="Todas">Todas las categorías</option></select></label><label class="filter-field"><span>Precio máximo</span><select id="menuFilterPrice"><option value="">Cualquier precio</option><option value="5">Hasta $5</option><option value="8">Hasta $8</option><option value="10">Hasta $10</option><option value="15">Hasta $15</option></select></label><label class="filter-field"><span>Preferencia</span><select id="menuFilterTag"><option value="Todos">Todas</option><option>Favorita</option><option>Vegetariana</option><option>Natural</option><option>Picante</option><option>Especial</option><option>Popular</option></select></label><label class="filter-field"><span>Ordenar</span><select id="menuSort"><option value="relevance">Más relevantes</option><option value="priceAsc">Precio: menor a mayor</option><option value="priceDesc">Precio: mayor a menor</option><option value="name">Nombre: A-Z</option></select></label><button type="button" class="secondary-btn filter-clear" onclick="ESFERestaurante.menu.clearFilters()">Limpiar filtros</button></div></section><div class="category-section-head"><div><h3>Explora por categoría</h3><p>También puedes entrar directamente a una sección del menú.</p></div></div><div id="categoryGrid" class="category-grid"></div></section>
-<div id="categoryModal" class="modal-backdrop hidden" onclick="if(event.target===this)ESFERestaurante.menu.closeCategory()"><div class="category-modal"><button class="modal-close" onclick="ESFERestaurante.menu.closeCategory()">×</button><div class="modal-heading"><span class="eyebrow">Productos</span><h2 id="categoryModalTitle">Sección</h2></div><div id="categoryProductGrid" class="product-grid"></div></div></div><div id="productModal" class="modal-backdrop hidden" onclick="if(event.target===this)ESFERestaurante.menu.closeModal()"><div class="product-modal"><button class="modal-close" onclick="ESFERestaurante.menu.closeModal()">×</button><div id="productModalContent"></div></div></div>
+    <section class="page-shell">
+        <div class="page-head">
+            <div>
+                <span class="eyebrow">Carta completa</span>
+                <h2>Encuentra tu próximo plato</h2>
+                <p>Busca por nombre, categoría o ingrediente y combina filtros para encontrar exactamente lo que quieres.</p>
+            </div>
+            <a asp-controller="PedidoyCarrito1" asp-action="Index" class="cart-head-link">
+                <span>Carrito</span>
+                <b data-cart-badge>0</b>
+            </a>
+        </div>
+
+        <section class="menu-search-panel">
+            <div class="menu-search-title">
+                <div>
+                    <span class="eyebrow">Búsqueda inteligente</span>
+                    <h3>Filtra el menú</h3>
+                </div>
+                <span id="menuResultHint" class="filter-hint">Todos los productos</span>
+            </div>
+            <div class="menu-filter-grid">
+                <label class="filter-field search-wide">
+                    <span>Buscar</span>
+                    <div class="search-box">
+                        <span>⌕</span>
+                        <input id="menuSearch" placeholder="Ej. pollo, pizza, queso..." autocomplete="off" />
+                    </div>
+                </label>
+                <label class="filter-field">
+                    <span>Categoría</span>
+                    <select id="menuFilterCategory">
+                        <option value="Todas">Todas las categorías</option>
+                    </select>
+                </label>
+                <label class="filter-field">
+                    <span>Precio máximo</span>
+                    <select id="menuFilterPrice">
+                        <option value="">Cualquier precio</option>
+                        <option value="5">Hasta $5</option>
+                        <option value="8">Hasta $8</option>
+                        <option value="10">Hasta $10</option>
+                        <option value="15">Hasta $15</option>
+                    </select>
+                </label>
+                <label class="filter-field">
+                    <span>Preferencia</span>
+                    <select id="menuFilterTag">
+                        <option value="Todos">Todas</option>
+                        <option>Favorita</option>
+                        <option>Vegetariana</option>
+                        <option>Natural</option>
+                        <option>Picante</option>
+                        <option>Especial</option>
+                        <option>Popular</option>
+                    </select>
+                </label>
+                <label class="filter-field">
+                    <span>Ordenar</span>
+                    <select id="menuSort">
+                        <option value="relevance">Más relevantes</option>
+                        <option value="priceAsc">Precio: menor a mayor</option>
+                        <option value="priceDesc">Precio: mayor a menor</option>
+                        <option value="name">Nombre: A-Z</option>
+                    </select>
+                </label>
+                <button type="button" class="secondary-btn filter-clear" onclick="ESFERestaurante.menu.clearFilters()">Limpiar filtros</button>
+            </div>
+        </section>
+
+        <div class="category-section-head">
+            <div>
+                <h3>Explora por categoría</h3>
+                <p>También puedes entrar directamente a una sección del menú.</p>
+            </div>
+        </div>
+        <div id="categoryGrid" class="category-grid"></div>
+    </section>
+
+    <div id="categoryModal" class="modal-backdrop hidden" onclick="if(event.target===this)ESFERestaurante.menu.closeCategory()">
+        <div class="category-modal">
+            <button class="modal-close" onclick="ESFERestaurante.menu.closeCategory()">×</button>
+            <div class="modal-heading">
+                <span class="eyebrow">Productos</span>
+                <h2 id="categoryModalTitle">Sección</h2>
+            </div>
+            <div id="categoryProductGrid" class="product-grid"></div>
+        </div>
+    </div>
+
+    <div id="productModal" class="modal-backdrop hidden" onclick="if(event.target===this)ESFERestaurante.menu.closeModal()">
+        <div class="product-modal">
+            <button class="modal-close" onclick="ESFERestaurante.menu.closeModal()">×</button>
+            <div id="productModalContent"></div>
+        </div>
+    </div>
 }
-@section Scripts { <script>document.addEventListener('DOMContentLoaded',()=>@(esDueno ? "ESFERestaurante.adminProducts.init()" : "ESFERestaurante.menu.init()"));</script> }
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => @(esDueno ? "ESFERestaurante.adminProducts.init()" : "ESFERestaurante.menu.init()"));
+    </script>
+}

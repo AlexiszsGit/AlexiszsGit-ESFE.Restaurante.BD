@@ -1197,11 +1197,6 @@
     transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
     transition-duration: var(--tw-duration, var(--default-transition-duration));
   }
-  .transition-colors {
-    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;
-    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
-    transition-duration: var(--tw-duration, var(--default-transition-duration));
-  }
   .duration-300 {
     --tw-duration: 300ms;
     transition-duration: 300ms;
@@ -1238,51 +1233,6 @@
       --tw-translate-y: calc(var(--spacing) * -1);
       translate: var(--tw-translate-x) var(--tw-translate-y);
     }
-<<<<<<< HEAD
-    .hover\:scale-110:hover {
-      --tw-scale-x: 110%;
-      --tw-scale-y: 110%;
-      --tw-scale-z: 110%;
-      scale: var(--tw-scale-x) var(--tw-scale-y);
-    }
-    .hover\:border-amber-300:hover {
-      border-color: var(--color-amber-300);
-    }
-    .hover\:border-amber-400:hover {
-      border-color: var(--color-amber-400);
-    }
-    .hover\:border-amber-500:hover {
-      border-color: var(--color-amber-500);
-    }
-    .hover\:border-emerald-300:hover {
-      border-color: var(--color-emerald-300);
-    }
-    .hover\:bg-amber-50:hover {
-      background-color: var(--color-amber-50);
-    }
-    .hover\:bg-amber-100:hover {
-      background-color: var(--color-amber-100);
-    }
-    .hover\:bg-amber-600:hover {
-      background-color: var(--color-amber-600);
-    }
-    .hover\:bg-emerald-100:hover {
-      background-color: var(--color-emerald-100);
-    }
-    .hover\:bg-emerald-700:hover {
-      background-color: var(--color-emerald-700);
-    }
-    .hover\:bg-red-50:hover {
-      background-color: var(--color-red-50);
-    }
-    .hover\:bg-slate-50:hover {
-      background-color: var(--color-slate-50);
-    }
-    .hover\:bg-slate-100:hover {
-      background-color: var(--color-slate-100);
-    }
-=======
->>>>>>> ya estan todos los cambios revicen que funcione
     .hover\:bg-slate-800:hover {
       background-color: var(--color-slate-800);
     }

@@ -5,23 +5,6 @@ const ESFERestaurante = (() => {
     const read = (key, fallback=[]) => { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } };
     const write = (key, value) => localStorage.setItem(key, JSON.stringify(value));
 
-<<<<<<< HEAD
-// Write your JavaScript code.
-
-// Laboratorio JavaScript: Interacción Dinámica
-document.addEventListener('DOMContentLoaded', () => {
-    const boton = document.getElementById('miBoton');
-    const mensaje = document.getElementById('mensaje');
-
-    if (boton && mensaje) {
-        boton.addEventListener('click', () => {
-            mensaje.textContent = '¡El texto ha cambiado gracias a JavaScript!';
-            mensaje.style.color = '#28a745';
-            mensaje.style.fontWeight = 'bold';
-        });
-    }
-});
-=======
     // IMÁGENES DE CATEGORÍAS: coloca las fotografías reales en wwwroot/images/categorias/*.jpg
     const categories = [
         {id:'Hamburguesas',image:'/images/categorias/hamburguesas.jpg',desc:'Carne, pollo y opciones de autor'},
@@ -315,4 +298,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 })();
 document.addEventListener('DOMContentLoaded',()=>ESFERestaurante.layout.init());
->>>>>>> ya estan todos los cambios revicen que funcione
