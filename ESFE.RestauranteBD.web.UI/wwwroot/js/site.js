@@ -53,8 +53,8 @@ const ESFERestaurante = (() => {
         {id:'post-brownie',cat:'Postres',name:'Brownie con Helado',price:4.25,image:'/images/productos/post-brownie.jpg',desc:'Brownie caliente y helado de vainilla.',ingredients:['Chocolate','Harina','Huevo','Helado de vainilla'],tags:['Especial']},
         {id:'combo-esfe',cat:'Combos',name:'Combo de la Casa',price:9.50,image:'/images/productos/combo-esfe.jpg',desc:'Hamburguesa clásica + papas + bebida.',ingredients:['Hamburguesa Clásica','Papas de la Casa','Coca-Cola'],tags:['Mejor valor']},
         {id:'combo-crispy',cat:'Combos',name:'Combo Crispy',price:10.50,image:'/images/productos/combo-crispy.jpg',desc:'Chicken Crispy + papas + limonada.',ingredients:['Chicken Crispy','Papas de la Casa','Limonada Fresa'],tags:['Popular']},
-        {id:'combo-pizza',cat:'Combos',name:'Combo Pizza Familiar',price:13.50,image:'/images/productos/combo-pizza.jpg',desc:'Pizza Pepperoni + 2 bebidas.',ingredients:['Pizza Pepperoni','2 Coca-Cola'],tags:['Familiar']},
-        {id:'combo-tacos',cat:'Combos',name:'Combo Tacos',price:8.75,image:'/images/tacos.jpg',desc:'Tacos de carne + bebida + postre.',ingredients:['Tacos de Carne','Coca-Cola','Brownie'],tags:['Completo']},
+        {id:'combo-pizza',cat:'Combos',name:'Combo Pizza Familiar',price:13.50,image:'/images/productos/combo-pizza.jpeg',desc:'Pizza Pepperoni + 2 bebidas.',ingredients:['Pizza Pepperoni','2 Coca-Cola'],tags:['Familiar']},
+        {id:'combo-tacos',cat:'Combos',name:'Combo Tacos',price:8.75,image:'/images/productos/tacos.jpg',desc:'Tacos de carne + bebida + postre.',ingredients:['Tacos de Carne','Coca-Cola','Brownie'],tags:['Completo']},
         // IMAGEN DEL PRODUCTO: agrega la fotografía en wwwroot/images/productos/carne-parrilla.jpg
         {id:'carne-parrilla',cat:'Carnes',name:'Parrillada de la Casa',price:14.50,image:'/images/productos/carne-parrilla.jpg',desc:'Selección de carnes a la parrilla con guarniciones de la casa.',ingredients:['Carne de res','Chorizo','Cebolla','Papas','Ensalada'],tags:['Especial','Parrilla']},
         // IMAGEN DEL PRODUCTO: agrega la fotografía en wwwroot/images/productos/steak-chimichurri.jpg
