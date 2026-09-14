@@ -1,3 +1,61 @@
-@{ Layout = "_Layout"; ViewData["Title"] = "Pedidos"; }
-<section class="page-shell"><div class="page-head"><div><span class="eyebrow">Operación</span><h2>Gestión de pedidos</h2><p>Consulta y actualiza el estado de cada pedido.</p></div><button class="secondary-btn" onclick="ESFERestaurante.orders.render()">↻ Actualizar</button></div><div class="stats-grid compact"><div class="stat-card"><span>Total</span><strong id="ordersTotal">0</strong><small>Pedidos registrados</small></div><div class="stat-card"><span>Pendientes</span><strong id="ordersPending">0</strong><small>Esperando cocina</small></div><div class="stat-card"><span>Preparando</span><strong id="ordersPreparing">0</strong><small>En proceso</small></div><div class="stat-card"><span>Listos</span><strong id="ordersReady">0</strong><small>Para entregar</small></div></div><section class="panel"><div class="toolbar-row"><div class="filter-tabs"><button class="filter-chip active" data-status="Todos" onclick="ESFERestaurante.orders.setFilter('Todos')">Todos</button><button class="filter-chip" data-status="Pendiente" onclick="ESFERestaurante.orders.setFilter('Pendiente')">Pendientes</button><button class="filter-chip" data-status="Preparando" onclick="ESFERestaurante.orders.setFilter('Preparando')">Preparando</button><button class="filter-chip" data-status="Listo" onclick="ESFERestaurante.orders.setFilter('Listo')">Listos</button></div><div class="search-box small"><span>⌕</span><input id="ordersSearch" placeholder="Buscar por nombre, correo o número..." oninput="ESFERestaurante.orders.render()" /></div></div><div id="ordersGrid" class="orders-grid"></div></section></section>
-@section Scripts { <script>document.addEventListener('DOMContentLoaded',()=>ESFERestaurante.orders.init());</script> }
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Pedidos";
+}
+
+<section class="page-shell">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Operación</span>
+            <h2>Gestión de pedidos</h2>
+            <p>Consulta y actualiza el estado de cada pedido.</p>
+        </div>
+        <button class="secondary-btn" onclick="ESFERestaurante.orders.render()">↻ Actualizar</button>
+    </div>
+
+    <div class="stats-grid compact">
+        <div class="stat-card">
+            <span>Total</span>
+            <strong id="ordersTotal">0</strong>
+            <small>Pedidos registrados</small>
+        </div>
+        <div class="stat-card">
+            <span>Pendientes</span>
+            <strong id="ordersPending">0</strong>
+            <small>Esperando cocina</small>
+        </div>
+        <div class="stat-card">
+            <span>Preparando</span>
+            <strong id="ordersPreparing">0</strong>
+            <small>En proceso</small>
+        </div>
+        <div class="stat-card">
+            <span>Listos</span>
+            <strong id="ordersReady">0</strong>
+            <small>Para entregar</small>
+        </div>
+    </div>
+
+    <section class="panel">
+        <div class="toolbar-row">
+            <div class="filter-tabs">
+                <button class="filter-chip active" data-status="Todos" onclick="ESFERestaurante.orders.setFilter('Todos')">Todos</button>
+                <button class="filter-chip" data-status="Pendiente" onclick="ESFERestaurante.orders.setFilter('Pendiente')">Pendientes</button>
+                <button class="filter-chip" data-status="Preparando" onclick="ESFERestaurante.orders.setFilter('Preparando')">Preparando</button>
+                <button class="filter-chip" data-status="Listo" onclick="ESFERestaurante.orders.setFilter('Listo')">Listos</button>
+            </div>
+            <div class="search-box small">
+                <span>⌕</span>
+                <input id="ordersSearch" placeholder="Buscar por nombre, correo o número..." oninput="ESFERestaurante.orders.render()" />
+            </div>
+        </div>
+
+        <div id="ordersGrid" class="orders-grid"></div>
+    </section>
+</section>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => ESFERestaurante.orders.init());
+    </script>
+}

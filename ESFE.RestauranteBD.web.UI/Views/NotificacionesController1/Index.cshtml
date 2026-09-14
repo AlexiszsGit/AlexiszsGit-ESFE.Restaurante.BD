@@ -1,3 +1,25 @@
-@{ Layout = "_Layout"; ViewData["Title"] = "Notificaciones"; }
-<section class="page-shell"><div class="page-head"><div><span class="eyebrow">Centro de mensajes</span><h2>Notificaciones</h2><p>Aquí aparecerán los avisos de tus pedidos.</p></div><button class="secondary-btn" onclick="ESFERestaurante.notifications.markAllRead()">Marcar como leídas</button></div><section class="panel notification-panel"><div id="notificationList"></div></section></section>
-@section Scripts { <script>document.addEventListener('DOMContentLoaded',()=>ESFERestaurante.notifications.init());</script> }
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Notificaciones";
+}
+
+<section class="page-shell">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Centro de mensajes</span>
+            <h2>Notificaciones</h2>
+            <p>Aquí aparecerán los avisos de tus pedidos.</p>
+        </div>
+        <button class="secondary-btn" onclick="ESFERestaurante.notifications.markAllRead()">Marcar como leídas</button>
+    </div>
+
+    <section class="panel notification-panel">
+        <div id="notificationList"></div>
+    </section>
+</section>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => ESFERestaurante.notifications.init());
+    </script>
+}

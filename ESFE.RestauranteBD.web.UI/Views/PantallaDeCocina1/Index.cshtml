@@ -1,3 +1,25 @@
-@{ Layout = "_Layout"; ViewData["Title"] = "Cocina"; }
-<section class="page-shell"><div class="page-head"><div><span class="eyebrow">Back of house</span><h2>Pantalla de cocina</h2><p>Actualiza cada orden en el flujo de preparación.</p></div><span class="live-badge"><i></i> Actualización automática</span></div><div class="kanban" id="kitchenBoard"></div></section>
-@section Scripts { <script>document.addEventListener('DOMContentLoaded',()=>ESFERestaurante.kitchen.init());</script> }
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Cocina";
+}
+
+<section class="page-shell">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Back of house</span>
+            <h2>Pantalla de cocina</h2>
+            <p>Actualiza cada orden en el flujo de preparación.</p>
+        </div>
+        <span class="live-badge">
+            <i></i> Actualización automática
+        </span>
+    </div>
+
+    <div class="kanban" id="kitchenBoard"></div>
+</section>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => ESFERestaurante.kitchen.init());
+    </script>
+}

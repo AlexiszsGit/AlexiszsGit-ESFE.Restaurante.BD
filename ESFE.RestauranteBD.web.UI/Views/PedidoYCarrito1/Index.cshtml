@@ -1,7 +1,70 @@
-@{ Layout = "_Layout"; ViewData["Title"] = "Carrito"; }
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Carrito";
+}
+
 <section class="page-shell narrow-page">
-    <div class="page-head"><div><span class="eyebrow">Pedido</span><h2>Tu carrito</h2><p>Revisa cantidades, personalizaciones y total antes de pagar.</p></div><a asp-controller="GestionDeMenu1" asp-action="Index" class="secondary-btn">← Seguir comprando</a></div>
-    <div class="checkout-grid"><section class="panel"><div class="panel-head"><div><h3>Productos seleccionados</h3><p id="cartItemSummary">0 productos</p></div><button class="danger-link" onclick="ESFERestaurante.cart.clear()">Vaciar carrito</button></div><div id="cartItems" class="cart-items"></div></section>
-    <aside class="panel order-summary"><span class="eyebrow">Resumen</span><h3>Total del pedido</h3><div class="summary-row"><span>Subtotal</span><strong id="cartSubtotal">$0.00</strong></div><div class="summary-row"><span>IVA 13%</span><strong id="cartTax">$0.00</strong></div><div class="summary-row total-row"><span>Total</span><strong id="cartTotal">$0.00</strong></div><label class="field-label">Tipo de pedido<select id="orderType"><option value="Mesa">Consumir en restaurante</option><option value="Llevar">Para llevar</option></select></label><label class="field-label">Notas<input id="orderNote" placeholder="Sin cebolla, extra salsa, etc." /></label><button id="goPay" class="primary-btn large full" onclick="ESFERestaurante.cart.checkout()">Continuar al pago <span>→</span></button></aside></div>
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Pedido</span>
+            <h2>Tu carrito</h2>
+            <p>Revisa cantidades, personalizaciones y total antes de pagar.</p>
+        </div>
+        <a asp-controller="GestionDeMenu1" asp-action="Index" class="secondary-btn">← Seguir comprando</a>
+    </div>
+
+    <div class="checkout-grid">
+        <section class="panel">
+            <div class="panel-head">
+                <div>
+                    <h3>Productos seleccionados</h3>
+                    <p id="cartItemSummary">0 productos</p>
+                </div>
+                <button class="danger-link" onclick="ESFERestaurante.cart.clear()">Vaciar carrito</button>
+            </div>
+
+            <div id="cartItems" class="cart-items"></div>
+        </section>
+
+        <aside class="panel order-summary">
+            <span class="eyebrow">Resumen</span>
+            <h3>Total del pedido</h3>
+
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <strong id="cartSubtotal">$0.00</strong>
+            </div>
+            <div class="summary-row">
+                <span>IVA 13%</span>
+                <strong id="cartTax">$0.00</strong>
+            </div>
+            <div class="summary-row total-row">
+                <span>Total</span>
+                <strong id="cartTotal">$0.00</strong>
+            </div>
+
+            <label class="field-label">
+                Tipo de pedido
+                <select id="orderType">
+                    <option value="Mesa">Consumir en restaurante</option>
+                    <option value="Llevar">Para llevar</option>
+                </select>
+            </label>
+
+            <label class="field-label">
+                Notas
+                <input id="orderNote" placeholder="Sin cebolla, extra salsa, etc." />
+            </label>
+
+            <button id="goPay" class="primary-btn large full" onclick="ESFERestaurante.cart.checkout()">
+                Continuar al pago <span>→</span>
+            </button>
+        </aside>
+    </div>
 </section>
-@section Scripts { <script>document.addEventListener('DOMContentLoaded',()=>ESFERestaurante.cart.init());</script> }
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => ESFERestaurante.cart.init());
+    </script>
+}

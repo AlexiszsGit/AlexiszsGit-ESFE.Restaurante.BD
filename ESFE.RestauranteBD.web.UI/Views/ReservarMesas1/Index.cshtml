@@ -1,6 +1,125 @@
-@{ Layout = "_Layout"; ViewData["Title"] = "Reservas"; var esDueno = Context.Session.GetString("RolUsuario") == "Dueno"; }
-<section class="page-shell"><div class="page-head"><div><span class="eyebrow">@(esDueno ? "Control de mesas" : "Reservación")</span><h2>@(esDueno ? "Estado de las mesas" : "Reserva tu mesa")</h2><p>@(esDueno ? "Consulta qué mesas están disponibles u ocupadas. El dueño no realiza reservas desde este panel." : "Selecciona una mesa, fecha y hora para reservar.")</p></div><span class="legend"><i class="legend-dot available"></i>Disponible <i class="legend-dot occupied"></i>Ocupada</span></div>
-<div class="reservation-layout"><section class="panel floor-panel"><div class="floor-head"><div><h3>Croquis del restaurante</h3><p>12 mesas distribuidas por zona.</p></div><span class="floor-tag">ENTRADA PRINCIPAL</span></div><div class="floor-plan"><div class="floor-label entrance">ENTRADA</div><div class="floor-label kitchen">COCINA</div><div class="floor-label bar">BARRA</div><div class="floor-label restroom">BAÑOS</div><div id="tablesMap" class="tables-map"></div></div></section>
-@if (!esDueno) { <aside class="panel reservation-form-panel"><span class="eyebrow">Detalles</span><h3>Datos de la reserva</h3><div id="selectedTableBox" class="selected-table-box"><span>Mesa</span><strong id="selectedTable">Selecciona una mesa</strong><small id="selectedTableInfo">Elige una mesa disponible en el croquis.</small></div><div class="form-stack"><label class="field-label">Nombre completo<input id="reserveName" required placeholder="Nombre del cliente" /></label><label class="field-label">Personas<select id="reservePeople"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>8</option><option>10</option></select></label><div class="two-col"><label class="field-label">Fecha<input id="reserveDate" type="date" /></label><label class="field-label">Hora<input id="reserveTime" type="time" /></label></div><button class="primary-btn large full" onclick="ESFERestaurante.reservas.save()">Confirmar reservación <span>✓</span></button></div></aside> } else { <aside class="panel reservation-form-panel owner-table-summary"><span class="eyebrow">Solo consulta</span><h3>Disponibilidad</h3><div class="table-status-key"><div><i class="legend-dot available"></i><strong>Disponible</strong><small>Puede reservarla un cliente.</small></div><div><i class="legend-dot occupied"></i><strong>Ocupada / reservada</strong><small>No está disponible en el horario consultado.</small></div></div></aside> }</div>
-<section class="panel"><div class="panel-head"><div><span class="eyebrow">Agenda</span><h3>Reservas de hoy</h3></div><span id="reservationCount" class="result-count">0</span></div><div id="reservationList" class="reservation-list"></div></section></section>
-@section Scripts { <script>document.addEventListener('DOMContentLoaded',()=>ESFERestaurante.reservas.init());</script> }
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Reservas";
+    var esDueno = Context.Session.GetString("RolUsuario") == "Dueno";
+}
+
+<section class="page-shell">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">@(esDueno ? "Control de mesas" : "Reservación")</span>
+            <h2>@(esDueno ? "Estado de las mesas" : "Reserva tu mesa")</h2>
+            <p>@(esDueno ? "Consulta qué mesas están disponibles u ocupadas. El dueño no realiza reservas desde este panel." : "Selecciona una mesa, fecha y hora para reservar.")</p>
+        </div>
+        <span class="legend">
+            <i class="legend-dot available"></i>Disponible
+            <i class="legend-dot occupied"></i>Ocupada
+        </span>
+    </div>
+
+    <div class="reservation-layout">
+        <section class="panel floor-panel">
+            <div class="floor-head">
+                <div>
+                    <h3>Croquis del restaurante</h3>
+                    <p>12 mesas distribuidas por zona.</p>
+                </div>
+                <span class="floor-tag">ENTRADA PRINCIPAL</span>
+            </div>
+
+            <div class="floor-plan">
+                <div class="floor-label entrance">ENTRADA</div>
+                <div class="floor-label kitchen">COCINA</div>
+                <div class="floor-label bar">BARRA</div>
+                <div class="floor-label restroom">BAÑOS</div>
+                <div id="tablesMap" class="tables-map"></div>
+            </div>
+        </section>
+
+        @if (!esDueno)
+        {
+            <aside class="panel reservation-form-panel">
+                <span class="eyebrow">Detalles</span>
+                <h3>Datos de la reserva</h3>
+
+                <div id="selectedTableBox" class="selected-table-box">
+                    <span>Mesa</span>
+                    <strong id="selectedTable">Selecciona una mesa</strong>
+                    <small id="selectedTableInfo">Elige una mesa disponible en el croquis.</small>
+                </div>
+
+                <div class="form-stack">
+                    <label class="field-label">
+                        Nombre completo
+                        <input id="reserveName" required placeholder="Nombre del cliente" />
+                    </label>
+
+                    <label class="field-label">
+                        Personas
+                        <select id="reservePeople">
+                            <option>1</option>
+                            <option>2</option>
+                            <option>3</option>
+                            <option>4</option>
+                            <option>5</option>
+                            <option>6</option>
+                            <option>8</option>
+                            <option>10</option>
+                        </select>
+                    </label>
+
+                    <div class="two-col">
+                        <label class="field-label">
+                            Fecha
+                            <input id="reserveDate" type="date" />
+                        </label>
+                        <label class="field-label">
+                            Hora
+                            <input id="reserveTime" type="time" />
+                        </label>
+                    </div>
+
+                    <button class="primary-btn large full" onclick="ESFERestaurante.reservas.save()">
+                        Confirmar reservación <span>✓</span>
+                    </button>
+                </div>
+            </aside>
+        }
+        else
+        {
+            <aside class="panel reservation-form-panel owner-table-summary">
+                <span class="eyebrow">Solo consulta</span>
+                <h3>Disponibilidad</h3>
+                <div class="table-status-key">
+                    <div>
+                        <i class="legend-dot available"></i>
+                        <strong>Disponible</strong>
+                        <small>Puede reservarla un cliente.</small>
+                    </div>
+                    <div>
+                        <i class="legend-dot occupied"></i>
+                        <strong>Ocupada / reservada</strong>
+                        <small>No está disponible en el horario consultado.</small>
+                    </div>
+                </div>
+            </aside>
+        }
+    </div>
+
+    <section class="panel">
+        <div class="panel-head">
+            <div>
+                <span class="eyebrow">Agenda</span>
+                <h3>Reservas de hoy</h3>
+            </div>
+            <span id="reservationCount" class="result-count">0</span>
+        </div>
+        <div id="reservationList" class="reservation-list"></div>
+    </section>
+</section>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => ESFERestaurante.reservas.init());
+    </script>
+}

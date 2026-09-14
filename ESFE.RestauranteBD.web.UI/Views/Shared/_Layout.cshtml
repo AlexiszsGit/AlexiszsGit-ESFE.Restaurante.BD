@@ -6,6 +6,7 @@
     var usuario = Context.Session.GetString("UsuarioLogueado") ?? string.Empty;
     var nombreUsuario = Context.Session.GetString("NombreUsuario") ?? (esDueno ? "Dueño" : "Cliente");
 }
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -17,117 +18,155 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body class="app-body" data-role="@rol" data-user="@usuario" data-user-name="@nombreUsuario">
-@if (mostrarApp)
-{
-    <div id="mobileOverlay" class="mobile-overlay" onclick="ESFERestaurante.layout.toggleSidebar(false)"></div>
-    <aside id="appSidebar" class="app-sidebar">
-        <div class="brand-area">
-            <a asp-controller="Inicio1" asp-action="Index" class="brand-link">
-                <span class="brand-mark">
-                    <!-- IMAGEN DEL LOGO: colocar /wwwroot/images/logo.png, formato PNG, cuadrado, fondo transparente -->
-                    <img src="~/images/logo.png" alt="Logo del restaurante" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" />
-                    <span class="brand-fallback">R</span>
-                </span>
-                <span>
-                    <strong>RestauranteBD</strong>
-                </span>
-            </a>
-            <button type="button" class="icon-btn sidebar-close" onclick="ESFERestaurante.layout.toggleSidebar(false)">×</button>
-        </div>
 
-        <div class="side-status">
-            <span class="status-dot"></span>
-            <div>
-                <strong>Servicio activo</strong>
-                <span>Operación en línea</span>
+    @if (mostrarApp)
+    {
+        <div id="mobileOverlay" class="mobile-overlay" onclick="ESFERestaurante.layout.toggleSidebar(false)"></div>
+
+        <aside id="appSidebar" class="app-sidebar">
+            <div class="brand-area">
+                <a asp-controller="Inicio1" asp-action="Index" class="brand-link">
+                    <span class="brand-mark">
+                        <!-- IMAGEN DEL LOGO: colocar /wwwroot/images/logo.png, formato PNG, cuadrado, fondo transparente -->
+                        <img src="~/images/logo.jpg" alt="Logo del restaurante" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" />
+                        <span class="brand-fallback">R</span>
+                    </span>
+                    <span>
+                        <strong>RestauranteBD</strong>
+                    </span>
+                </a>
+                <button type="button" class="icon-btn sidebar-close" onclick="ESFERestaurante.layout.toggleSidebar(false)">×</button>
             </div>
-        </div>
 
-        <nav class="side-nav" aria-label="Navegación principal">
-            <a asp-controller="Inicio1" asp-action="Index"><span>⌂</span><span>Inicio</span></a>
-            <a asp-controller="GestionDeMenu1" asp-action="Index"><span>☷</span><span>Menú</span></a>
-            @if (!esDueno) { <a asp-controller="PedidoyCarrito1" asp-action="Index"><span>🛒</span><span>Carrito</span><b data-cart-badge>0</b></a> }
-            @if (esDueno)
-            {
-                <a asp-controller="GestionDePedidos1" asp-action="Index"><span>▣</span><span>Pedidos</span></a>
-                <a asp-controller="PantallaDeCocina1" asp-action="Index"><span>◈</span><span>Cocina</span></a>
-                <a asp-controller="PedidoListo1" asp-action="Index"><span>✓</span><span>Entregas</span></a>
-            }
-            else
-            {
-                <a asp-controller="GestionDePedidos1" asp-action="Index"><span>▣</span><span>Mis pedidos</span></a>
-            }
-            <a asp-controller="ReservarMesas1" asp-action="Index"><span>▦</span><span>Reservas</span></a>
-            @if (esDueno)
-            {
-                <a asp-controller="CalificarServicio1" asp-action="Index"><span>★</span><span>Calificaciones</span></a>
-                <a asp-controller="Reportes1" asp-action="Index"><span>▤</span><span>Reportes</span></a>
-            }
-            else
-            {
-                <a asp-controller="CalificarServicio1" asp-action="Index"><span>★</span><span>Calificar servicio</span></a>
-                <a asp-controller="NotificacionesController1" asp-action="Index"><span>✉</span><span>Notificaciones</span><b id="notificationBadge">0</b></a>
-            }
-            <a asp-controller="Informacion1" asp-action="Index"><span>ⓘ</span><span>Información</span></a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <div class="user-mini">
-                <div class="avatar" id="avatarUsuario">A</div>
-                <div class="user-copy"><strong id="usuarioNombreSide">@(esDueno ? "Dueño" : "Cliente")</strong><span>@(esDueno ? "Administrador" : "Cliente")</span></div>
-            </div>
-            <a asp-controller="IniciarSesion1" asp-action="CerrarSesion" class="logout-link" onclick="localStorage.removeItem('usuarioLogueado')"><span>↪</span>Cerrar sesión</a>
-        </div>
-    </aside>
-
-    <div class="app-shell">
-        <header class="topbar">
-            <div class="topbar-left">
-                <button type="button" class="icon-btn mobile-menu" onclick="ESFERestaurante.layout.toggleSidebar(true)">☰</button>
+            <div class="side-status">
+                <span class="status-dot"></span>
                 <div>
-                    <span class="eyebrow">RestauranteBD</span>
-                    <h1>@ViewData["Title"]</h1>
+                    <strong>Servicio activo</strong>
+                    <span>Operación en línea</span>
                 </div>
             </div>
-            <div class="topbar-actions">
-                @if (!esDueno) { <a asp-controller="PedidoyCarrito1" asp-action="Index" class="cart-pill"><span>🛒</span><span>Carrito</span><b data-cart-badge>0</b></a> }
-                <div class="top-user"><span class="avatar small" id="avatarUsuarioTop">A</span><span id="usuarioNombreTop">@(esDueno ? "Dueño" : "Cliente")</span></div>
+
+            <nav class="side-nav" aria-label="Navegación principal">
+                <a asp-controller="Inicio1" asp-action="Index"><span>⌂</span><span>Inicio</span></a>
+                <a asp-controller="GestionDeMenu1" asp-action="Index"><span>☷</span><span>Menú</span></a>
+
+                @if (!esDueno)
+                {
+                    <a asp-controller="PedidoyCarrito1" asp-action="Index"><span>🛒</span><span>Carrito</span><b data-cart-badge>0</b></a>
+                }
+
+                @if (esDueno)
+                {
+                    <a asp-controller="GestionDePedidos1" asp-action="Index"><span>▣</span><span>Pedidos</span></a>
+                    <a asp-controller="PantallaDeCocina1" asp-action="Index"><span>◈</span><span>Cocina</span></a>
+                    <a asp-controller="PedidoListo1" asp-action="Index"><span>✓</span><span>Entregas</span></a>
+                }
+                else
+                {
+                    <a asp-controller="GestionDePedidos1" asp-action="Index"><span>▣</span><span>Mis pedidos</span></a>
+                }
+
+                <a asp-controller="ReservarMesas1" asp-action="Index"><span>▦</span><span>Reservas</span></a>
+
+                @if (esDueno)
+                {
+                    <a asp-controller="CalificarServicio1" asp-action="Index"><span>★</span><span>Calificaciones</span></a>
+                    <a asp-controller="Reportes1" asp-action="Index"><span>▤</span><span>Reportes</span></a>
+                }
+                else
+                {
+                    <a asp-controller="CalificarServicio1" asp-action="Index"><span>★</span><span>Calificar servicio</span></a>
+                    <a asp-controller="NotificacionesController1" asp-action="Index"><span>✉</span><span>Notificaciones</span><b id="notificationBadge">0</b></a>
+                }
+
+                <a asp-controller="Informacion1" asp-action="Index"><span>ⓘ</span><span>Información</span></a>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="user-mini">
+                    <div class="avatar" id="avatarUsuario">A</div>
+                    <div class="user-copy">
+                        <strong id="usuarioNombreSide">@(esDueno ? "Dueño" : "Cliente")</strong>
+                        <span>@(esDueno ? "Administrador" : "Cliente")</span>
+                    </div>
+                </div>
+                <a asp-controller="IniciarSesion1" asp-action="CerrarSesion" class="logout-link" onclick="localStorage.removeItem('usuarioLogueado')">
+                    <span>↪</span>Cerrar sesión
+                </a>
             </div>
-        </header>
+        </aside>
 
-        <main class="page-content">
-            @RenderBody()
-        </main>
-    </div>
+        <div class="app-shell">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button type="button" class="icon-btn mobile-menu" onclick="ESFERestaurante.layout.toggleSidebar(true)">☰</button>
+                    <div>
+                        <span class="eyebrow">RestauranteBD</span>
+                        <h1>@ViewData["Title"]</h1>
+                    </div>
+                </div>
+                <div class="topbar-actions">
+                    @if (!esDueno)
+                    {
+                        <a asp-controller="PedidoyCarrito1" asp-action="Index" class="cart-pill">
+                            <span>🛒</span><span>Carrito</span><b data-cart-badge>0</b>
+                        </a>
+                    }
+                    <div class="top-user">
+                        <span class="avatar small" id="avatarUsuarioTop">A</span>
+                        <span id="usuarioNombreTop">@(esDueno ? "Dueño" : "Cliente")</span>
+                    </div>
+                </div>
+            </header>
 
-    @if (!esDueno) { <button type="button" id="floatingCart" class="floating-cart" onclick="window.location.href='/PedidoyCarrito1/Index'" aria-label="Abrir carrito"><span>🛒</span><b data-cart-badge>0</b></button> }
-
-    <section id="chatbot" class="chatbot" aria-label="Asistente de ayuda">
-        <div class="chat-header">
-            <div class="chat-agent"><span class="agent-orb">✦</span><div><strong>Asistente RestauranteBD</strong><small>Ayuda para ordenar</small></div></div>
-            <button type="button" class="icon-btn" onclick="ESFERestaurante.chat.toggle(false)">×</button>
+            <main class="page-content">
+                @RenderBody()
+            </main>
         </div>
-        <div id="chatMessages" class="chat-messages"></div>
-        <div class="chat-suggestions">
-            <button type="button" onclick="ESFERestaurante.chat.ask('¿Qué hamburguesas tienen?')">Hamburguesas</button>
-            <button type="button" onclick="ESFERestaurante.chat.ask('¿Cómo reservo una mesa?')">Reservar</button>
-            <button type="button" onclick="ESFERestaurante.chat.ask('¿Cómo pago?')">Pagos</button>
-        </div>
-        <form class="chat-input" onsubmit="event.preventDefault();ESFERestaurante.chat.send()">
-            <input id="chatInput" autocomplete="off" placeholder="Escribe tu pregunta..." />
-            <button type="submit">➤</button>
-        </form>
-    </section>
-    <button type="button" class="chat-launcher" onclick="ESFERestaurante.chat.toggle(true)" aria-label="Abrir asistente">✦</button>
 
-    <div id="toast-container" class="toast-container"></div>
-}
-else
-{
-    @RenderBody()
-}
+        @if (!esDueno)
+        {
+            <button type="button" id="floatingCart" class="floating-cart" onclick="window.location.href='/PedidoyCarrito1/Index'" aria-label="Abrir carrito">
+                <span>🛒</span><b data-cart-badge>0</b>
+            </button>
+        }
 
-<script src="~/js/site.js" asp-append-version="true"></script>
-@await RenderSectionAsync("Scripts", required: false)
+        <section id="chatbot" class="chatbot" aria-label="Asistente de ayuda">
+            <div class="chat-header">
+                <div class="chat-agent">
+                    <span class="agent-orb">✦</span>
+                    <div>
+                        <strong>Asistente RestauranteBD</strong>
+                        <small>Ayuda para ordenar</small>
+                    </div>
+                </div>
+                <button type="button" class="icon-btn" onclick="ESFERestaurante.chat.toggle(false)">×</button>
+            </div>
+
+            <div id="chatMessages" class="chat-messages"></div>
+
+            <div class="chat-suggestions">
+                <button type="button" onclick="ESFERestaurante.chat.ask('¿Qué hamburguesas tienen?')">Hamburguesas</button>
+                <button type="button" onclick="ESFERestaurante.chat.ask('¿Cómo reservo una mesa?')">Reservar</button>
+                <button type="button" onclick="ESFERestaurante.chat.ask('¿Cómo pago?')">Pagos</button>
+            </div>
+
+            <form class="chat-input" onsubmit="event.preventDefault();ESFERestaurante.chat.send()">
+                <input id="chatInput" autocomplete="off" placeholder="Escribe tu pregunta..." />
+                <button type="submit">➤</button>
+            </form>
+        </section>
+
+        <button type="button" class="chat-launcher" onclick="ESFERestaurante.chat.toggle(true)" aria-label="Abrir asistente">✦</button>
+        <div id="toast-container" class="toast-container"></div>
+    }
+    else
+    {
+        @RenderBody()
+    }
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
 </body>
 </html>

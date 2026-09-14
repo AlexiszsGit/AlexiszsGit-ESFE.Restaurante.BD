@@ -1,3 +1,33 @@
-@{ Layout = "_Layout"; ViewData["Title"] = "Entregas"; }
-<section class="page-shell"><div class="page-head"><div><span class="eyebrow">Entrega</span><h2>Pedidos listos</h2><p>Busca rápidamente por nombre del cliente, correo o número de pedido y entrega sin perderte entre las órdenes.</p></div><span id="readyCounter" class="result-count">0 disponibles</span></div><section class="panel"><div class="toolbar-row ready-toolbar"><div class="search-box small ready-search"><span>⌕</span><input id="readySearch" placeholder="Buscar por nombre, correo o número..." autocomplete="off" /></div><button class="secondary-btn" type="button" onclick="ESFERestaurante.ready.clearSearch()">Limpiar</button></div><div id="readyGrid" class="orders-grid"></div></section></section>
-@section Scripts { <script>document.addEventListener('DOMContentLoaded',()=>ESFERestaurante.ready.init());</script> }
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Entregas";
+}
+
+<section class="page-shell">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Entrega</span>
+            <h2>Pedidos listos</h2>
+            <p>Busca rápidamente por nombre del cliente, correo o número de pedido y entrega sin perderte entre las órdenes.</p>
+        </div>
+        <span id="readyCounter" class="result-count">0 disponibles</span>
+    </div>
+
+    <section class="panel">
+        <div class="toolbar-row ready-toolbar">
+            <div class="search-box small ready-search">
+                <span>⌕</span>
+                <input id="readySearch" placeholder="Buscar por nombre, correo o número..." autocomplete="off" />
+            </div>
+            <button class="secondary-btn" type="button" onclick="ESFERestaurante.ready.clearSearch()">Limpiar</button>
+        </div>
+
+        <div id="readyGrid" class="orders-grid"></div>
+    </section>
+</section>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => ESFERestaurante.ready.init());
+    </script>
+}

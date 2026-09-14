@@ -1,25 +1,84 @@
-@{ Layout = "_Layout"; ViewData["Title"] = "Reportes"; }
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Reportes";
+}
+
 <section class="page-shell">
     <div class="page-head">
-        <div><span class="eyebrow">Analítica</span><h2>Reportes</h2><p>Resumen de ventas y actividad registrada localmente.</p></div>
+        <div>
+            <span class="eyebrow">Analítica</span>
+            <h2>Reportes</h2>
+            <p>Resumen de ventas y actividad registrada localmente.</p>
+        </div>
         <div class="hero-actions">
-            <button class="primary-btn" type="button" onclick="ESFERestaurante.reports.save()">Guardar reporte <span>✓</span></button>
-            <button class="secondary-btn" type="button" onclick="ESFERestaurante.reports.clearSaved()">Limpiar reporte</button>
+            <button class="primary-btn" type="button" onclick="ESFERestaurante.reports.save()">
+                Guardar reporte <span>✓</span>
+            </button>
+            <button class="secondary-btn" type="button" onclick="ESFERestaurante.reports.clearSaved()">
+                Limpiar reporte
+            </button>
         </div>
     </div>
+
     <div class="stats-grid">
-        <div class="stat-card"><span>Ventas hoy</span><strong id="reportSales">$0.00</strong><small>Ingresos con IVA</small></div>
-        <div class="stat-card"><span>Órdenes hoy</span><strong id="reportOrders">0</strong><small>Pedidos pagados</small></div>
-        <div class="stat-card"><span>Ticket promedio</span><strong id="reportAverage">$0.00</strong><small>Por orden pagada</small></div>
-        <div class="stat-card"><span>Reservas hoy</span><strong id="reportReservations">0</strong><small>Mesas programadas</small></div>
+        <div class="stat-card">
+            <span>Ventas hoy</span>
+            <strong id="reportSales">$0.00</strong>
+            <small>Ingresos con IVA</small>
+        </div>
+        <div class="stat-card">
+            <span>Órdenes hoy</span>
+            <strong id="reportOrders">0</strong>
+            <small>Pedidos pagados</small>
+        </div>
+        <div class="stat-card">
+            <span>Ticket promedio</span>
+            <strong id="reportAverage">$0.00</strong>
+            <small>Por orden pagada</small>
+        </div>
+        <div class="stat-card">
+            <span>Reservas hoy</span>
+            <strong id="reportReservations">0</strong>
+            <small>Mesas programadas</small>
+        </div>
     </div>
+
     <div class="dashboard-grid">
-        <section class="panel"><div class="panel-head"><div><span class="eyebrow">Ventas</span><h3>Últimas ventas</h3></div></div><div id="salesList" class="recent-list"></div></section>
-        <section class="panel"><div class="panel-head"><div><span class="eyebrow">Formas de pago</span><h3>Distribución</h3></div></div><div id="paymentDistribution" class="distribution"></div></section>
+        <section class="panel">
+            <div class="panel-head">
+                <div>
+                    <span class="eyebrow">Ventas</span>
+                    <h3>Últimas ventas</h3>
+                </div>
+            </div>
+            <div id="salesList" class="recent-list"></div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-head">
+                <div>
+                    <span class="eyebrow">Formas de pago</span>
+                    <h3>Distribución</h3>
+                </div>
+            </div>
+            <div id="paymentDistribution" class="distribution"></div>
+        </section>
     </div>
+
     <section class="panel">
-        <div class="panel-head"><div><span class="eyebrow">Historial local</span><h3>Reportes guardados</h3></div><span id="savedReportsCount" class="result-count">0</span></div>
+        <div class="panel-head">
+            <div>
+                <span class="eyebrow">Historial local</span>
+                <h3>Reportes guardados</h3>
+            </div>
+            <span id="savedReportsCount" class="result-count">0</span>
+        </div>
         <div id="savedReportsList" class="recent-list"></div>
     </section>
 </section>
-@section Scripts { <script>document.addEventListener('DOMContentLoaded',()=>ESFERestaurante.reports.init());</script> }
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => ESFERestaurante.reports.init());
+    </script>
+}

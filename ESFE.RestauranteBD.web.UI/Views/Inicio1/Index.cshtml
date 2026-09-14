@@ -1,28 +1,149 @@
-@{ Layout = "_Layout"; ViewData["Title"] = "Inicio"; var esDueno = Context.Session.GetString("RolUsuario") == "Dueno"; }
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Inicio";
+    var esDueno = Context.Session.GetString("RolUsuario") == "Dueno";
+}
+
 <section class="page-shell">
     <div class="hero-panel">
-        <div><span class="eyebrow">Panel principal</span><h2>Controla el restaurante desde una sola vista.</h2><p>Pedidos, menú, reservas, pagos y cocina conectados con almacenamiento local del navegador.</p></div>
-        <div class="hero-actions"><a asp-controller="GestionDeMenu1" asp-action="Index" class="primary-btn">Abrir menú <span>→</span></a>@if (!esDueno) {<a asp-controller="ReservarMesas1" asp-action="Index" class="secondary-btn">Reservar mesa</a>} else {<a asp-controller="GestionDePedidos1" asp-action="Index" class="secondary-btn">Ver pedidos</a>}</div>
+        <div>
+            <span class="eyebrow">Panel principal</span>
+            <h2>Controla el restaurante desde una sola vista.</h2>
+            <p>Pedidos, menú, reservas, pagos y cocina conectados con almacenamiento local del navegador.</p>
+        </div>
+        <div class="hero-actions">
+            <a asp-controller="GestionDeMenu1" asp-action="Index" class="primary-btn">
+                Abrir menú <span>→</span>
+            </a>
+            @if (!esDueno)
+            {
+                <a asp-controller="ReservarMesas1" asp-action="Index" class="secondary-btn">Reservar mesa</a>
+            }
+            else
+            {
+                <a asp-controller="GestionDePedidos1" asp-action="Index" class="secondary-btn">Ver pedidos</a>
+            }
+        </div>
     </div>
+
     <div class="stats-grid">
-        <div class="stat-card"><span>Pedidos de hoy</span><strong id="cardPedidosHoy">0</strong><small>Pedidos registrados</small></div>
-        <div class="stat-card"><span>En preparación</span><strong id="cardEnPreparacion">0</strong><small>En cocina ahora</small></div>
-        <div class="stat-card"><span>@(esDueno ? "Ventas de hoy" : "Mis pagos hoy")</span><strong id="cardVentasHoy">$0.00</strong><small>@(esDueno ? "Total cobrado" : "Total de mis pedidos pagados")</small></div>
-        <div class="stat-card"><span>@(esDueno ? "Mesas disponibles" : "Mis reservas hoy")</span><strong id="cardMesas">@(esDueno ? "12" : "0")</strong><small>@(esDueno ? "Según reservas" : "Reservas confirmadas")</small></div>
+        <div class="stat-card">
+            <span>Pedidos de hoy</span>
+            <strong id="cardPedidosHoy">0</strong>
+            <small>Pedidos registrados</small>
+        </div>
+        <div class="stat-card">
+            <span>En preparación</span>
+            <strong id="cardEnPreparacion">0</strong>
+            <small>En cocina ahora</small>
+        </div>
+        <div class="stat-card">
+            <span>@(esDueno ? "Ventas de hoy" : "Mis pagos hoy")</span>
+            <strong id="cardVentasHoy">$0.00</strong>
+            <small>@(esDueno ? "Total cobrado" : "Total de mis pedidos pagados")</small>
+        </div>
+        <div class="stat-card">
+            <span>@(esDueno ? "Mesas disponibles" : "Mis reservas hoy")</span>
+            <strong id="cardMesas">@(esDueno ? "12" : "0")</strong>
+            <small>@(esDueno ? "Según reservas" : "Reservas confirmadas")</small>
+        </div>
     </div>
+
     <div class="dashboard-grid">
-        <section class="panel"><div class="panel-head"><div><span class="eyebrow">Operación</span><h3>Accesos rápidos</h3><p>Las áreas que más vas a usar.</p></div></div>
+        <section class="panel">
+            <div class="panel-head">
+                <div>
+                    <span class="eyebrow">Operación</span>
+                    <h3>Accesos rápidos</h3>
+                    <p>Las áreas que más vas a usar.</p>
+                </div>
+            </div>
             <div class="quick-grid">
-                <a asp-controller="GestionDeMenu1" asp-action="Index" class="quick-card"><span>☷</span><div><strong>Menú y productos</strong><small>Categorías, detalle e ingredientes.</small></div>→</a>
-                @if (!esDueno) {<a asp-controller="PedidoyCarrito1" asp-action="Index" class="quick-card"><span>🛒</span><div><strong>Carrito y checkout</strong><small>Revisa tu pedido y paga.</small></div>→</a>} else {<a asp-controller="GestionDePedidos1" asp-action="Index" class="quick-card"><span>▣</span><div><strong>Pedidos</strong><small>Administra las órdenes recibidas.</small></div>→</a><a asp-controller="PantallaDeCocina1" asp-action="Index" class="quick-card"><span>◈</span><div><strong>Pantalla de cocina</strong><small>Avanza cada orden por estado.</small></div>→</a><a asp-controller="Reportes1" asp-action="Index" class="quick-card"><span>▤</span><div><strong>Reportes</strong><small>Ventas y actividad registrada.</small></div>→</a>}
+                <a asp-controller="GestionDeMenu1" asp-action="Index" class="quick-card">
+                    <span>☷</span>
+                    <div>
+                        <strong>Menú y productos</strong>
+                        <small>Categorías, detalle e ingredientes.</small>
+                    </div>
+                    →
+                </a>
+
+                @if (!esDueno)
+                {
+                    <a asp-controller="PedidoyCarrito1" asp-action="Index" class="quick-card">
+                        <span>🛒</span>
+                        <div>
+                            <strong>Carrito y checkout</strong>
+                            <small>Revisa tu pedido y paga.</small>
+                        </div>
+                        →
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="GestionDePedidos1" asp-action="Index" class="quick-card">
+                        <span>▣</span>
+                        <div>
+                            <strong>Pedidos</strong>
+                            <small>Administra las órdenes recibidas.</small>
+                        </div>
+                        →
+                    </a>
+                    <a asp-controller="PantallaDeCocina1" asp-action="Index" class="quick-card">
+                        <span>◈</span>
+                        <div>
+                            <strong>Pantalla de cocina</strong>
+                            <small>Avanza cada orden por estado.</small>
+                        </div>
+                        →
+                    </a>
+                    <a asp-controller="Reportes1" asp-action="Index" class="quick-card">
+                        <span>▤</span>
+                        <div>
+                            <strong>Reportes</strong>
+                            <small>Ventas y actividad registrada.</small>
+                        </div>
+                        →
+                    </a>
+                }
             </div>
         </section>
-        <aside class="panel side-summary"><span class="eyebrow">Resumen</span><h3>Estado operativo</h3><div class="summary-row"><span>Sistema</span><strong class="text-success">Operativo</strong></div><div class="summary-row"><span>Productos</span><strong id="cardProductos">32</strong></div><div class="summary-row"><span>Última actualización</span><strong id="ultimaActualizacion">Ahora</strong></div><a asp-controller="Informacion1" asp-action="Index" class="text-link">Ver información del sistema →</a></aside>
+
+        <aside class="panel side-summary">
+            <span class="eyebrow">Resumen</span>
+            <h3>Estado operativo</h3>
+            <div class="summary-row">
+                <span>Sistema</span>
+                <strong class="text-success">Operativo</strong>
+            </div>
+            <div class="summary-row">
+                <span>Productos</span>
+                <strong id="cardProductos">32</strong>
+            </div>
+            <div class="summary-row">
+                <span>Última actualización</span>
+                <strong id="ultimaActualizacion">Ahora</strong>
+            </div>
+            <a asp-controller="Informacion1" asp-action="Index" class="text-link">Ver información del sistema →</a>
+        </aside>
     </div>
-    <section class="panel"><div class="panel-head"><div><span class="eyebrow">Actividad</span><h3>Pedidos recientes</h3></div><a asp-controller="GestionDePedidos1" asp-action="Index" class="text-link">Ver todos →</a></div><div id="recentOrders" class="recent-list"></div></section>
+
+    <section class="panel">
+        <div class="panel-head">
+            <div>
+                <span class="eyebrow">Actividad</span>
+                <h3>Pedidos recientes</h3>
+            </div>
+            <a asp-controller="GestionDePedidos1" asp-action="Index" class="text-link">Ver todos →</a>
+        </div>
+        <div id="recentOrders" class="recent-list"></div>
+    </section>
 </section>
+
 @section Scripts {
-<script>
-document.addEventListener('DOMContentLoaded',()=>{ESFERestaurante.dashboard.init();});
-</script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            ESFERestaurante.dashboard.init();
+        });
+    </script>
 }

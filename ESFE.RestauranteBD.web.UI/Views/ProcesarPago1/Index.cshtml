@@ -1,5 +1,87 @@
-@{ Layout = "_Layout"; ViewData["Title"] = "Procesar pago"; }
-<section class="page-shell narrow-page"><div class="page-head"><div><span class="eyebrow">Checkout seguro</span><h2>Procesar pago</h2><p>Selecciona cómo deseas pagar. El método quedará registrado junto al pedido.</p></div><div class="pay-total"><span>Total</span><strong id="paymentTotal">$0.00</strong></div></div>
-<div class="checkout-grid"><section class="panel"><div class="panel-head"><div><h3>Método de pago</h3><p>Los datos sensibles de tarjeta no se guardan en el navegador ni en el pedido.</p></div></div><div class="payment-methods"><button type="button" class="payment-method active" data-method="Efectivo" onclick="ESFERestaurante.payment.selectMethod('Efectivo')"><span>💵</span><div><strong>Efectivo</strong><small>Pago en persona</small></div></button><button type="button" class="payment-method" data-method="Tarjeta" onclick="ESFERestaurante.payment.selectMethod('Tarjeta')"><span>💳</span><div><strong>Tarjeta</strong><small>Confirmación inmediata</small></div></button><button type="button" class="payment-method" data-method="Transferencia" onclick="ESFERestaurante.payment.selectMethod('Transferencia')"><span>🏦</span><div><strong>Transferencia</strong><small>Con referencia</small></div></button></div><div id="paymentFields" class="payment-fields"></div></section>
-<aside class="panel order-summary"><span class="eyebrow">Detalle</span><h3>Resumen del pedido</h3><div id="paymentItems" class="payment-items"></div><div class="summary-row"><span>Subtotal</span><strong id="paymentSubtotal">$0.00</strong></div><div class="summary-row"><span>IVA 13%</span><strong id="paymentTax">$0.00</strong></div><div class="summary-row total-row"><span>Total</span><strong id="paymentTotalAside">$0.00</strong></div><button type="button" class="primary-btn large full" onclick="ESFERestaurante.payment.complete()">Confirmar y crear pedido <span>✓</span></button></aside></div></section>
-@section Scripts { <script>document.addEventListener('DOMContentLoaded',()=>ESFERestaurante.payment.init());</script> }
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Procesar pago";
+}
+
+<section class="page-shell narrow-page">
+    <div class="page-head">
+        <div>
+            <span class="eyebrow">Checkout seguro</span>
+            <h2>Procesar pago</h2>
+            <p>Selecciona cómo deseas pagar. El método quedará registrado junto al pedido.</p>
+        </div>
+        <div class="pay-total">
+            <span>Total</span>
+            <strong id="paymentTotal">$0.00</strong>
+        </div>
+    </div>
+
+    <div class="checkout-grid">
+        <section class="panel">
+            <div class="panel-head">
+                <div>
+                    <h3>Método de pago</h3>
+                    <p>Los datos sensibles de tarjeta no se guardan en el navegador ni en el pedido.</p>
+                </div>
+            </div>
+
+            <div class="payment-methods">
+                <button type="button" class="payment-method active" data-method="Efectivo" onclick="ESFERestaurante.payment.selectMethod('Efectivo')">
+                    <span>💵</span>
+                    <div>
+                        <strong>Efectivo</strong>
+                        <small>Pago en persona</small>
+                    </div>
+                </button>
+
+                <button type="button" class="payment-method" data-method="Tarjeta" onclick="ESFERestaurante.payment.selectMethod('Tarjeta')">
+                    <span>💳</span>
+                    <div>
+                        <strong>Tarjeta</strong>
+                        <small>Confirmación inmediata</small>
+                    </div>
+                </button>
+
+                <button type="button" class="payment-method" data-method="Transferencia" onclick="ESFERestaurante.payment.selectMethod('Transferencia')">
+                    <span>🏦</span>
+                    <div>
+                        <strong>Transferencia</strong>
+                        <small>Con referencia</small>
+                    </div>
+                </button>
+            </div>
+
+            <div id="paymentFields" class="payment-fields"></div>
+        </section>
+
+        <aside class="panel order-summary">
+            <span class="eyebrow">Detalle</span>
+            <h3>Resumen del pedido</h3>
+
+            <div id="paymentItems" class="payment-items"></div>
+
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <strong id="paymentSubtotal">$0.00</strong>
+            </div>
+            <div class="summary-row">
+                <span>IVA 13%</span>
+                <strong id="paymentTax">$0.00</strong>
+            </div>
+            <div class="summary-row total-row">
+                <span>Total</span>
+                <strong id="paymentTotalAside">$0.00</strong>
+            </div>
+
+            <button type="button" class="primary-btn large full" onclick="ESFERestaurante.payment.complete()">
+                Confirmar y crear pedido <span>✓</span>
+            </button>
+        </aside>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => ESFERestaurante.payment.init());
+    </script>
+}
