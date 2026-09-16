@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
+using System.Text.Json;
 
 namespace ESFE.RestauranteBD.web.UI.Models;
 
@@ -13,6 +14,7 @@ public sealed class UserAccount
     public string Rol { get; set; } = "Cliente";
     public string PasswordHash { get; set; } = string.Empty;
     public string PasswordSalt { get; set; } = string.Empty;
+    public string ProfilePhotoData { get; set; } = string.Empty;
     public bool Activo { get; set; } = true;
     public DateTime CreadoEn { get; set; } = DateTime.UtcNow;
 }
@@ -25,16 +27,83 @@ public static class UserStore
         ["cliente@restaurante.com"] = Create("Cliente Demo", "cliente@restaurante.com", "7000-0001", "00000001-1", "Dirección de demostración", "Cliente", "1234")
     };
 
+    private static readonly object FileLock = new();
+    private static readonly string LocalFile = Path.Combine(AppContext.BaseDirectory, "users.local.json");
+
+    static UserStore() { LoadLocalUsers(); NormalizeLegacyRoles(); }
+
     public static IReadOnlyCollection<UserAccount> All() => Users.Values.OrderBy(x => x.Nombre).ToArray();
     public static bool TryGet(string email, out UserAccount? user) => Users.TryGetValue(NormalizeEmail(email), out user);
-    public static bool Add(UserAccount user) => Users.TryAdd(NormalizeEmail(user.Email), user);
+    public static bool Add(UserAccount user)
+    {
+        var key = NormalizeEmail(user.Email);
+        if (!Users.TryAdd(key, user)) return false;
+        SaveLocalUsers();
+        return true;
+    }
     public static bool Update(UserAccount user)
     {
         var key = NormalizeEmail(user.Email);
         if (!Users.TryGetValue(key, out var current)) return false;
-        return Users.TryUpdate(key, user, current);
+        var updated = Users.TryUpdate(key, user, current);
+        if (updated) SaveLocalUsers();
+        return updated;
     }
     public static string NormalizeEmail(string? email) => (email ?? string.Empty).Trim().ToLowerInvariant();
+
+
+    private static void LoadLocalUsers()
+    {
+        try
+        {
+            if (!File.Exists(LocalFile)) return;
+            var json = File.ReadAllText(LocalFile);
+            var localUsers = JsonSerializer.Deserialize<List<UserAccount>>(json) ?? [];
+            foreach (var user in localUsers)
+            {
+                if (string.IsNullOrWhiteSpace(user.Email) || string.IsNullOrWhiteSpace(user.PasswordHash) || string.IsNullOrWhiteSpace(user.PasswordSalt)) continue;
+                user.Email = NormalizeEmail(user.Email);
+                if (string.IsNullOrWhiteSpace(user.Rol)) user.Rol = "Cliente";
+                Users[user.Email] = user;
+            }
+        }
+        catch
+        {
+            // El modo local sigue funcionando con las cuentas semilla si el archivo no puede leerse.
+        }
+    }
+
+    private static void SaveLocalUsers()
+    {
+        try
+        {
+            lock (FileLock)
+            {
+                var snapshot = Users.Values.OrderBy(x => x.Email).Select(x => new UserAccount
+                {
+                    Nombre = x.Nombre, Email = x.Email, Telefono = x.Telefono, Dui = x.Dui, Direccion = x.Direccion,
+                    Rol = x.Rol, ProfilePhotoData = x.ProfilePhotoData, PasswordHash = x.PasswordHash, PasswordSalt = x.PasswordSalt, Activo = x.Activo, CreadoEn = x.CreadoEn
+                }).ToList();
+                File.WriteAllText(LocalFile, JsonSerializer.Serialize(snapshot, new JsonSerializerOptions { WriteIndented = true }));
+            }
+        }
+        catch
+        {
+            // El almacenamiento local no bloquea el uso de la aplicación.
+        }
+    }
+
+    private static void NormalizeLegacyRoles()
+    {
+        foreach (var user in Users.Values)
+        {
+            if (user.Rol.Equals("Repartidor", StringComparison.OrdinalIgnoreCase))
+            {
+                user.Rol = "Delivery";
+            }
+        }
+        SaveLocalUsers();
+    }
 
     public static UserAccount Create(string nombre, string email, string telefono, string dui, string direccion, string rol, string password)
     {

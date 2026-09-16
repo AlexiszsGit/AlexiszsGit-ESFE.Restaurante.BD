@@ -1,7 +1,18 @@
 @{
+    var appSettings = AppSettingsStore.Current;
     ViewData["Title"] = "Iniciar sesión";
     Layout = null;
     var activeTab = ViewBag.ActiveTab as string ?? "login";
+    var selectedCountry = (ViewBag.RegisterCountryCode as string ?? "sv").Trim().TrimStart('+');
+    var countries = new[]
+    {
+        (Id:"sv",Name:"El Salvador",Code:"503"),(Id:"gt",Name:"Guatemala",Code:"502"),(Id:"hn",Name:"Honduras",Code:"504"),(Id:"ni",Name:"Nicaragua",Code:"505"),(Id:"cr",Name:"Costa Rica",Code:"506"),(Id:"pa",Name:"Panamá",Code:"507"),
+        (Id:"mx",Name:"México",Code:"52"),(Id:"us",Name:"Estados Unidos",Code:"1"),(Id:"ca",Name:"Canadá",Code:"1"),(Id:"do",Name:"República Dominicana",Code:"1"),(Id:"pr",Name:"Puerto Rico",Code:"1"),(Id:"es",Name:"España",Code:"34"),
+        (Id:"ar",Name:"Argentina",Code:"54"),(Id:"bo",Name:"Bolivia",Code:"591"),(Id:"br",Name:"Brasil",Code:"55"),(Id:"cl",Name:"Chile",Code:"56"),(Id:"co",Name:"Colombia",Code:"57"),(Id:"ec",Name:"Ecuador",Code:"593"),
+        (Id:"pe",Name:"Perú",Code:"51"),(Id:"py",Name:"Paraguay",Code:"595"),(Id:"uy",Name:"Uruguay",Code:"598"),(Id:"ve",Name:"Venezuela",Code:"58"),(Id:"cu",Name:"Cuba",Code:"53"),(Id:"gb",Name:"Reino Unido",Code:"44"),
+        (Id:"fr",Name:"Francia",Code:"33"),(Id:"de",Name:"Alemania",Code:"49"),(Id:"it",Name:"Italia",Code:"39"),(Id:"jp",Name:"Japón",Code:"81"),(Id:"cn",Name:"China",Code:"86"),(Id:"in",Name:"India",Code:"91"),
+        (Id:"au",Name:"Australia",Code:"61"),(Id:"nz",Name:"Nueva Zelanda",Code:"64"),(Id:"za",Name:"Sudáfrica",Code:"27"),(Id:"kr",Name:"Corea del Sur",Code:"82")
+    };
 }
 
 <!DOCTYPE html>
@@ -9,40 +20,41 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0f172a" />
-    <title>Iniciar sesión - RestauranteBD</title>
+    <meta name="theme-color" content="@appSettings.PrimaryColor" />
+    <title>Iniciar sesión - @appSettings.RestaurantName</title>
     <link rel="stylesheet" href="~/css/tailwind.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/premium.css" asp-append-version="true" />
 </head>
-<body class="login-body">
+<body class="login-body" style="--accent:@appSettings.PrimaryColor;--accent2:@appSettings.PrimaryDarkColor;--accent-soft:@appSettings.PrimarySoftColor;--bg:@appSettings.BackgroundColor;--white:@appSettings.SurfaceColor;--ink:@appSettings.TextColor;--muted:@appSettings.MutedColor;--line:@appSettings.LineColor;">
     <div class="login-bg-glow glow-one"></div>
     <div class="login-bg-glow glow-two"></div>
 
     <div class="login-intro-splash" aria-hidden="true">
         <div class="login-intro-mark">
-            <img src="~/images/logo.jpg" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" />
+            <img src="@appSettings.LogoPath" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" />
             <span>R</span>
         </div>
-        <span class="eyebrow">RestauranteBD</span>
-        <h1>Bienvenido</h1>
-        <p>Qué gusto tenerte aquí.</p>
+        <span class="eyebrow">@appSettings.RestaurantName</span>
+        <h1>Le damos una cordial bienvenida</h1>
+        <p>Es un placer recibirte en RestauranteBD.</p>
     </div>
 
     <main class="login-page-shell">
         <section class="login-welcome">
             <div class="login-logo login-logo-large">
-                <img src="~/images/logo.jpg" alt="Logo del restaurante" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" />
+                <img src="@appSettings.LogoPath" alt="Logo del restaurante" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" />
                 <span>R</span>
             </div>
-            <span class="eyebrow">RestauranteBD</span>
-            <h1>Nos alegra recibirte</h1>
-            <p class="login-welcome-copy">Entra a tu cuenta y disfruta una experiencia sencilla, clara y hecha para que pedir, reservar o trabajar en el restaurante se sienta natural.</p>
+            <span class="eyebrow">@appSettings.RestaurantName</span>
+            <h1>Le damos una cordial bienvenida</h1>
+            <p class="login-welcome-copy">Es un placer recibirte en RestauranteBD. Inicia sesión para continuar con una experiencia clara, cómoda y pensada para ti.</p>
             <div class="login-info-grid login-info-grid-single">
                 <article>
                     <span class="login-info-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.7"/><path d="M12 7v5l3.2 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
                     <div>
                         <strong>Horario de atención</strong>
-                        <span>Todos los días · 06:00 a. m. a 10:00 p. m.</span>
+                        <span>Todos los días · @appSettings.OpeningTime a @appSettings.ClosingTime</span>
                     </div>
                 </article>
             </div>
@@ -122,14 +134,27 @@
                         <input name="email" type="email" value="@(ViewBag.RegisterEmail ?? "")" autocomplete="email" placeholder="correo@ejemplo.com" maxlength="120" required />
                     </label>
 
-                    <div class="phone-country-field login-phone-country" data-phone-country-field data-default-country="sv">
+                    <div class="phone-country-field login-phone-country" data-phone-country-field data-default-country="@(ViewBag.RegisterCountryCode ?? "503")">
                         <label class="field-label">
                             País
-                            <select data-country-select aria-label="País del teléfono"></select>
+                            <select data-country-select name="codigoPais" aria-label="País del teléfono">
+                                @foreach (var country in countries)
+                                {
+                                    if (country.Id.Equals(selectedCountry, StringComparison.OrdinalIgnoreCase) || country.Code.Equals(selectedCountry, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <option value="@country.Id" selected>@country.Name (+@country.Code)</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@country.Id">@country.Name (+@country.Code)</option>
+                                    }
+                                }
+                            </select>
                         </label>
                         <label class="field-label phone-number-label">
                             Teléfono
-                            <input name="telefono" value="@(ViewBag.RegisterPhone ?? "")" data-international-phone inputmode="tel" autocomplete="tel" required />
+                            <input name="telefono" value="@(ViewBag.RegisterPhone ?? "")" data-international-phone inputmode="tel" autocomplete="tel" aria-describedby="phoneHelp" required />
+                            <small id="phoneHelp" class="field-hint">Escribe solo el número nacional. El código se toma del país seleccionado.</small>
                         </label>
                     </div>
 
@@ -153,7 +178,10 @@
 
                     <label>
                         Confirmar contraseña
-                        <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Repite tu contraseña" minlength="8" required />
+                        <div class="password-field">
+                            <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Repite tu contraseña" minlength="8" required />
+                            <button type="button" class="password-toggle" data-toggle-password="confirmPassword" aria-label="Mostrar contraseña" title="Mostrar contraseña"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M2.8 12s3.3-5.5 9.2-5.5 9.2 5.5 9.2 5.5-3.3 5.5-9.2 5.5S2.8 12 2.8 12Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.7"/></svg></span></button>
+                        </div>
                     </label>
 
                     <div class="password-policy">
@@ -175,7 +203,7 @@
         </section>
     </main>
 
-    <footer class="login-footer professional-footer">RestauranteBD · Acceso y gestión del restaurante</footer>
+    <footer class="login-footer professional-footer">@appSettings.RestaurantName · Acceso y gestión del restaurante</footer>
 
     <script src="~/js/modules/validation.js" asp-append-version="true"></script>
     <script src="~/js/modules/auth.js" asp-append-version="true"></script>

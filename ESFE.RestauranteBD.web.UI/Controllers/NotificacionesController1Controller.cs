@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ESFE.RestauranteBD.web.UI.Controllers
 {
-    public class NotificacionesController1Controller : Controller
+    [RequirePermission(RoleStore.Notifications)]
+public class NotificacionesController1Controller : Controller
     {
         // Centro de comunicación común para todos los perfiles autenticados.
         // La lista de destinatarios reutiliza el mismo UserStore del sistema.

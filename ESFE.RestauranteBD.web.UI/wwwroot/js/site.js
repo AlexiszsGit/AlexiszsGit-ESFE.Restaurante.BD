@@ -1,15 +1,17 @@
 const ESFERestaurante = (() => {
     const KEY = { cart:'esfe_carrito', orders:'esfe_pedidos', sales:'esfe_ventas', reservations:'esfe_reservas', user:'usuarioLogueado', ratings:'restaurantebd_calificaciones', notifications:'restaurantebd_notificaciones', productOverrides:'restaurantebd_product_overrides', productDeleted:'restaurantebd_product_deleted', customCategories:'restaurantebd_custom_categories', savedReports:'esfe_reportes_guardados', reportPeriod:'esfe_report_periodo_inicio', reportArchive:'esfe_reportes_semanales' };
-    const OPENING_HOUR = 6;
-    const CLOSING_HOUR = 22;
-    const money = value => new Intl.NumberFormat('es-SV',{style:'currency',currency:'USD'}).format(Number(value)||0);
+    const settingMinutes = name => { const raw=document.body?.dataset?.[name]||''; const m=/(\d{2}):(\d{2})/.exec(raw); return m ? Number(m[1])*60+Number(m[2]) : (name==='opening'?360:1320); };
+    const taxRate = () => Math.max(0,Number(document.body?.dataset?.tax||13))/100;
+    const currency = () => document.body?.dataset?.currency || '$';
+    const money = value => { const amount=(Number(value)||0); return `${currency()}${amount.toFixed(2)}`; };
+    const restaurantHours = () => `${document.body?.dataset?.opening||'06:00'}–${document.body?.dataset?.closing||'22:00'}`;
     const localDate = (date=new Date()) => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
     const formatDateTime = (value, options={}) => { const d=value instanceof Date ? value : new Date(value); return Number.isNaN(d.getTime()) ? 'Fecha no disponible' : d.toLocaleString('es-SV',{dateStyle:'medium',timeStyle:'short',...options}); };
     const uid = prefix => `${prefix}-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random()*900+100)}`;
     const read = (key, fallback=[]) => { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } };
     const write = (key, value) => localStorage.setItem(key, JSON.stringify(value));
 
-    // IMÁGENES DE CATEGORÍAS: coloca las fotografías reales en wwwroot/images/categorias/*.jpg
+    // IMÁGENES DE CATEGORÍAS
     const categories = [
         {id:'Hamburguesas',image:'/images/categorias/hamburguesas.jpg',desc:'Carne, pollo y opciones de autor'},
         {id:'Carnes',image:'/images/categorias/carnes.jpg',desc:'Cortes, parrilla y platos de carne'},
@@ -26,6 +28,7 @@ const ESFERestaurante = (() => {
     ];
     const customCategories = () => read(KEY.customCategories,[]);
     const allCategories = () => [...categories, ...customCategories().filter(c=>!categories.some(x=>x.id===c.id))];
+    // IMÁGENES DE LOS PRODUCTOS
     const products = [
         {id:'ham-clasica',cat:'Hamburguesas',name:'Clásica de la Casa',price:5.50,image:'/images/productos/ham-clasica.jpg',desc:'Carne de res, queso, lechuga y tomate.',ingredients:['Pan brioche','Carne de res 150 g','Queso americano','Lechuga','Tomate','Salsa especial'],tags:['Más pedida']},
         {id:'ham-doble',cat:'Hamburguesas',name:'Doble Queso',price:7.25,image:'/images/productos/ham-doble.jpg',desc:'Doble carne y doble queso con salsa de la casa.',ingredients:['Pan brioche','Doble carne','Doble queso','Cebolla caramelizada','Salsa especial'],tags:['Favorita']},
@@ -91,7 +94,7 @@ const ESFERestaurante = (() => {
 
     function isAuthenticated(){return document.body?.dataset.auth==='True'||document.body?.dataset.auth==='true'}
     function currentUser(){return document.body?.dataset.user || (isAuthenticated()?localStorage.getItem(KEY.user)||'':'')}
-    function currentRole(){const serverRole=document.body?.dataset.role;return serverRole || (isAuthenticated()?(currentUser().toLowerCase()==='admin@restaurante.com'?'Dueno':'Cliente'):'Publico')}
+    function currentRole(){return (document.body?.dataset.role||'Publico').trim()}
     function ratingsGet(){return read(KEY.ratings,[])}
     function ratingsSave(list){write(KEY.ratings,list)}
     // ===== CENTRO DE NOTIFICACIONES =====
@@ -119,7 +122,7 @@ const ESFERestaurante = (() => {
     }
     function updateNotificationBadges(){
         const n=notificationsGet().filter(x=>notificationVisible(x)&&!x.read).length;
-        document.querySelectorAll('#notificationBadge').forEach(e=>e.textContent=n);
+        document.querySelectorAll('#notificationBadge,#topNotificationBadge').forEach(e=>e.textContent=n);
     }
 
     function cartGet(){return read(KEY.cart,[])}
@@ -127,17 +130,67 @@ const ESFERestaurante = (() => {
     function updateCartBadges(){const n=cartGet().reduce((s,i)=>s+Number(i.qty),0);document.querySelectorAll('[data-cart-badge]').forEach(e=>e.textContent=n);}
     function toast(message,type='success'){const c=document.getElementById('toast-container');if(!c)return;const el=document.createElement('div');el.className=`toast ${type}`;el.innerHTML=`<span>${type==='success'?'✓':type==='error'?'!':'i'}</span><strong>${message}</strong>`;c.appendChild(el);setTimeout(()=>el.remove(),3200)}
 
+    const welcome = {
+        init(){
+            const hero=document.getElementById("loginWelcomeHero");
+            if(!hero || hero.dataset.initialized === "1") return;
+            hero.dataset.initialized="1";
+            document.body.classList.add("welcome-active");
+            requestAnimationFrame(()=>hero.classList.add("is-visible"));
+            window.setTimeout(()=>this.dismiss(),2600);
+        },
+        dismiss(){
+            const hero=document.getElementById("loginWelcomeHero");
+            if(!hero || hero.dataset.closing === "1") return;
+            hero.dataset.closing="1";
+            hero.classList.remove("is-visible");
+            hero.classList.add("is-hidden");
+            window.setTimeout(()=>{ hero.remove(); document.body.classList.remove("welcome-active"); },420);
+        }
+    };
     const layout={
         toggleSidebar(show){document.getElementById('appSidebar')?.classList.toggle('open',show);document.getElementById('mobileOverlay')?.classList.toggle('show',show);},
-        init(){const user=currentUser();const name=user.split('@')[0].replace(/[._-]+/g,' ');const pretty=name.replace(/\b\w/g,x=>x.toUpperCase());['usuarioNombreSide','usuarioNombreTop'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=pretty});['avatarUsuario','avatarUsuarioTop'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=pretty.charAt(0).toUpperCase()});updateCartBadges();updateNotificationBadges();}
+        init(){
+            const user=currentUser();
+            const name=document.body?.dataset.userName||user.split('@')[0].replace(/[._-]+/g,' ');
+            const pretty=name.replace(/\b\w/g,x=>x.toUpperCase());
+            ['usuarioNombreSide','usuarioNombreTop'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=pretty});
+            ['avatarUsuario','avatarUsuarioTop'].forEach(id=>{const e=document.getElementById(id);if(e&&!e.querySelector('img'))e.textContent=pretty.charAt(0).toUpperCase()});
+            const trigger=document.querySelector('.profile-menu-trigger'),menu=document.getElementById('profileContextMenu');
+            if(trigger&&menu){
+                const close=()=>{menu.hidden=true;trigger.setAttribute('aria-expanded','false')};
+                trigger.addEventListener('click',e=>{e.preventDefault();menu.hidden=!menu.hidden;trigger.setAttribute('aria-expanded',String(!menu.hidden))});
+                document.addEventListener('click',e=>{if(!menu.hidden&&!menu.contains(e.target)&&!trigger.contains(e.target))close()});
+                document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+            }
+            const nav=document.querySelector('.side-nav');
+            if(nav){
+                const role=document.body?.dataset?.role||'Publico';
+                const key=`restaurantebd_sidebar_scroll_${role}`;
+                let restored=false;
+                try{const raw=sessionStorage.getItem(key);if(raw!==null&&Number.isFinite(Number(raw))){nav.scrollTop=Math.max(0,Number(raw));restored=true;}}catch{}
+                if(!restored){
+                    requestAnimationFrame(()=>{
+                        const current=nav.querySelector('a.active,[aria-current="page"]');
+                        if(current){const top=current.offsetTop,bottom=top+current.offsetHeight;if(top<nav.scrollTop)nav.scrollTop=Math.max(0,top-18);else if(bottom>nav.scrollTop+nav.clientHeight)nav.scrollTop=Math.max(0,bottom-nav.clientHeight+18);}
+                    });
+                }
+                let timer;
+                const save=()=>{clearTimeout(timer);timer=setTimeout(()=>{try{sessionStorage.setItem(key,String(Math.round(nav.scrollTop)))}catch{}},80)};
+                const saveNow=()=>{try{sessionStorage.setItem(key,String(Math.round(nav.scrollTop)))}catch{}};
+                nav.addEventListener('scroll',save,{passive:true});
+                nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',saveNow));
+                window.addEventListener('pagehide',saveNow);
+            }
+            updateCartBadges();updateNotificationBadges();
+        }
     };
-
     const chat={
         toggle(show){
             const el=document.getElementById('chatbot');el?.classList.toggle('show',show);
             if(show&&!document.getElementById('chatMessages')?.children.length){
                 const role=currentRole();
-                const greeting=role==='Dueno'?'Hola. Puedo ayudarte con pedidos, reservas, empleados, reportes, pagos, menú y operación.':role==='Cocina'?'Hola. Puedo ayudarte con estados de cocina y el flujo de preparación.':role==='Barra'?'Hola. Puedo ayudarte con pedidos y reservas.':role==='Repartidor'?'Hola. Puedo ayudarte a localizar pedidos listos y completar entregas.':'Hola. Puedo ayudarte con menú, recomendaciones, reservas, pedidos, pagos, domicilio y el estado de tu orden.';
+                const greeting=role==='Dueno'?'Hola. Puedo ayudarte con pedidos, reservas, empleados, reportes, pagos, menú y operación.':role==='Cocina'?'Hola. Puedo ayudarte con estados de cocina y el flujo de preparación.':role==='Barra'?'Hola. Puedo ayudarte con pedidos y reservas.':role==='Delivery'?'Hola. Puedo ayudarte a localizar pedidos listos y completar entregas.':'Hola. Puedo ayudarte con menú, recomendaciones, reservas, pedidos, pagos, domicilio y el estado de tu orden.';
                 this.add('bot',greeting);this.refreshSuggestions();
             }
         },
@@ -145,19 +198,19 @@ const ESFERestaurante = (() => {
         send(){const input=document.getElementById('chatInput');const text=input?.value.trim();if(!text)return;input.value='';this.add('user',text);setTimeout(()=>this.respond(text),80);},
         ask(text){this.toggle(true);const input=document.getElementById('chatInput');if(input)input.value=text;this.send();},
         refreshSuggestions(){
-            const box=document.querySelector('.chat-suggestions');if(!box)return;let items=currentRole()==='Dueno'?['Pedidos de hoy','Ver empleados','Horario','Pagos']:currentRole()==='Cocina'?['Pedidos pendientes','Preparación','Ayuda']:currentRole()==='Barra'?['Reservas de hoy','Pedidos','Horario']:currentRole()==='Repartidor'?['Pedidos listos','Entregas','Horario']:['Recomiéndame algo','Reservar mesa','Pedido a domicilio','Mi pedido'];box.innerHTML=items.map(x=>`<button type="button" onclick="ESFERestaurante.chat.ask('${x.replace(/'/g,"\\'")}')">${x}</button>`).join('');
+            const box=document.querySelector('.chat-suggestions');if(!box)return;let items=currentRole()==='Dueno'?['Pedidos de hoy','Ver empleados','Horario','Pagos']:currentRole()==='Cocina'?['Pedidos pendientes','Preparación','Ayuda']:currentRole()==='Barra'?['Reservas de hoy','Pedidos','Horario']:currentRole()==='Delivery'?['Pedidos listos','Entregas','Horario']:['Recomiéndame algo','Reservar mesa','Pedido a domicilio','Mi pedido'];box.innerHTML=items.map(x=>`<button type="button" onclick="ESFERestaurante.chat.ask('${x.replace(/'/g,"\\'")}')">${x}</button>`).join('');
         },
         latestOrder(){const user=currentUser();return read(KEY.orders,[]).filter(o=>(o.customer||'')===user).sort((a,b)=>new Date(b.date)-new Date(a.date))[0]||null;},
         searchProducts(q){const words=q.split(/\s+/).filter(Boolean);return catalogProducts().filter(p=>words.some(w=>`${p.name} ${p.cat} ${p.desc}`.toLowerCase().includes(w))).slice(0,3);},
         respond(text){
             const q=text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');const role=currentRole();const owner=role==='Dueno';let r='Puedo orientarte con el menú, pedidos, reservas, pagos, domicilio y funciones del sistema.';
-            if(q.includes('horario')||q.includes('hora')) r='El horario de atención del restaurante es de 06:00 a. m. a 10:00 p. m. Las reservas fuera de ese horario quedan registradas sin bloquear la mesa.';
-            else if(q.includes('emplead')||q.includes('trabajador')||q.includes('rol')) r=owner?'En Empleados puedes ver a todos los usuarios, crear nuevos accesos y asignar Cocina, Barra, Repartidor o Cliente. El acceso se controla también en el servidor.':'Los roles de operación son administrados por el responsable del sistema. Tu cuenta de cliente solo puede usar las funciones habilitadas para clientes.';
+            if(q.includes('horario')||q.includes('hora')) r=`El horario de atención del restaurante es de ${restaurantHours()}. Las reservas fuera de ese horario quedan registradas sin bloquear la mesa.`;
+            else if(q.includes('emplead')||q.includes('trabajador')||q.includes('rol')) r=owner?'En Empleados puedes ver a todos los usuarios, crear nuevos accesos y asignar Cocina, Barra, Delivery o Cliente. El acceso se controla también en el servidor.':'Los roles de operación son administrados por el responsable del sistema. Tu cuenta de cliente solo puede usar las funciones habilitadas para clientes.';
             else if(q.includes('cocina')) r=owner||role==='Cocina'?'Cocina trabaja con Pendiente → Preparando → Listo. Una orden marcada como Listo pasa al área de entregas.':'La cocina es un área interna y no está disponible para cuentas de cliente.';
             else if(q.includes('barra')) r=owner||role==='Barra'?'Barra puede consultar pedidos y reservas y registrar la operación correspondiente.':'La Barra es un área interna del restaurante.';
-            else if(q.includes('repart')||q.includes('domicilio')||q.includes('entrega')) r=owner||role==='Repartidor'?'Los pedidos a domicilio incluyen teléfono y dirección. Los pedidos listos aparecen en Entregas para localizar al cliente por nombre, correo, ID, teléfono o DUI y marcarlos como entregados.':'Para pedir a domicilio necesitas iniciar sesión y proporcionar teléfono y dirección completos.';
+            else if(q.includes('repart')||q.includes('domicilio')||q.includes('entrega')) r=owner||role==='Delivery'?'Los pedidos a domicilio incluyen teléfono y dirección. Los pedidos listos aparecen en Entregas para localizar al cliente por nombre, correo, ID, teléfono o DUI y marcarlos como entregados.':'Para pedir a domicilio necesitas iniciar sesión y proporcionar teléfono y dirección completos.';
             else if(q.includes('pedido')||q.includes('orden')){const latest=this.latestOrder();r=owner?'Puedes revisar todos los pedidos en Gestión de pedidos y filtrar por datos del cliente.':latest?`Tu último pedido es ${latest.id}. Estado actual: ${latest.status}. Tipo: ${latest.orderType}.`:'Todavía no tienes pedidos registrados.';}
-            else if(q.includes('reserva')||q.includes('mesa')) r='Para reservar, elige una mesa disponible, cantidad de personas, fecha y hora. Las mesas solo quedan bloqueadas para reservas dentro del horario 06:00–22:00; fuera de ese horario la reserva se conserva para control y la mesa permanece disponible.';
+            else if(q.includes('reserva')||q.includes('mesa')) r=`Para reservar, elige una mesa disponible, cantidad de personas, fecha y hora. Las mesas solo quedan bloqueadas para reservas dentro del horario ${restaurantHours()}; fuera de ese horario la reserva se conserva para control y la mesa permanece disponible.`;
             else if(q.includes('pago')||q.includes('tarjeta')||q.includes('efectivo')||q.includes('transfer')) r='Puedes pagar en efectivo, con tarjeta simulada o registrar una transferencia. La tarjeta valida formato, vencimiento, CVV y checksum, y no guarda el número completo.';
             else if(q.includes('carrito')) r=isAuthenticated()?`Tu carrito tiene ${cartGet().reduce((sum,i)=>sum+Number(i.qty||0),0)} unidad(es). Puedes elegir restaurante, para llevar o domicilio antes de continuar al pago.`:'Necesitas iniciar sesión para usar el carrito y realizar pedidos.';
             else if(q.includes('perfil')) r=isAuthenticated()?'En Mi perfil puedes consultar tu nombre, correo, DUI, rol y fecha de creación, además de actualizar teléfono y dirección.':'El perfil es una función protegida y requiere iniciar sesión.';
@@ -212,7 +265,7 @@ const ESFERestaurante = (() => {
             modal.classList.remove('hidden');
         },
         closeCategory(){document.getElementById('categoryModal')?.classList.add('hidden')},
-        openModal(id){const p=catalogProducts().find(x=>x.id===id);if(!p)return;const m=document.getElementById('productModal');if(!m)return;const action=isAuthenticated()?`<label class="field-label">Cantidad<div class="qty-control large"><button type="button" aria-label="Disminuir cantidad" onclick="ESFERestaurante.menu.adjustModal(-1)">−</button><input id="modalQty" type="number" min="1" max="20" value="1" inputmode="numeric" aria-label="Cantidad" /><button type="button" aria-label="Aumentar cantidad" onclick="ESFERestaurante.menu.adjustModal(1)">+</button></div></label><button class="primary-btn large full" onclick="ESFERestaurante.menu.addModal('${p.id}')">Agregar al carrito</button>`:`<div class="login-required-note"><strong>Inicia sesión para realizar pedidos</strong><p>Puedes consultar el menú y los productos sin una cuenta. Para agregar al carrito necesitas iniciar sesión o crear una cuenta.</p><a class="primary-btn large full" href="/IniciarSesion1/Index">Iniciar sesión →</a></div>`;document.getElementById('productModalContent').innerHTML=`<div class="product-detail"><div class="detail-image"><img src="${p.image}" alt="${p.name}" onerror="this.classList.add('image-missing')" /></div><div class="detail-content"><span class="product-category">${p.cat}</span><h2>${p.name}</h2><p>${p.desc}</p><div class="price-big">${money(p.price)}</div><div class="ingredient-block"><span>Ingredientes</span><div>${p.ingredients.map(i=>`<span>${i}</span>`).join('')}</div></div>${action}</div></div>`;m.classList.remove('hidden');this.modalProduct=p.id;},
+        openModal(id){const p=catalogProducts().find(x=>x.id===id);if(!p)return;const m=document.getElementById('productModal');if(!m)return;const localRole=document.body?.dataset.localOrders==='true' || ['Dueno','Barra'].includes(currentRole());const action=localRole?`<label class="field-label">Cantidad<div class="qty-control large"><button type="button" aria-label="Disminuir cantidad" onclick="ESFERestaurante.menu.adjustModal(-1)">−</button><input id="modalQty" type="number" min="1" max="20" value="1" inputmode="numeric" aria-label="Cantidad" /><button type="button" aria-label="Aumentar cantidad" onclick="ESFERestaurante.menu.adjustModal(1)">+</button></div></label><button class="primary-btn large full" onclick="const q=Number(document.getElementById('modalQty')?.value||1);ESFERestaurante.localOrders?.openFromMenu?.('${p.id}',q)">Agregar al pedido local</button>`:isAuthenticated()?`<label class="field-label">Cantidad<div class="qty-control large"><button type="button" aria-label="Disminuir cantidad" onclick="ESFERestaurante.menu.adjustModal(-1)">−</button><input id="modalQty" type="number" min="1" max="20" value="1" inputmode="numeric" aria-label="Cantidad" /><button type="button" aria-label="Aumentar cantidad" onclick="ESFERestaurante.menu.adjustModal(1)">+</button></div></label><button class="primary-btn large full" onclick="ESFERestaurante.menu.addModal('${p.id}')">Agregar al carrito</button>`:`<div class="login-required-note"><strong>Inicia sesión para realizar pedidos</strong><p>Puedes consultar el menú y los productos sin una cuenta. Para agregar al carrito necesitas iniciar sesión o crear una cuenta.</p><a class="primary-btn large full" href="/IniciarSesion1/Index">Iniciar sesión →</a></div>`;document.getElementById('productModalContent').innerHTML=`<div class="product-detail"><div class="detail-image"><img src="${p.image}" alt="${p.name}" onerror="this.classList.add('image-missing')" /></div><div class="detail-content"><span class="product-category">${p.cat}</span><h2>${p.name}</h2><p>${p.desc}</p><div class="price-big">${money(p.price)}</div><div class="ingredient-block"><span>Ingredientes</span><div>${p.ingredients.map(i=>`<span>${i}</span>`).join('')}</div></div>${action}</div></div>`;m.classList.remove('hidden');this.modalProduct=p.id;},
         adjustModal(delta){const i=document.getElementById('modalQty');if(!i)return;const current=Number(i.value);const base=Number.isFinite(current)&&current>0?current:1;i.value=Math.min(20,Math.max(1,base+delta));},
         addModal(id){if(!isAuthenticated()||currentRole()!=='Cliente'){toast('Inicia sesión con una cuenta de cliente para realizar pedidos','error');return;}const p=catalogProducts().find(x=>x.id===id);if(!p)return;const raw=document.getElementById('modalQty')?.value;const qty=Number(raw);if(!Number.isInteger(qty)||qty<1||qty>20){toast('La cantidad debe ser un número entero entre 1 y 20.','error');return;}let c=cartGet();const item=c.find(x=>x.productId===id);if(item)item.qty=Math.min(20,item.qty+qty);else c.push({productId:p.id,name:p.name,price:p.price,image:p.image,qty,ingredients:p.ingredients});cartSave(c);toast(`${qty} × ${p.name} agregado al carrito`);this.closeModal();},
         quickAdd(id){this.openModal(id);},
@@ -221,7 +274,7 @@ const ESFERestaurante = (() => {
     const cart={
         init(){this.render();this.toggleDeliveryFields();const phone=document.getElementById('deliveryPhone'),address=document.getElementById('deliveryAddress');if(phone&&!phone.value)phone.value=document.body.dataset.phone||'';if(address&&!address.value)address.value=document.body.dataset.address||'';},
         render(){const box=document.getElementById('cartItems');if(!box)return;let c=cartGet().filter(i=>Number.isInteger(Number(i.qty))&&Number(i.qty)>0).map(i=>({...i,qty:Math.min(20,Number(i.qty))}));cartSave(c);document.getElementById('cartItemSummary').textContent=`${c.reduce((s,i)=>s+i.qty,0)} unidades · ${c.length} productos`;if(!c.length){box.innerHTML=`<div class="empty-state"><span class="ui-icon cart-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M3 4h2l1.7 10.1a2 2 0 0 0 2 1.9h7.8a2 2 0 0 0 1.9-1.5L20 8H7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="19" r="1.4" fill="currentColor"/><circle cx="17" cy="19" r="1.4" fill="currentColor"/></svg></span><strong>Tu carrito está vacío</strong><p>Agrega productos desde el menú.</p><a class="primary-btn" href="/GestionDeMenu1/Index">Ir al menú <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></div>`;this.updateTotals();return;}box.innerHTML=c.map(i=>`<div class="cart-line"><img src="${i.image}" alt="${i.name}" onerror="this.src='/images/productos/piz-pep.jpg' /><!-- IMAGEN DEL PRODUCTO: fotografía del producto, JPG/PNG --><div class="cart-main"><strong>${i.name}</strong><small>${(i.ingredients||[]).slice(0,4).join(' · ')}</small><div class="qty-control"><button onclick="ESFERestaurante.cart.adjust('${i.productId}',-1)">−</button><input value="${i.qty}" min="1" type="number" onchange="ESFERestaurante.cart.setQty('${i.productId}',this.value)" /><button onclick="ESFERestaurante.cart.adjust('${i.productId}',1)">+</button></div></div><strong class="line-total">${money(i.price*i.qty)}</strong><button class="line-remove" onclick="ESFERestaurante.cart.remove('${i.productId}')">×</button></div>`).join('');this.updateTotals();},
-        updateTotals(){const c=cartGet();const sub=c.reduce((s,i)=>s+i.price*i.qty,0);const tax=sub*.13;document.getElementById('cartSubtotal').textContent=money(sub);document.getElementById('cartTax').textContent=money(tax);document.getElementById('cartTotal').textContent=money(sub+tax);const b=document.getElementById('goPay');if(b)b.disabled=!c.length;},
+        updateTotals(){const c=cartGet();const sub=c.reduce((s,i)=>s+i.price*i.qty,0);const tax=sub*taxRate();document.getElementById('cartSubtotal').textContent=money(sub);document.getElementById('cartTax').textContent=money(tax);document.getElementById('cartTotal').textContent=money(sub+tax);const b=document.getElementById('goPay');if(b)b.disabled=!c.length;},
         adjust(id,d){let c=cartGet();const i=c.find(x=>x.productId===id);if(!i)return;i.qty=Math.max(1,i.qty+d);cartSave(c);this.render();},
         setQty(id,q){let c=cartGet();const i=c.find(x=>x.productId===id);if(!i)return;const value=Number(q);if(!Number.isInteger(value)||value<1||value>20){toast('La cantidad debe ser un número entero entre 1 y 20.','error');this.render();return;}i.qty=value;cartSave(c);this.render();},
         remove(id){cartSave(cartGet().filter(x=>x.productId!==id));this.render();toast('Producto eliminado','info');},
@@ -230,7 +283,7 @@ const ESFERestaurante = (() => {
         checkout(){
             if(!isAuthenticated()||currentRole()!=='Cliente'){toast('Inicia sesión con una cuenta de cliente para crear pedidos','error');return;}
             if(!cartGet().length){toast('Agrega productos antes de continuar','error');return;}
-            const now=new Date();const open=now.getHours()*60+now.getMinutes();if(open<OPENING_HOUR*60||open> CLOSING_HOUR*60){toast('El restaurante está cerrado. Horario de atención: 06:00 a. m. a 10:00 p. m.','error');return;}
+            const now=new Date();const open=now.getHours()*60+now.getMinutes();if(open<settingMinutes('opening')||open>settingMinutes('closing')){toast(`El restaurante está cerrado. Horario de atención: ${restaurantHours()}`,'error');return;}
             const type=document.getElementById('orderType')?.value||'Mesa';
             const note=document.getElementById('orderNote')?.value.trim()||'';
             sessionStorage.setItem('esfe_order_type',type); sessionStorage.setItem('esfe_order_note',note);
@@ -251,9 +304,9 @@ const ESFERestaurante = (() => {
         selected:null,
         init(){const d=new Date(),dateInput=document.getElementById('reserveDate'),timeInput=document.getElementById('reserveTime');if(dateInput){dateInput.value=this.localDate(d);dateInput.min=this.localDate(d);dateInput.addEventListener('change',()=>{this.selected=null;this.render();});}if(timeInput){timeInput.value='19:00';timeInput.addEventListener('change',()=>{this.selected=null;this.render();});}this.render();this.renderList();},
         localDate(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;},
-        inOpeningHours(time){const m=/^(\d{2}):(\d{2})$/.exec(time||'');if(!m)return false;const minutes=Number(m[1])*60+Number(m[2]);return minutes>=OPENING_HOUR*60&&minutes<=CLOSING_HOUR*60;},
+        inOpeningHours(time){const m=/^(\d{2}):(\d{2})$/.exec(time||'');if(!m)return false;const minutes=Number(m[1])*60+Number(m[2]);return minutes>=settingMinutes('opening')&&minutes<=settingMinutes('closing');},
         isReserved(t){const date=document.getElementById('reserveDate')?.value||this.localDate(new Date()),time=document.getElementById('reserveTime')?.value||'19:00';return this.inOpeningHours(time)&&read(KEY.reservations,[]).some(r=>r.tableId===t.id&&r.date===date&&r.time===time&&r.status==='Confirmada');},
-        render(){const box=document.getElementById('tablesMap');if(!box)return;const worker=currentRole()==='Dueno'||currentRole()==='Barra';box.innerHTML=tables.map(t=>{const reserved=this.isReserved(t),selected=this.selected===t.id;return `<button type="button" class="restaurant-table ${t.shape} ${reserved?'occupied':''} ${selected?'selected':''}" style="left:${t.x}%;top:${t.y}%" ${worker?'disabled':''} ${worker?'':'onclick=\"ESFERestaurante.reservas.select('+t.id+')\"'} ${reserved?'disabled':''}><strong>${String(t.id).padStart(2,'0')}</strong><small>${t.seats}p</small></button>`}).join('');this.renderSelected();},
+        render(){const box=document.getElementById('tablesMap');if(!box)return;const worker=currentRole()==='Dueno'||currentRole()==='Barra';const allOrders=read(KEY.orders,[]);const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const timeSince=d=>{const ms=Math.max(0,Date.now()-new Date(d||Date.now()).getTime());const m=Math.floor(ms/60000);return m<1?'Ahora':`${m} min`};box.innerHTML=tables.map(t=>{const active=allOrders.find(o=>Number(o.tableId)===Number(t.id)&&['Pendiente','Preparando','Listo'].includes(o.status));const reserved=this.isReserved(t),selected=this.selected===t.id;const state=active?'occupied':reserved?'reserved':'available';const waiter=active?.assignedAttendantName||active?.mesero||'Sin asignar';const subtotal=active?.subtotal??active?.total??0;const tip=active?`Ocupada · Mesero: ${waiter} · ${timeSince(active?.date)} · ${money(subtotal)}`:`Mesa ${String(t.id).padStart(2,'0')} · ${t.seats} personas · Zona ${t.zone}`;return `<button type="button" class="restaurant-table ${t.shape} ${state} ${selected?'selected':''}" style="left:${t.x}%;top:${t.y}%" ${active||reserved?'disabled':''} title="${esc(tip)}" data-table-tooltip="${esc(tip)}" data-table-id="${t.id}"><span class="table-status-dot ${state}"></span><strong>${String(t.id).padStart(2,'0')}</strong><small>${t.seats}p</small></button>`}).join('');this.renderSelected();},
         select(id){const t=tables.find(x=>x.id===id);if(!t||this.isReserved(t)){toast('Mesa no disponible para ese horario','error');return;}this.selected=id;this.render();},
         renderSelected(){const t=tables.find(x=>x.id===this.selected),selected=document.getElementById('selectedTable'),info=document.getElementById('selectedTableInfo');if(!selected||!info)return;selected.textContent=t?`Mesa ${String(t.id).padStart(2,'0')}`:'Selecciona una mesa';info.textContent=t?`${t.seats} personas · Zona ${t.zone}`:'Elige una mesa disponible en el croquis.';},
         save(){
@@ -273,7 +326,7 @@ const ESFERestaurante = (() => {
             if(sessionStorage.getItem('esfe_return_to_payment')==='1'){sessionStorage.removeItem('esfe_return_to_payment');sessionStorage.setItem('esfe_reservation_id',reservation.id);setTimeout(()=>location.href='/ProcesarPago1/Index',350);}
         },
         markArrival(id){if(currentRole()!=='Dueno'&&currentRole()!=='Barra'){toast('No tienes permiso para registrar llegadas','error');return;}const all=read(KEY.reservations,[]),r=all.find(x=>x.id===id);if(!r)return;r.arrived=!r.arrived;r.arrivalAt=r.arrived?new Date().toISOString():null;write(KEY.reservations,all);this.renderList();toast(r.arrived?`${r.name} marcado como llegado`:`Llegada de ${r.name} desmarcada`,'info');},
-        renderList(){const date=this.localDate(new Date()),worker=currentRole()==='Dueno'||currentRole()==='Barra',user=currentUser(),list=read(KEY.reservations,[]).filter(r=>worker||r.date===date&&r.customer===user).sort((a,b)=>`${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));const box=document.getElementById('reservationList'),counter=document.getElementById('reservationCount');if(counter)counter.textContent=`${list.length} reservas`;if(!box)return;if(!list.length){box.innerHTML='<div class="empty-state compact"><span>▦</span><strong>No hay reservas para hoy</strong><p>Las nuevas reservas aparecerán aquí.</p></div>';return;}box.innerHTML=list.map(r=>{const valid=r.status==='Confirmada',arrival=r.arrived?'Llegó':'No registrado',reservationDate=new Date(`${r.date}T00:00:00`).toLocaleDateString('es-SV',{day:'2-digit',month:'2-digit',year:'numeric'});return `<div class="reservation-item"><div><span class="reservation-time">${r.time}</span><strong>${r.table}</strong><small>${reservationDate} · ${r.name} · ${r.people} persona(s) · ${r.zone}</small><small>${r.status==='Fuera de horario'?'Fuera del horario 06:00–22:00 · la mesa no se bloquea':'Reserva válida'} · Llegada: ${arrival}</small></div><div class="reservation-actions"><span class="status-pill ${valid?'success':'warning'}">${r.status}</span>${worker?`<button class="secondary-btn small" onclick="ESFERestaurante.reservas.markArrival('${r.id}')">${r.arrived?'Marcar no llegado':'Registrar llegada'}</button>`:''}</div></div>`;}).join('');}
+        renderList(){const date=this.localDate(new Date()),worker=currentRole()==='Dueno'||currentRole()==='Barra',user=currentUser(),list=read(KEY.reservations,[]).filter(r=>worker||r.date===date&&r.customer===user).sort((a,b)=>`${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));const box=document.getElementById('reservationList'),counter=document.getElementById('reservationCount');if(counter)counter.textContent=`${list.length} reservas`;if(!box)return;if(!list.length){box.innerHTML='<div class="empty-state compact"><span>▦</span><strong>No hay reservas para hoy</strong><p>Las nuevas reservas aparecerán aquí.</p></div>';return;}box.innerHTML=list.map(r=>{const valid=r.status==='Confirmada',arrival=r.arrived?'Llegó':'No registrado',reservationDate=new Date(`${r.date}T00:00:00`).toLocaleDateString('es-SV',{day:'2-digit',month:'2-digit',year:'numeric'});return `<div class="reservation-item"><div><span class="reservation-time">${r.time}</span><strong>${r.table}</strong><small>${reservationDate} · ${r.name} · ${r.people} persona(s) · ${r.zone}</small><small>${r.status==='Fuera de horario'?`Fuera del horario ${restaurantHours()} · la mesa no se bloquea`:'Reserva válida'} · Llegada: ${arrival}</small></div><div class="reservation-actions"><span class="status-pill ${valid?'success':'warning'}">${r.status}</span>${worker?`<button class="secondary-btn small" onclick="ESFERestaurante.reservas.markArrival('${r.id}')">${r.arrived?'Marcar no llegado':'Registrar llegada'}</button>`:''}</div></div>`;}).join('');}
     };
     const invoiceKey = id => `esfe_factura_${id}`;
     const createInvoice = order => {
@@ -306,10 +359,10 @@ const ESFERestaurante = (() => {
         const code = `${invoice.invoiceNumber}-${String(invoice.orderId||'').replace(/[^A-Za-z0-9]/g,'').slice(-6).toUpperCase()}`;
         return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(invoice.invoiceNumber)} · RestauranteBD</title>
         <style>
-          :root{--ink:#172033;--muted:#64748b;--line:#e6ebf1;--soft:#f6f8fb;--paper:#fff;--accent:#b45309;--accent2:#7c2d12;--success:#166534;--successbg:#ecfdf3}
-          *{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#eef2f7,#f8fafc);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-          .page{width:min(960px,calc(100% - 28px));margin:26px auto 40px}.sheet{background:var(--paper);border:1px solid #dde4ec;border-radius:28px;box-shadow:0 28px 90px rgba(15,23,42,.12);overflow:hidden}
-          .ribbon{height:10px;background:linear-gradient(90deg,#111827 0 62%,var(--accent) 62% 100%)}
+          :root{--ink:#17191b;--muted:#6f757b;--line:#dfdbd2;--soft:#f6f3ed;--paper:#fff;--accent:#b9934d;--accent2:#8f6e35;--success:#3e7656;--successbg:#edf5ef}
+          *{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#f5f2eb,#faf9f6);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+          .page{width:min(960px,calc(100% - 28px));margin:26px auto 40px}.sheet{background:var(--paper);border:1px solid #ddd8cf;border-radius:28px;box-shadow:0 26px 78px rgba(25,23,19,.10);overflow:hidden}
+          .ribbon{height:9px;background:linear-gradient(90deg,#151617 0 72%,var(--accent) 72% 100%)}
           .header{padding:34px 42px 24px;display:flex;justify-content:space-between;gap:28px;border-bottom:1px solid var(--line)}
           .brand{display:flex;align-items:center;gap:16px}.brand img{width:72px;height:72px;border-radius:20px;object-fit:cover;border:1px solid var(--line);box-shadow:0 7px 22px rgba(15,23,42,.08)}.brand h1{margin:0;font-size:28px;letter-spacing:-.04em}.brand p{margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.5}.brand small{display:inline-flex;margin-top:8px;padding:5px 8px;border-radius:999px;background:#f8fafc;color:#64748b;border:1px solid var(--line);font-weight:800;font-size:9px}
           .invoice-head{text-align:right}.invoice-head .eyebrow{font-size:9px;letter-spacing:.16em;text-transform:uppercase;font-weight:900;color:var(--accent)}.invoice-head h2{margin:6px 0 0;font-size:25px;letter-spacing:-.025em}.invoice-head .meta{margin-top:8px;color:var(--muted);font-size:10px;line-height:1.7}
@@ -320,7 +373,7 @@ const ESFERestaurante = (() => {
           .info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.info-card{border:1px solid var(--line);border-radius:16px;background:#fff;padding:15px 16px}.info-card h3{margin:0 0 10px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#64748b}.info-row{display:flex;justify-content:space-between;gap:20px;padding:7px 0;border-bottom:1px dashed #edf1f5;font-size:10px}.info-row:last-child{border-bottom:0}.info-row span{color:#94a3b8}.info-row strong{text-align:right;overflow-wrap:anywhere}
           .totals{display:flex;justify-content:flex-end;margin-top:18px}.totals-box{width:min(390px,100%);border:1px solid var(--line);border-radius:18px;overflow:hidden}.total-row{display:flex;justify-content:space-between;padding:10px 15px;font-size:11px;border-bottom:1px solid #f0f3f6}.grand{display:flex;justify-content:space-between;align-items:center;padding:16px;background:#111827;color:#fff}.grand span{font-size:11px;font-weight:750}.grand strong{font-size:22px;letter-spacing:-.03em}
           .closing{display:grid;grid-template-columns:1.4fr .8fr;gap:12px;margin-top:22px}.closing-card{border:1px solid var(--line);border-radius:16px;padding:16px;background:#fff}.closing-card strong{font-size:10px}.closing-card p{margin:6px 0 0;font-size:10px;color:var(--muted);line-height:1.6}.validation{background:#f8fafc}.validation-code{margin-top:8px;padding:10px 12px;border:1px dashed #cfd7e2;border-radius:12px;font-size:10px;font-weight:900;letter-spacing:.08em;word-break:break-all}
-          .footer{padding:20px 42px 30px;border-top:1px solid var(--line);text-align:center;color:#94a3b8;font-size:9px;line-height:1.7}.footer strong{color:#64748b}.actions{position:sticky;bottom:0;display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-top:1px solid var(--line)}button{border:1px solid #d8e0e9;background:#fff;border-radius:11px;padding:9px 13px;font:800 10px inherit;cursor:pointer}button.primary{background:#111827;color:#fff;border-color:#111827}
+          .footer{padding:20px 42px 30px;border-top:1px solid var(--line);text-align:center;color:#94a3b8;font-size:9px;line-height:1.7}.footer strong{color:#64748b}.actions{position:sticky;bottom:0;display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-top:1px solid var(--line)}button{border:1px solid #d8e0e9;background:#fff;border-radius:11px;padding:9px 13px;font:800 10px inherit;cursor:pointer}button.primary{background:#171819;color:#fff;border-color:#171819}
           @media print{body{background:#fff}.page{width:100%;margin:0}.sheet{border:0;border-radius:0;box-shadow:none}.actions{display:none}.header,.summary,main,.footer{padding-left:24px;padding-right:24px}.hero{margin-left:24px;margin-right:24px}.ribbon{height:6px}}
           @media(max-width:760px){.header,.hero,.summary,main,.footer{padding-left:16px;padding-right:16px}.hero{margin-left:16px;margin-right:16px;align-items:flex-start;flex-direction:column}.header{flex-direction:column}.invoice-head{text-align:left}.summary,.info-grid,.closing{grid-template-columns:1fr}.brand img{width:58px;height:58px}.brand h1{font-size:24px}.invoice-head h2{font-size:22px}}
         </style></head><body><div class="page"><div class="sheet"><div class="ribbon"></div>
@@ -340,11 +393,17 @@ const ESFERestaurante = (() => {
 
     const payment={method:'Efectivo',subtotal:0,total:0,
         init(){
+            const pendingOrderId=sessionStorage.getItem('esfe_pay_order_id');
+            const pendingOrder=pendingOrderId?read(KEY.orders,[]).find(o=>o.id===pendingOrderId):null;
+            this.pendingOrderId=pendingOrder?.id||null; this.pendingOrder=pendingOrder||null;
+            if(pendingOrder && pendingOrder.paymentStatus==='Pagado'){toast('Este pedido ya está pagado.','info');sessionStorage.removeItem('esfe_pay_order_id');setTimeout(()=>location.href='/GestionDePedidos1/Index',250);return;}
+            if(pendingOrder && pendingOrder.customer && pendingOrder.customer!==currentUser()){toast('Ese pago no pertenece a tu cuenta.','error');sessionStorage.removeItem('esfe_pay_order_id');setTimeout(()=>location.href='/Inicio1/Index',250);return;}
+            if(pendingOrder){this.subtotal=Number(pendingOrder.subtotal)||0;this.total=Number(pendingOrder.total)||0;this.method=pendingOrder.payment||'Tarjeta';const context=document.getElementById('paymentOrderContext');if(context)context.textContent=`Pago pendiente · Pedido ${pendingOrder.id} · ${pendingOrder.orderType||'Pedido'}`;document.getElementById('paymentTotal').textContent=money(this.total);document.getElementById('paymentTotalAside').textContent=money(this.total);document.getElementById('paymentSubtotal').textContent=money(this.subtotal);document.getElementById('paymentTax').textContent=money(Number(pendingOrder.tax)||0);document.getElementById('paymentItems').innerHTML=(pendingOrder.items||[]).map(i=>`<div><span>${i.qty}× ${i.name}</span><strong>${money(i.price*i.qty)}</strong></div>`).join('');this.renderFields();return;}
             if(currentRole()!=='Cliente'){toast('Este perfil no puede procesar pedidos','error');location.href='/Inicio1/Index';return;}
             const c=cartGet();if(!c.length){toast('El carrito está vacío','error');setTimeout(()=>location.href='/GestionDeMenu1/Index',250);return;}
             const orderType=sessionStorage.getItem('esfe_order_type')||'Mesa';
             if(orderType==='Mesa'&&!sessionStorage.getItem('esfe_reservation_id')){sessionStorage.setItem('esfe_return_to_payment','1');location.href='/ReservarMesas1/Index';return;}
-            this.subtotal=c.reduce((sum,i)=>sum+i.price*i.qty,0);this.total=Number((this.subtotal*1.13).toFixed(2));
+            this.subtotal=c.reduce((sum,i)=>sum+i.price*i.qty,0);this.total=Number((this.subtotal*(1+taxRate())).toFixed(2));
             const context=document.getElementById('paymentOrderContext');if(context)context.textContent=orderType==='Domicilio'?`Pedido a domicilio · ${sessionStorage.getItem('esfe_delivery_address')||'Dirección registrada'}`:orderType==='Mesa'?'Consumo en restaurante · reserva vinculada':'Pedido para llevar';
             document.getElementById('paymentTotal').textContent=money(this.total);document.getElementById('paymentTotalAside').textContent=money(this.total);document.getElementById('paymentSubtotal').textContent=money(this.subtotal);document.getElementById('paymentTax').textContent=money(this.total-this.subtotal);document.getElementById('paymentItems').innerHTML=c.map(i=>`<div><span>${i.qty}× ${i.name}</span><strong>${money(i.price*i.qty)}</strong></div>`).join('');this.renderFields();
         },
@@ -364,6 +423,16 @@ const ESFERestaurante = (() => {
             setupInputRules(document.getElementById('paymentFields'));
         },
         complete(){
+            if(this.pendingOrderId){
+                const all=read(KEY.orders,[]); const order=all.find(o=>o.id===this.pendingOrderId);
+                if(!order){toast('El pedido ya no está disponible.','error');sessionStorage.removeItem('esfe_pay_order_id');return;}
+                if(order.paymentStatus==='Pagado'){toast('Este pedido ya fue pagado.','info');sessionStorage.removeItem('esfe_pay_order_id');return;}
+                let ref='',detail='';
+                if(this.method==='Tarjeta'){const number=(document.getElementById('cardNumber')?.value||'').replace(/\D/g,'');const name=(document.getElementById('cardName')?.value||'').trim();const expiry=(document.getElementById('cardExpiry')?.value||'').trim();const cvv=(document.getElementById('cardCvv')?.value||'').replace(/\D/g,'');const em=/^(0[1-9]|1[0-2])\/(\d{2})$/.exec(expiry);const now=new Date();if(!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñÀ-ÿ' -]{3,60}$/.test(name)||!/^[\d]{13,19}$/.test(number)||!passesLuhn(number)||!em||!/^[0-9]{3,4}$/.test(cvv)){toast('Revisa los datos de la tarjeta.','error');return;}const year=2000+Number(em[2]),month=Number(em[1]);if(year<now.getFullYear()||(year===now.getFullYear()&&month<now.getMonth()+1)){toast('La tarjeta está vencida.','error');return;}ref='CARD-'+number.slice(-4);detail='Pago con tarjeta confirmado en modo demostración';}
+                else if(this.method==='Transferencia'){ref=(document.getElementById('transferRef')?.value||'').trim();if(!/^[A-Za-z0-9-]{5,40}$/.test(ref)){toast('Ingresa una referencia válida.','error');return;}detail='Transferencia registrada y marcada como pagada';}
+                else {ref='CASH-'+Date.now().toString().slice(-10);detail='Pago en efectivo confirmado por el cliente';}
+                order.paymentStatus='Pagado';order.paymentRef=ref;order.paymentDetail=detail;order.paidAt=new Date().toISOString();write(KEY.orders,all);const sales=read(KEY.sales,[]);if(!sales.some(x=>x.id===order.id))sales.unshift({...order,saleStatus:'Cobrado'});write(KEY.sales,sales);const invoice=createInvoice(order);addNotification(`Pago confirmado · pedido ${order.id}.`,order.customer,{type:'factura',orderId:order.id,title:'Pago pendiente completado',detail:`El pedido ${order.id} ya está pagado por ${money(order.total)}. Factura ${invoice?.invoiceNumber||''} disponible.`,action:'invoice'});sessionStorage.removeItem('esfe_pay_order_id');toast('Pago confirmado correctamente.');setTimeout(()=>location.href='/GestionDePedidos1/Index',400);return;
+            }
             if(currentRole()!=='Cliente'){toast('Este perfil no puede crear pedidos','error');return;}const c=cartGet();if(!c.length){toast('El carrito está vacío','error');return;}
             const orderTypeCheck=sessionStorage.getItem('esfe_order_type')||'Mesa';
             if(orderTypeCheck==='Domicilio'&&((sessionStorage.getItem('esfe_delivery_phone')||'').replace(/\D/g,'').length<7||(sessionStorage.getItem('esfe_delivery_phone')||'').replace(/\D/g,'').length>15||(sessionStorage.getItem('esfe_delivery_address')||'').trim().length<5)){toast('Faltan los datos de entrega a domicilio','error');return;}
@@ -380,7 +449,7 @@ const ESFERestaurante = (() => {
             const id=uid('ORD');const orderType=sessionStorage.getItem('esfe_order_type')||'Mesa';const order={id,customer:currentUser(),customerName:document.body.dataset.userName||currentUser(),customerPhone:document.body.dataset.phone||'',customerDui:document.body.dataset.dui||'',date:new Date().toISOString(),status:'Pendiente',payment:this.method,paymentStatus,paymentRef:ref,paymentDetail,orderType,note:sessionStorage.getItem('esfe_order_note')||'',deliveryPhone:sessionStorage.getItem('esfe_delivery_phone')||'',deliveryAddress:sessionStorage.getItem('esfe_delivery_address')||'',reservationId:sessionStorage.getItem('esfe_reservation_id')||'',subtotal:this.subtotal,tax:Number((this.total-this.subtotal).toFixed(2)),total:this.total,items:c}; if(paymentStatus==='Pagado') order.paidAt=new Date().toISOString();let orders=read(KEY.orders,[]);orders.unshift(order);write(KEY.orders,orders);if(paymentStatus==='Pagado'){let sales=read(KEY.sales,[]);sales.unshift({...order,saleStatus:'Cobrado'});write(KEY.sales,sales);}cartSave([]);['esfe_order_type','esfe_order_note','esfe_delivery_phone','esfe_delivery_address','esfe_reservation_id'].forEach(k=>sessionStorage.removeItem(k));if(paymentStatus==='Pagado'){const invoice=createInvoice(order);addNotification(`Pago confirmado · pedido ${id}. Tu factura digital ${invoice?.invoiceNumber||''} está disponible.`,currentUser(),{type:'factura',orderId:id,title:'Pago confirmado y factura digital',detail:`Factura ${invoice?.invoiceNumber||''} · ${money(order.total)}`,action:'invoice'});}
             else{addNotification(`Pedido ${id} creado. Pago pendiente: se pagará en efectivo al recoger o recibir.`,currentUser(),{type:'pedido',orderId:id,title:'Pedido creado',detail:`Total ${money(order.total)} · Pago pendiente`,action:null});}
             // Aviso operativo: cada área recibe el pedido en su propia bandeja.
-            addNotification(`Nuevo pedido ${id}.`,null,{type:'pedido',orderId:id,title:'Nuevo pedido recibido',detail:`${order.items.length} productos · ${money(order.total)} · ${order.orderType||'Pedido'}.`,roles:['Dueno','Cocina','Barra'].concat(order.orderType==='Domicilio'?['Repartidor']:[])});toast(paymentStatus==='Pagado'?`Pedido ${id} creado y pagado`:`Pedido ${id} creado. Pago en efectivo al recoger.`);setTimeout(()=>location.href='/GestionDePedidos1/Index',500);
+            addNotification(`Nuevo pedido ${id}.`,null,{type:'pedido',orderId:id,title:'Nuevo pedido recibido',detail:`${order.items.length} productos · ${money(order.total)} · ${order.orderType||'Pedido'}.`,roles:['Dueno','Cocina','Barra'].concat(order.orderType==='Domicilio'?['Delivery']:[])});toast(paymentStatus==='Pagado'?`Pedido ${id} creado y pagado`:`Pedido ${id} creado. Pago en efectivo al recoger.`);setTimeout(()=>location.href='/GestionDePedidos1/Index',500);
         }
     };
     const cardBrand=digits=>/^4/.test(digits)||/^(5[1-5]|2[2-7])/.test(digits)||/^3[47]/.test(digits)?'<svg viewBox=\"0 0 24 24\" fill=\"none\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\" stroke=\"currentColor\" stroke-width=\"1.7\"/><path d=\"M3 10h18M7 15h4\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\"/></svg>':'';
@@ -389,71 +458,86 @@ const ESFERestaurante = (() => {
     // ===== GESTIÓN DE PEDIDOS =====
     const orders={filter:'Todos',init(){this.render();setInterval(()=>this.render(),5000);},setFilter(f){this.filter=f;document.querySelectorAll('[data-status]').forEach(b=>b.classList.toggle('active',b.dataset.status===f));this.render();},render(){const all=read(KEY.orders,[]);const owner=currentRole()==='Dueno';const operational=owner||currentRole()==='Barra';const visible=operational?all:all.filter(o=>(o.customer||'')===currentUser());const search=(document.getElementById('ordersSearch')?.value||'').toLowerCase().trim();const filtered=visible.filter(o=>(this.filter==='Todos'||o.status===this.filter)&&(!search||[o.id,o.customer,o.customerName,o.customerPhone,o.customerDui,o.deliveryPhone,o.deliveryAddress].filter(Boolean).some(v=>String(v).toLowerCase().includes(search))));const totalEl=document.getElementById('ordersTotal'),pendingEl=document.getElementById('ordersPending'),preparingEl=document.getElementById('ordersPreparing'),readyEl=document.getElementById('ordersReady');if(totalEl)totalEl.textContent=visible.length;if(pendingEl)pendingEl.textContent=visible.filter(o=>o.status==='Pendiente').length;if(preparingEl)preparingEl.textContent=visible.filter(o=>o.status==='Preparando').length;if(readyEl)readyEl.textContent=visible.filter(o=>o.status==='Listo').length;const box=document.getElementById('ordersGrid');if(!box)return;if(!filtered.length){box.innerHTML='<div class="empty-state compact"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M8 9h8M8 13h8M8 17h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span><strong>No hay pedidos con ese filtro</strong><p>Los pedidos nuevos aparecerán aquí.</p></div>';return;}box.innerHTML=filtered.map(o=>{const paid=o.paymentStatus ? o.paymentStatus==='Pagado' : o.payment!=='Efectivo';const paymentLabel=paid?'Pagado':'Pendiente de pago';const paymentClass=paid?'success':'warning';return `<article class="order-card"><div class="order-card-head"><div><span class="order-id">${o.id}</span><small>${new Date(o.date).toLocaleString('es-SV')}</small></div><span class="status-pill ${o.status==='Listo'?'success':o.status==='Preparando'?'warning':'neutral'}">${o.status}</span></div><div class="order-payment-line"><span class="status-pill ${paymentClass}"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3 10h18" stroke="currentColor" stroke-width="1.7"/></svg></span>${paymentLabel}</span><strong>${o.payment}</strong></div><div class="order-products">${o.items.map(i=>`<div><span>${i.qty}× ${i.name}</span><strong>${money(i.price*i.qty)}</strong></div>`).join('')}</div><div class="order-card-foot"><span>${o.orderType}</span><strong>${money(o.total)}</strong></div>${o.payment==='Efectivo'?'<div class="cash-note"><strong>Pago en efectivo:</strong> El cliente pagará en persona al recoger o recibir el pedido.</div>':''}${paid&&o.paymentRef?`<div class="paid-note"><strong>Pago confirmado</strong><span>Referencia: ${o.paymentRef}</span></div>`:''}${(owner||currentRole()==='Barra')?`<div class="order-actions">${!paid&&o.payment==='Efectivo'?`<button class="secondary-btn small" onclick="ESFERestaurante.orders.markCashPaid('${o.id}')">Confirmar pago en efectivo</button>`:''}${(owner||currentRole()==='Cocina')&&o.status==='Pendiente'?`<button class="secondary-btn small" onclick="ESFERestaurante.orders.advance('${o.id}')">Enviar a cocina</button>`:''}${(owner||currentRole()==='Cocina')&&o.status==='Preparando'?`<button class="secondary-btn small" onclick="ESFERestaurante.orders.advance('${o.id}')">Marcar listo</button>`:''}${o.status==='Listo'?`<span class="status-pill success">Pasar a Entregas</span>`:''}</div>`:'<div class="order-actions"><span class="order-status-note">El restaurante actualizará el estado del pedido.</span></div>'}</article>`;}).join('');},markCashPaid(id){if(currentRole()!=='Dueno'&&currentRole()!=='Barra'){toast('Solo el dueño puede confirmar pagos','error');return;}let all=read(KEY.orders,[]);const o=all.find(x=>x.id===id);if(!o||o.payment!=='Efectivo')return;o.paymentStatus='Pagado';o.paidAt=new Date().toISOString();o.paymentDetail='Pago en efectivo recibido personalmente al recoger o recibir el pedido';o.paymentRef='EF-'+new Date().getTime().toString().slice(-12);const invoice=createInvoice(o);write(KEY.orders,all);let sales=read(KEY.sales,[]);if(!sales.some(x=>x.id===id)){sales.unshift({...o,saleStatus:'Cobrado'});write(KEY.sales,sales);}if(o.customer)addNotification(`Pago recibido · pedido ${o.id}. Tu factura digital ${invoice?.invoiceNumber||''} ya está disponible.`,o.customer,{type:'factura',orderId:o.id,title:'Pago en efectivo confirmado',detail:`Factura ${invoice?.invoiceNumber||''} · ${money(o.total)}`,action:'invoice'});
             addNotification(`Pago recibido para ${o.id}.`,null,{type:'pago',orderId:o.id,title:'Pago confirmado',detail:`Pago en efectivo registrado por ${money(o.total)}. Factura ${invoice?.invoiceNumber||'digital'}.`,roles:['Dueno','Barra']});toast(`${id}: pago en efectivo confirmado`);this.render();},advance(id){if(currentRole()!=='Dueno'&&currentRole()!=='Cocina'){toast('No tienes permiso para actualizar el estado del pedido','error');return;}let all=read(KEY.orders,[]);const o=all.find(x=>x.id===id);if(!o)return;const old=o.status;o.status=o.status==='Pendiente'?'Preparando':o.status==='Preparando'?'Listo':'Entregado';if(o.customer)addNotification(`Tu pedido ${o.id} cambió de estado: ${o.status}.`,o.customer,{type:'pedido',orderId:o.id,title:`Pedido ${o.status.toLowerCase()}`,detail:`El restaurante actualizó el pedido ${o.id}.`,action:null});
-            addNotification(`El pedido ${o.id} pasó a ${o.status}.`,null,{type:'pedido',orderId:o.id,title:`Pedido ${o.status.toLowerCase()}`,detail:`Actualización operativa del pedido ${o.id}. Cliente: ${o.customerName||o.customer||'Cliente'}.`,roles:['Dueno','Cocina','Barra'].concat(o.status==='Listo'?['Repartidor']:[])});write(KEY.orders,all);toast(`${id}: ${o.status}`);this.render();}};
+            addNotification(`El pedido ${o.id} pasó a ${o.status}.`,null,{type:'pedido',orderId:o.id,title:`Pedido ${o.status.toLowerCase()}`,detail:`Actualización operativa del pedido ${o.id}. Cliente: ${o.customerName||o.customer||'Cliente'}.`,roles:['Dueno','Cocina','Barra'].concat(o.status==='Listo'?['Delivery']:[])});write(KEY.orders,all);toast(`${id}: ${o.status}`);this.render();}};
 
     // ===== PANTALLA DE COCINA =====
-    const kitchen={init(){this.render();setInterval(()=>this.render(),4000);},render(){const all=read(KEY.orders,[]);const groups=[['Pendiente','Por preparar'],['Preparando','Preparando'],['Listo','Listos']];document.getElementById('kitchenBoard').innerHTML=groups.map(([status,title])=>`<section class="kanban-col"><div class="kanban-head"><div><span>${title}</span><strong>${all.filter(o=>o.status===status).length}</strong></div></div><div class="kanban-list">${all.filter(o=>o.status===status).map(o=>`<article class="kitchen-card"><div class="order-card-head"><span class="order-id">${o.id}</span><span class="status-pill ${status==='Listo'?'success':status==='Preparando'?'warning':'neutral'}">${status}</span></div><strong>${o.items.map(i=>`${i.qty}× ${i.name}`).join(', ')}</strong><small>${o.customerName||o.customer||'Cliente'} · ${o.orderType} · ${o.payment}</small>${status==='Listo'?'<div class="cash-note"><strong>Preparado.</strong> El siguiente paso es Entregas, donde se busca al cliente y se notifica cuando se entregue.</div>':`<button class="primary-btn small full" onclick="ESFERestaurante.orders.advance('${o.id}')">${status==='Pendiente'?'Comenzar preparación':'Marcar listo'}</button>`}</article>`).join('')||'<div class="empty-state compact"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span><p>Sin órdenes</p></div>'}</div></section>`).join('');}}
+    const kitchen={
+        init(){this.render();setInterval(()=>this.render(),1000);},
+        render(){
+            const all=read(KEY.orders,[]),board=document.getElementById('kitchenBoard');if(!board)return;
+            const groups=[['Pendiente','Por preparar'],['Preparando','Preparando'],['Listo','Listos']];
+            const targetMs=15*60*1000;
+            const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+            board.setAttribute('aria-busy','true');
+            board.innerHTML=groups.map(([status,title])=>`<section class="kanban-col"><div class="kanban-head"><div><span>${title}</span><strong>${all.filter(o=>o.status===status).length}</strong></div></div><div class="kanban-list">${all.filter(o=>o.status===status).map(o=>{
+                const elapsed=Math.max(0,Date.now()-new Date(o.date||Date.now()).getTime());
+                const progress=Math.min(100,Math.round(elapsed/targetMs*100));
+                const remaining=Math.max(0,targetMs-elapsed),mins=Math.floor(remaining/60000),secs=Math.floor((remaining%60000)/1000);
+                const severity=progress>=100?'kds-danger':progress>=70?'kds-warning':'kds-safe';
+                const timer=status==='Listo'?'Preparado':`${mins}:${String(secs).padStart(2,'0')} restantes`;
+                return `<article class="kitchen-card ${severity}" data-order-time="${esc(o.date||'')}">
+                    <div class="order-card-head"><span class="order-id">${esc(o.id)}</span><span class="status-pill ${status==='Listo'?'success':status==='Preparando'?'warning':'neutral'}">${status}</span></div>
+                    <strong class="kds-order-title">${(o.items||[]).map(i=>`${esc(i.qty)}× ${esc(i.name)}`).join(', ')}</strong>
+                    <div class="kds-meta"><span>${esc(o.customerName||o.customer||'Cliente')}</span><span>${esc(o.orderType||'Pedido')}</span><span>${esc(o.payment||'Pago')}</span></div>
+                    <div class="kds-progress" aria-label="Tiempo de preparación"><span style="width:${status==='Listo'?100:progress}%"></span></div>
+                    <div class="kds-timer"><span>${progress>=100&&status!=='Listo'?'Tiempo excedido':'Tiempo objetivo · 15 min'}</span><strong>${timer}</strong></div>
+                    ${progress>=100&&status!=='Listo'?'<div class="kds-alert">Requiere atención inmediata</div>':''}
+                    ${status==='Listo'?'<div class="cash-note"><strong>Preparado.</strong> El siguiente paso es Entregas, donde se busca el cliente y se registra la entrega.</div>':`<button class="primary-btn small full" onclick="ESFERestaurante.orders.advance('${esc(o.id)}')">${status==='Pendiente'?'Comenzar preparación':'Marcar listo'}</button>`}
+                </article>`;
+            }).join('')||'<div class="empty-state compact"><span class="ui-icon">✓</span><p>Sin órdenes</p></div>'}</div></section>`).join('');
+            board.removeAttribute('aria-busy');
+        }
+    };
     // ===== PEDIDOS LISTOS / ENTREGAS =====
     const ready={
         search:'',
-        init(){
-            const input=document.getElementById('readySearch');
-            input?.addEventListener('input',e=>{this.search=e.target.value.toLowerCase().trim();this.render();});
-            this.render();
-            setInterval(()=>this.render(),4000);
-        },
+        init(){const input=document.getElementById('readySearch');input?.addEventListener('input',e=>{this.search=e.target.value.toLowerCase().trim();this.render();});this.render();setInterval(()=>this.render(),4000);},
         clearSearch(){this.search='';const input=document.getElementById('readySearch');if(input)input.value='';this.render();},
         render(){
-            const all=read(KEY.orders,[]);
-            const q=this.search;
-            const list=all.filter(o=>o.status==='Listo'&&(!q||[o.id,o.customer,o.customerName,o.customerPhone,o.customerDui,o.deliveryPhone,o.deliveryAddress].filter(Boolean).some(v=>String(v).toLowerCase().includes(q))));
-            const counter=document.getElementById('readyCounter');
-            if(counter)counter.textContent=`${list.length} disponibles`;
-            const box=document.getElementById('readyGrid');
-            if(!box)return;
-            if(!list.length){
-                box.innerHTML='<div class="empty-state compact"><span>✓</span><strong>No hay pedidos listos</strong><p>'+(q?'Prueba con otro nombre, correo o número de pedido.':'Cuando cocina termine, aparecerán aquí.')+'</p></div>';
-                return;
-            }
+            const all=read(KEY.orders,[]),q=this.search,role=currentRole();
+            const list=all.filter(o=>(o.status==='Listo'||(o.status==='Entregado'&&o.payment==='Efectivo'&&o.cashCollectedByDelivery===true&&!o.cashHandedOverAt))&&(!q||[o.id,o.customer,o.customerName,o.customerPhone,o.customerDui,o.deliveryPhone,o.deliveryAddress,o.assignedAttendantName].filter(Boolean).some(v=>String(v).toLowerCase().includes(q))));
+            const counter=document.getElementById('readyCounter');if(counter)counter.textContent=`${list.length} disponibles`;
+            const box=document.getElementById('readyGrid');if(!box)return;
+            if(!list.length){box.innerHTML='<div class="empty-state compact"><span>✓</span><strong>No hay pedidos listos</strong><p>'+(q?'Prueba otro criterio de búsqueda.':'Cuando cocina termine, aparecerán aquí.')+'</p></div>';return;}
+            const canDeliver=['Dueno','Delivery'].includes(role);const canHandover=['Dueno','Barra'].includes(role);
             box.innerHTML=list.map(o=>{
+                const isHome=String(o.orderType||'').toLowerCase().includes('domic');
+                const pendingCash=o.paymentStatus!=='Pagado'&&String(o.payment||'').toLowerCase()==='efectivo';
+                const cashCollected=o.cashCollectedByDelivery===true;const cashHandedOver=o.cashHandedOverAt!=null;
                 const customer=o.customerName||o.customer||'Cliente';
-                const paymentNote=o.payment==='Efectivo'&&o.paymentStatus!=='Pagado'?'Pago en efectivo pendiente':'Pago registrado';
-                return `<article class="order-card ready-card"><div class="order-card-head"><div><span class="order-id">${o.id}</span><small>${customer} · ${o.orderType}</small></div><span class="status-pill success">LISTO</span></div><div class="order-products">${o.items.map(i=>`<div><span>${i.qty}× ${i.name}</span></div>`).join('')}</div><div class="order-card-foot"><span>${o.payment}</span><strong>${money(o.total)}</strong></div><div class="cash-note"><strong>Cliente:</strong> ${customer}<span>${o.deliveryPhone||o.customerPhone||'Sin teléfono registrado'}</span><span>${o.orderType==='Domicilio'?(o.deliveryAddress||'Sin dirección registrada'):'Pedido para recoger / consumo en restaurante'}</span><span>${paymentNote}</span></div><button class="primary-btn full" onclick="ESFERestaurante.ready.deliver('${o.id}')">Marcar entregado y notificar ✓</button></article>`;
+                const paymentBadge=o.paymentStatus==='Pagado'?'<span class="status-pill success">Pagado</span>':pendingCash?'<span class="status-pill warning">Cobro pendiente</span>':'<span class="status-pill neutral">Pago pendiente</span>';
+                let action='';
+                if(canDeliver&&o.status==='Listo'&&pendingCash&&!cashCollected) action+=`<button class="secondary-btn small full" onclick="ESFERestaurante.ready.confirmCash('${o.id}')">Confirmar efectivo recibido</button>`;
+                if(canDeliver&&o.status==='Listo') action+=`<button class="primary-btn full" ${(pendingCash&&!cashCollected)?'disabled':''} onclick="ESFERestaurante.ready.deliver('${o.id}')">Marcar entregado y notificar ✓</button>`;if(canHandover&&cashCollected&&!cashHandedOver) action+=`<button class="secondary-btn small full" onclick="ESFERestaurante.ready.handoverCash('${o.id}')">Registrar efectivo entregado al restaurante</button>`;if(cashHandedOver) action+=`<span class="status-pill success">Efectivo entregado al restaurante</span>`;
+                return `<article class="order-card ready-card"><div class="order-card-head"><div><span class="order-id">${o.id}</span><small>${customer} · ${o.orderType||'Pedido'}</small></div><span class="status-pill ${o.status==='Entregado'?'neutral':'success'}">${o.status==='Entregado'?'ENTREGADO':'LISTO'}</span></div><div class="order-products">${(o.items||[]).map(i=>`<div><span>${i.qty}× ${i.name}</span></div>`).join('')}</div><div class="order-card-foot"><span>${o.payment||'No indicado'}</span><strong>${money(o.total)}</strong></div><div class="cash-note"><strong>Cliente:</strong> ${customer}<span>${o.deliveryPhone||o.customerPhone||'Sin teléfono registrado'}</span><span>${isHome?(o.deliveryAddress||'Sin dirección registrada'):(o.table||'Pedido para recoger / salón')}</span><span>${paymentBadge}${pendingCash&&cashCollected?' · Efectivo recibido por Delivery':''}</span>${o.assignedAttendantName?`<span>Responsable: ${o.assignedAttendantName}</span>`:''}</div><div class="order-actions">${action}</div></article>`;
             }).join('');
         },
+        confirmCash(id){
+            if(!['Dueno','Delivery'].includes(currentRole())){toast('Solo Delivery o el administrador puede confirmar el efectivo.', 'error');return;}
+            const all=read(KEY.orders,[]),o=all.find(x=>x.id===id);if(!o||o.status!=='Listo'||o.paymentStatus==='Pagado')return;
+            if(o.payment!=='Efectivo'){toast('Este pedido no está configurado para efectivo.','error');return;}
+            o.cashCollectedByDelivery=true;o.cashCollectedAt=new Date().toISOString();o.paymentStatus='Pagado';o.paidAt=o.cashCollectedAt;o.paymentRef='CASH-'+Date.now().toString().slice(-10);o.paymentDetail='Efectivo recibido por Delivery al entregar el pedido';
+            write(KEY.orders,all);const sales=read(KEY.sales,[]);if(!sales.some(x=>x.id===id))sales.unshift({...o,saleStatus:'Cobrado'});write(KEY.sales,sales);const invoice=createInvoice(o);if(o.customer)addNotification(`Pago recibido del pedido ${o.id}.`,o.customer,{type:'factura',orderId:o.id,title:'Pago en efectivo confirmado',detail:`Delivery confirmó el pago de ${money(o.total)}. Factura ${invoice?.invoiceNumber||''} disponible.`,action:'invoice'});addNotification(`Delivery confirmó efectivo para ${o.id}.`,null,{type:'pago',orderId:o.id,title:'Cobro de Delivery confirmado',detail:`Se registró efectivo por ${money(o.total)} para el pedido ${o.id}.`,roles:['Dueno','Barra']});toast('Pago en efectivo confirmado. Ya puedes marcar la entrega.');this.render();
+        },
+        handoverCash(id){
+            if(!['Dueno','Barra'].includes(currentRole())){toast('Solo el dueño o Barra puede registrar la entrega del efectivo al restaurante.','error');return;}
+            const all=read(KEY.orders,[]),o=all.find(x=>x.id===id);if(!o||o.payment!=='Efectivo'||o.cashCollectedByDelivery!==true){toast('Primero debe confirmarse el efectivo cobrado.','error');return;}
+            if(o.cashHandedOverAt){toast('Este efectivo ya fue registrado como entregado.','info');return;}
+            o.cashHandedOverAt=new Date().toISOString();o.cashHandedOverBy=currentUser();o.cashHandoverStatus='Entregado al restaurante';write(KEY.orders,all);
+            addNotification(`Efectivo de ${o.id} entregado al restaurante.`,null,{type:'pago',orderId:o.id,title:'Efectivo recibido por restaurante',detail:`Delivery entregó el efectivo de ${money(o.total)} correspondiente al pedido ${o.id}.`,roles:['Dueno','Barra']});
+            toast('Entrega de efectivo registrada.');this.render();
+        },
         deliver(id){
-            if(!['Dueno','Repartidor'].includes(currentRole())){toast('Solo el administrador o el repartidor puede entregar pedidos','error');return;}
-            const all=read(KEY.orders,[]);
-            const o=all.find(x=>x.id===id);
-            if(!o||o.status!=='Listo')return;
-            o.status='Entregado';
-            o.deliveredAt=new Date().toISOString();
+            if(!['Dueno','Delivery'].includes(currentRole())){toast('Solo Delivery o el administrador puede completar entregas.','error');return;}
+            const all=read(KEY.orders,[]),o=all.find(x=>x.id===id);if(!o||o.status!=='Listo')return;
+            if(o.paymentStatus!=='Pagado'&&o.payment==='Efectivo'){toast('Confirma primero el efectivo recibido.','error');return;}
+            o.status='Entregado';o.deliveredAt=new Date().toISOString();o.deliveredBy=currentUser();
             write(KEY.orders,all);
-            if(o.customer)addNotification(`Tu pedido ${o.id} fue entregado correctamente.`,o.customer,{type:'pedido',orderId:o.id,title:'Pedido entregado',detail:`El pedido ${o.id} fue entregado correctamente al cliente.`,roles:[]});
-            addNotification(`Pedido ${o.id} entregado.`,null,{type:'pedido',orderId:o.id,title:'Entrega completada',detail:`El pedido ${o.id} fue marcado como entregado.`,roles:['Dueno','Repartidor']});
-            toast(`${id} entregado y cliente notificado`);
-            this.render();
+            if(o.customer)addNotification(`Tu pedido ${o.id} fue entregado correctamente.`,o.customer,{type:'pedido',orderId:o.id,title:'Pedido entregado',detail:`La entrega de tu pedido fue completada.`,action:'invoice'});
+            addNotification(`Pedido ${o.id} entregado.`,null,{type:'pedido',orderId:o.id,title:'Entrega completada',detail:`${o.customerName||o.customer||'Cliente'} recibió el pedido.`,roles:['Dueno','Delivery']});
+            toast(`${id}: entrega completada`);this.render();
         }
     };
-
-    // Generador PDF ligero para reportes locales. No depende de librerias externas.
-    function pdfAscii(value){return String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7E]/g,'?').replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');}
-    function makeSimplePdf(lines){
-        const pageW=595,pageH=842,margin=48,lineH=15,usable=746,maxLines=Math.max(1,Math.floor(usable/lineH));
-        const pages=[];for(let i=0;i<lines.length;i+=maxLines)pages.push(lines.slice(i,i+maxLines));
-        const objects=[];const add=o=>{objects.push(o);return objects.length;};
-        const catalog=add('<< /Type /Catalog /Pages 2 0 R >>');
-        const pageNums=[];const font=add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
-        pages.forEach(pageLines=>{
-            let stream='BT /F1 11 Tf '+margin+' '+(pageH-margin)+' Td 0 -'+lineH+' Td';
-            pageLines.forEach((line,idx)=>{const txt=pdfAscii(line);if(idx===0)stream=`BT /F1 15 Tf ${margin} ${pageH-margin} Td (${txt}) Tj /F1 11 Tf 0 -24 Td`;else stream+=` 0 -${lineH} Td (${txt}) Tj`;});stream+=' ET';
-            const content=add(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
-            const page=add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /Font << /F1 ${font} 0 R >> >> /Contents ${content} 0 R >>`);pageNums.push(page);
-        });
-        objects[1]=`<< /Type /Pages /Kids [${pageNums.map(n=>n+' 0 R').join(' ')}] /Count ${pageNums.length} >>`;
-        let pdf='%PDF-1.4\n',offsets=[0];for(let i=0;i<objects.length;i++){offsets[i+1]=pdf.length;pdf+=`${i+1} 0 obj\n${objects[i]}\nendobj\n`;}const xref=pdf.length;pdf+=`xref\n0 ${objects.length+1}\n0000000000 65535 f \n`;for(let i=1;i<offsets.length;i++)pdf+=String(offsets[i]).padStart(10,'0')+' 00000 n \n';pdf+=`trailer\n<< /Size ${objects.length+1} /Root ${catalog} 0 R >>\nstartxref\n${xref}\n%%EOF`;return pdf;
-    }
-
     // ===== REPORTES =====
     const reports={
         init(){this.ensureWeeklyCutoff();this.render();},
@@ -663,7 +747,7 @@ const ESFERestaurante = (() => {
             modal.querySelector('[data-notification-detail-body]').innerHTML=html;
             const star=modal.querySelector('[data-notification-detail-star]');if(star){star.classList.toggle('active',!!n.starred);star.onclick=()=>this.toggleStar(n.id);}
             const reply=modal.querySelector('[data-notification-detail-reply]');if(reply){reply.style.display=n.sent?'none':'inline-flex';reply.onclick=()=>{this.close();this.openCompose({to:n.fromEmail||n.user||'',subject:(title.startsWith('Re:')?'':'Re: ')+title,body:'\n\n--- Mensaje original ---\n'+body});};}
-            const action=modal.querySelector('[data-notification-detail-action]');if(action){action.innerHTML=invoice&&n.orderId?'<span class="action-icon">'+this.icon('factura')+'</span>Ver factura':'';action.style.display=invoice&&n.orderId?'inline-flex':'none';action.onclick=()=>{if(invoice&&n.orderId)showInvoice(n.orderId);};}
+            const action=modal.querySelector('[data-notification-detail-action]');if(action){const pendingPay=order&&order.paymentStatus!=='Pagado'&&n.action==='payment';if(invoice&&n.orderId){action.innerHTML='<span class="action-icon">'+this.icon('factura')+'</span>Ver factura';action.style.display='inline-flex';action.onclick=()=>showInvoice(n.orderId);}else if(pendingPay){action.innerHTML='<span class="action-icon">'+this.icon('pago')+'</span>Pagar pedido';action.style.display='inline-flex';action.onclick=()=>{sessionStorage.setItem('esfe_pay_order_id',order.id);location.href='/ProcesarPago1/Index';};}else{action.innerHTML='';action.style.display='none';action.onclick=null;}}
         },
         renderMessageBody(text){
             const escaped=this.escape(text).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/_(.+?)_/g,'<em>$1</em>').replace(/^> (.*)$/gm,'<blockquote>$1</blockquote>').replace(/^• (.*)$/gm,'<li>$1</li>').replace(/\n/g,'<br>');
@@ -671,7 +755,8 @@ const ESFERestaurante = (() => {
         },
         renderReaderAttachments(attachments){
             if(!Array.isArray(attachments)||!attachments.length)return '';
-            return `<section class="reader-attachments"><div class="reader-section-head"><div><span class="reader-section-icon">${this.icon('adjunto')}</span><strong>Archivos adjuntos</strong><small>${attachments.length} archivo${attachments.length===1?'':'s'}</small></div></div><div class="reader-attachment-list">${attachments.map(a=>`<a class="reader-attachment" href="${a.data}" download="${this.escape(a.name)}"><span class="reader-attachment-icon">${this.icon('adjunto')}</span><span><strong>${this.escape(a.name)}</strong><small>${(Number(a.size||0)/1024/1024).toFixed(2)} MB</small></span><span class="action-icon">${this.icon('download')}</span></a>`).join('')}</div></section>`;
+            const kind=a=>{const name=String(a.name||'').toLowerCase();if(name.endsWith('.pdf'))return ['PDF','pdf'];if(/\.(doc|docx)$/.test(name))return ['WORD','word'];if(/\.(xls|xlsx|csv)$/.test(name))return ['XLS','sheet'];if(/\.(ppt|pptx)$/.test(name))return ['PPT','slide'];if(/\.(png|jpg|jpeg|webp|gif)$/.test(name))return ['IMG','image'];return ['FILE','file'];};
+            return `<section class="reader-attachments"><div class="reader-section-head"><div><span class="reader-section-icon">${this.icon('adjunto')}</span><strong>Archivos adjuntos</strong><small>${attachments.length} archivo${attachments.length===1?'':'s'}</small></div></div><div class="reader-attachment-list">${attachments.map(a=>{const [label,cls]=kind(a);return `<a class="reader-attachment reader-attachment-pro ${cls}" href="${a.data}" download="${this.escape(a.name)}"><span class="reader-attachment-filemark"><span>${label}</span></span><span class="reader-attachment-copy"><strong>${this.escape(a.name)}</strong><small>${(Number(a.size||0)/1024/1024).toFixed(2)} MB · ${label==='IMG'?'Imagen':'Documento'}</small></span><span class="action-icon">${this.icon('download')}</span></a>`;}).join('')}</div></section>`;
         },
         close(){document.getElementById('notificationDetailModal')?.classList.remove('show');},
         toggleRead(id){const list=notificationsGet();const n=list.find(x=>x.id===id&&notificationVisible(x));if(n)n.read=!n.read;notificationsSave(list);this.render();updateNotificationBadges();},
@@ -765,7 +850,10 @@ const ESFERestaurante = (() => {
     }
     document.addEventListener('DOMContentLoaded',()=>setupInputRules());
 
-    return {products,categories,tables,money,KEY,localDate,formatDateTime,layout,chat,menu,cart,reservas,payment,orders,kitchen,ready,reports,dashboard,adminProducts,notifications,ui:{mostrarToast:toast},invoices:{show:showInvoice,get:getInvoice,create:createInvoice}};
+    return {products,catalogProducts,categories,allCategories,tables,money,KEY,localDate,formatDateTime,layout,welcome,chat,menu,cart,reservas,payment,orders,kitchen,ready,reports,dashboard,adminProducts,notifications,addNotification,ui:{mostrarToast:toast},invoices:{show:showInvoice,get:getInvoice,create:createInvoice}};
 
 })();
-document.addEventListener('DOMContentLoaded',()=>ESFERestaurante.layout.init());
+// Exponer el centro de la aplicación al ámbito global para que los módulos cargados después
+// (pedidos locales, pagos, carrito, chatbot, etc.) puedan integrarse correctamente.
+window.ESFERestaurante = ESFERestaurante;
+document.addEventListener('DOMContentLoaded',()=>{ ESFERestaurante.layout.init(); ESFERestaurante.welcome.init(); });

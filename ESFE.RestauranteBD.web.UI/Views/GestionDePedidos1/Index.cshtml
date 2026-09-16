@@ -12,7 +12,11 @@
         </div>
         <div class="page-head-actions">
             <button class="secondary-btn" onclick="ESFERestaurante.orders.render()"><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M20 12a8 8 0 1 1-2.34-5.66" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M20 5v5h-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Actualizar</button>
-            <button id="openLocalOrderButton" class="primary-btn" type="button" onclick="ESFERestaurante.localOrders.open()"><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span>Pedido presencial</button>
+            <a class="secondary-btn" href="/ProcesarPago1/Index">Abrir pagos</a>
+            @if (ViewBag.CanCreateLocal == true)
+            {
+                <button id="openLocalOrderButton" class="primary-btn local-order-launch" type="button" onclick="if(window.ESFERestaurante?.localOrders?.open){window.ESFERestaurante.localOrders.open();}else{setTimeout(()=>window.ESFERestaurante?.localOrders?.open?.(),100);}"><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span>Pedido presencial</button>
+            }
         </div>
     </div>
 
@@ -58,66 +62,75 @@
 </section>
 
 <div id="localOrderModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="localOrderTitle">
-    <div class="modal-card local-order-modal">
+    <div class="modal-card local-order-modal local-order-modal-pro">
         <div class="panel-head">
-            <div>
-                <span class="eyebrow">Atención en salón</span>
-                <h3 id="localOrderTitle">Nuevo pedido presencial</h3>
-                <p>Registra una orden para un cliente que llegó al restaurante. La orden seguirá el mismo flujo de cocina.</p>
-            </div>
-            <button type="button" class="icon-btn" onclick="ESFERestaurante.localOrders.close()" aria-label="Cerrar"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span></button>
+            <div><span class="eyebrow">Punto de atención</span><h3 id="localOrderTitle">Nuevo pedido presencial</h3><p>Busca al cliente, toma la orden, asigna mesa y mesero y decide si se cobra ahora o después.</p></div>
+            <button type="button" class="icon-btn" onclick="ESFERestaurante.localOrders.close()" aria-label="Cerrar">×</button>
         </div>
-
-        <div class="local-order-grid">
+        <script id="localCustomerData" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Customers))</script>
+        <script id="localAttendantData" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Attendants))</script>
+        <div id="localOrderFormView" class="local-order-grid local-order-grid-pro">
             <section>
+                <div class="local-order-section-label">1 · Cliente</div>
+                <div class="local-customer-mode" role="group" aria-label="Tipo de cliente">
+                    <button type="button" id="registeredCustomerMode" class="secondary-btn local-customer-mode-btn active" onclick="ESFERestaurante.localOrders.setCustomerMode('registered')">Cliente registrado</button>
+                    <button type="button" id="walkInCustomerMode" class="secondary-btn local-customer-mode-btn" onclick="ESFERestaurante.localOrders.setCustomerMode('walkin')">Cliente no registrado</button>
+                </div>
+                <div id="registeredCustomerFields">
+                    <label class="field-label">Buscar cliente<input id="localCustomerSearch" list="localCustomers" type="search" autocomplete="off" placeholder="Nombre, correo, teléfono o DUI" /><datalist id="localCustomers">@foreach(var c in (ViewBag.Customers as IEnumerable<ESFE.RestauranteBD.web.UI.Models.UserAccount> ?? Array.Empty<ESFE.RestauranteBD.web.UI.Models.UserAccount>())){<option value="@c.Email">@c.Nombre · @c.Email</option>}</datalist></label>
+                    <div id="localCustomerPreview" class="worker-client-preview"><span>Sin cliente seleccionado</span><strong>Busca y selecciona una cuenta para enviarle factura y notificaciones.</strong></div>
+                </div>
+                <div id="walkInCustomerNotice" class="local-order-policy hidden"><strong>Pedido local sin cuenta</strong><span>Registra los datos básicos del cliente manualmente. El pedido, cobro y comprobante quedan registrados en el sistema, pero no se enviarán notificaciones a una cuenta.</span></div>
                 <div class="form-grid-two">
-                    <label class="field-label">Nombre del cliente
-                        <input id="localCustomerName" type="text" data-letters-only maxlength="80" placeholder="Nombre y apellido" required />
-                    </label>
-                    <label class="field-label">Teléfono
-                        <input id="localCustomerPhone" type="text" inputmode="numeric" data-phone maxlength="9" placeholder="0000-0000" />
-                    </label>
-                    <label class="field-label">Tipo de pedido
-                        <select id="localOrderType">
-                            <option value="Consumo en restaurante">Consumo en restaurante</option>
-                            <option value="Para llevar">Para llevar</option>
-                        </select>
-                    </label>
-                    <label class="field-label">Mesa
-                        <input id="localTable" type="number" min="1" max="50" placeholder="Ej. 8" />
-                    </label>
+                    <label class="field-label">Nombre<input id="localCustomerName" type="text" data-letters-only maxlength="80" placeholder="Nombre del cliente" required /></label>
+                    <label class="field-label">Teléfono<input id="localCustomerPhone" type="text" data-phone maxlength="20" placeholder="0000-0000" /></label>
                 </div>
-
-                <div class="local-product-add">
-                    <label class="field-label">Producto
-                        <select id="localProduct"></select>
-                    </label>
-                    <label class="field-label local-qty-field">Cantidad
-                        <input id="localQuantity" type="number" min="1" max="20" value="1" />
-                    </label>
-                    <button class="secondary-btn" type="button" onclick="ESFERestaurante.localOrders.addLine()">Agregar</button>
+                <div class="local-order-section-label">2 · Servicio</div>
+                <div class="form-grid-two">
+                    <label class="field-label">Tipo<select id="localOrderType"><option value="Consumo en restaurante">Consumo en restaurante</option><option value="Para llevar">Para llevar</option><option value="Domicilio">Domicilio</option></select></label>
+                    <label class="field-label">Mesero / responsable<select id="localAttendant"></select></label>
+                    <label class="field-label">Fecha<input id="localDate" type="date" /></label>
+                    <label class="field-label">Hora<input id="localTime" type="time" /></label>
+                    <label class="field-label">Mesa<select id="localTable"></select></label>
+                    <label class="field-label">Personas<input id="localPeople" type="number" min="1" max="20" value="2" /></label>
+                    <label class="field-label local-address-field">Dirección de entrega<input id="localAddress" type="text" maxlength="250" placeholder="Solo para domicilio" /></label>
                 </div>
-            </section>
-
-            <aside class="local-order-summary">
-                <div class="panel-head compact-head">
-                    <div>
-                        <span class="eyebrow">Detalle</span>
-                        <h3>Pedido actual</h3>
+                <div class="local-order-section-label">3 · Productos</div>
+                <div class="local-menu-browser">
+                    <div class="local-menu-browser-head">
+                        <div><span class="eyebrow">Menú del restaurante</span><h4>Selecciona lo que desea pedir</h4><p>Explora las categorías y revisa las fotografías antes de agregar cada producto.</p></div>
+                        <input id="localMenuSearch" class="local-menu-search" type="search" autocomplete="off" placeholder="Buscar producto..." aria-label="Buscar producto" />
                     </div>
-                    <strong id="localOrderTotal">$0.00</strong>
+                    <div id="localMenuCategories" class="local-menu-categories" role="tablist" aria-label="Categorías del menú"></div>
+                    <div id="localMenuGrid" class="local-menu-grid" aria-live="polite"></div>
                 </div>
+                <div class="local-product-add local-product-add-pro local-product-legacy"><label class="field-label">Producto<select id="localProduct"></select></label><label class="field-label local-qty-field">Cantidad<input id="localQuantity" type="number" min="1" max="20" value="1" /></label><button class="secondary-btn" type="button" onclick="ESFERestaurante.localOrders.addLine()">Agregar</button></div>
+            </section>
+            <aside class="local-order-summary local-order-summary-pro">
+                <div class="panel-head compact-head"><div><span class="eyebrow">4 · Cobro</span><h3>Resumen</h3></div><strong id="localOrderTotal">$0.00</strong></div>
                 <div id="localOrderLines" class="local-order-lines"></div>
-                <label class="field-label">Método de pago
-                    <select id="localPayment">
-                        <option value="Efectivo">Efectivo</option>
-                        <option value="Tarjeta">Tarjeta</option>
-                        <option value="Transferencia">Transferencia</option>
-                    </select>
-                </label>
-                <button class="primary-btn large full" type="button" onclick="ESFERestaurante.localOrders.create()">Crear pedido</button>
+                <div class="local-summary-mini"><div><span>Subtotal</span><strong id="localOrderSubtotal">$0.00</strong></div><div><span>IVA @AppSettingsStore.Current.TaxPercent%</span><strong id="localOrderTax">$0.00</strong></div><div class="grand"><span>Total</span><strong id="localOrderTotalMirror">$0.00</strong></div></div>
+                <label class="field-label">Método<select id="localPayment"><option value="Efectivo">Efectivo</option><option value="Tarjeta">Tarjeta</option><option value="Transferencia">Transferencia</option></select></label>
+                <label class="field-label">Momento del pago<select id="localPaymentTiming"><option value="Pendiente">Cliente paga después</option><option value="Pagado">Cobrar y registrar ahora</option></select></label>
+                <div id="localCustomerPolicy" class="local-order-policy"><strong>Cuenta registrada</strong><span>Recibirá una notificación con el detalle. Si el pago queda pendiente, podrá entrar directamente al checkout desde allí.</span></div>
+                <button class="primary-btn large full" type="button" onclick="ESFERestaurante.localOrders.create()">Crear pedido presencial</button>
             </aside>
         </div>
+        <section id="localPaymentView" class="local-payment-view hidden" aria-live="polite">
+            <div class="local-payment-header">
+                <div>
+                    <span class="eyebrow">5 · Pago inmediato</span>
+                    <h3 id="localPaymentTitle">Completa el pago</h3>
+                    <p id="localPaymentSubtitle">El pedido ya está preparado. Confirma el método seleccionado para finalizar el cobro.</p>
+                </div>
+                <div class="local-payment-total"><span>Total</span><strong id="localPaymentTotal">$0.00</strong></div>
+            </div>
+            <div id="localPaymentFields" class="local-payment-fields"></div>
+            <div class="local-payment-actions">
+                <button type="button" class="secondary-btn" onclick="ESFERestaurante.localOrders.backToOrder()">Volver al pedido</button>
+                <button type="button" class="primary-btn" onclick="ESFERestaurante.localOrders.confirmPayment()">Confirmar y finalizar pedido</button>
+            </div>
+        </section>
     </div>
 </div>
 

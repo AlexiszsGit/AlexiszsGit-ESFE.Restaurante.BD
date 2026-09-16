@@ -1,4 +1,5 @@
 @{
+    var appSettings = AppSettingsStore.Current;
     Layout = "_Layout";
     ViewData["Title"] = "Información";
 }
@@ -7,7 +8,7 @@
     <div class="hero-panel compact">
         <div>
             <span class="eyebrow">Información del restaurante</span>
-            <h2>RestauranteBD</h2>
+            <h2>@appSettings.RestaurantName</h2>
             <p>Un espacio para disfrutar buena comida y gestionar pedidos de forma sencilla, desde el menú hasta el pago y la entrega.</p>
         </div>
     </div>
@@ -38,7 +39,7 @@
         <div>
             <span class="eyebrow">Horarios</span>
             <h3>Atención</h3>
-            <p>El restaurante atiende de <strong>6:00 a. m. a 10:00 p. m.</strong> Las reservas dentro de ese horario bloquean la mesa; una solicitud fuera de horario queda registrada para control, pero la mesa permanece disponible.</p>
+            <p>El restaurante atiende de <strong>@appSettings.OpeningTime a @appSettings.ClosingTime</strong> Las reservas dentro de ese horario bloquean la mesa; una solicitud fuera de horario queda registrada para control, pero la mesa permanece disponible.</p>
         </div>
 
         <div>

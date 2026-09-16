@@ -3,6 +3,7 @@ using ESFE.RestauranteBD.web.UI.Models;
 
 namespace ESFE.RestauranteBD.web.UI.Controllers;
 
+[RequirePermission(RoleStore.Customers)]
 public class Clientes1Controller : Controller
 {
     [HttpGet]

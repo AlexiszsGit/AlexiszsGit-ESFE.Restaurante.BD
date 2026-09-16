@@ -40,6 +40,11 @@
             document.querySelector('[data-password-rule="number"]')?.classList.toggle("valid", /\d/.test(value));
         };
 
+        document.querySelectorAll("[data-international-phone]").forEach(phoneInput => {
+            phoneInput.addEventListener("paste", () => setTimeout(() => phoneInput.dispatchEvent(new Event("input", { bubbles: true })), 0));
+            phoneInput.addEventListener("blur", () => phoneInput.dispatchEvent(new Event("input", { bubbles: true })));
+        });
+
         password?.addEventListener("input", updatePasswordRules);
         confirmation?.addEventListener("input", () => {
             confirmation.setCustomValidity(password?.value === confirmation.value ? "" : "Las contraseñas no coinciden.");

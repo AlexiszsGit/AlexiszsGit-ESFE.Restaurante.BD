@@ -1,9 +1,11 @@
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Menú";
+    var rolActual = Context.Session.GetString("RolUsuario") ?? "";
+    var puedePedidoLocal = rolActual.Equals("Barra", StringComparison.OrdinalIgnoreCase) || rolActual.Equals("Dueno", StringComparison.OrdinalIgnoreCase);
 }
 
-<div class="min-h-full bg-slate-100 text-slate-900">
+<div class="menu-v11-shell min-h-full bg-slate-100 text-slate-900">
     <div class="w-full px-5 py-7 sm:px-8 lg:px-10 xl:px-12">
 
         <div class="mb-8 flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
@@ -75,7 +77,14 @@
                         <span class="precio font-black text-amber-600">$8.50</span>
                     </div>
                     <p class="mt-3 text-sm leading-6 text-slate-500">Carne artesanal, vegetales frescos y acompañamiento.</p>
-                    <button onclick="agregarAlCarrito('PR_01', 'Hamburguesa Artesanal', 8.50)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
+                    @if (puedePedidoLocal)
+                    {
+                        <button type="button" onclick="iniciarPedidoLocal('PR_01')" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al pedido local</button>
+                    }
+                    else
+                    {
+                        <button type="button" onclick="agregarAlCarrito('PR_01', 'Hamburguesa Artesanal', 8.50)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
+                    }
                 </div>
             </article>
 
@@ -93,7 +102,14 @@
                         <span class="precio font-black text-amber-600">$9.75</span>
                     </div>
                     <p class="mt-3 text-sm leading-6 text-slate-500">Pizza preparada con ingredientes seleccionados.</p>
-                    <button onclick="agregarAlCarrito('PR_02', 'Pizza Especial', 9.75)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
+                    @if (puedePedidoLocal)
+                    {
+                        <button type="button" onclick="iniciarPedidoLocal('PR_02')" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al pedido local</button>
+                    }
+                    else
+                    {
+                        <button type="button" onclick="agregarAlCarrito('PR_02', 'Pizza Especial', 9.75)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
+                    }
                 </div>
             </article>
 
@@ -111,7 +127,14 @@
                         <span class="precio font-black text-amber-600">$7.25</span>
                     </div>
                     <p class="mt-3 text-sm leading-6 text-slate-500">Tacos acompañados de vegetales y salsa de la casa.</p>
-                    <button onclick="agregarAlCarrito('PR_03', 'Tacos Especiales', 7.25)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
+                    @if (puedePedidoLocal)
+                    {
+                        <button type="button" onclick="iniciarPedidoLocal('PR_03')" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al pedido local</button>
+                    }
+                    else
+                    {
+                        <button type="button" onclick="agregarAlCarrito('PR_03', 'Tacos Especiales', 7.25)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
+                    }
                 </div>
             </article>
 
@@ -129,7 +152,14 @@
                         <span class="precio font-black text-amber-600">$8.95</span>
                     </div>
                     <p class="mt-3 text-sm leading-6 text-slate-500">Pasta cremosa preparada al estilo de la casa.</p>
-                    <button onclick="agregarAlCarrito('PR_04', 'Pasta Alfredo', 8.95)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
+                    @if (puedePedidoLocal)
+                    {
+                        <button type="button" onclick="iniciarPedidoLocal('PR_04')" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al pedido local</button>
+                    }
+                    else
+                    {
+                        <button type="button" onclick="agregarAlCarrito('PR_04', 'Pasta Alfredo', 8.95)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
+                    }
                 </div>
             </article>
 
@@ -147,7 +177,14 @@
                         <span class="precio font-black text-amber-600">$4.50</span>
                     </div>
                     <p class="mt-3 text-sm leading-6 text-slate-500">Cheesecake cremoso acompañado de fruta fresca.</p>
-                    <button onclick="agregarAlCarrito('POST_01', 'Cheesecake', 4.50)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
+                    @if (puedePedidoLocal)
+                    {
+                        <button type="button" onclick="iniciarPedidoLocal('POST_01')" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al pedido local</button>
+                    }
+                    else
+                    {
+                        <button type="button" onclick="agregarAlCarrito('POST_01', 'Cheesecake', 4.50)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
+                    }
                 </div>
             </article>
 
@@ -165,7 +202,14 @@
                         <span class="precio font-black text-amber-600">$4.25</span>
                     </div>
                     <p class="mt-3 text-sm leading-6 text-slate-500">Pastel de chocolate con cobertura cremosa.</p>
-                    <button onclick="agregarAlCarrito('POST_02', 'Pastel de Chocolate', 4.25)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
+                    @if (puedePedidoLocal)
+                    {
+                        <button type="button" onclick="iniciarPedidoLocal('POST_02')" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al pedido local</button>
+                    }
+                    else
+                    {
+                        <button type="button" onclick="agregarAlCarrito('POST_02', 'Pastel de Chocolate', 4.25)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
+                    }
                 </div>
             </article>
 
@@ -183,7 +227,14 @@
                         <span class="precio font-black text-amber-600">$2.75</span>
                     </div>
                     <p class="mt-3 text-sm leading-6 text-slate-500">Bebida natural de fresa con limón.</p>
-                    <button onclick="agregarAlCarrito('BE_01', 'Limonada de Fresa', 2.75)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
+                    @if (puedePedidoLocal)
+                    {
+                        <button type="button" onclick="iniciarPedidoLocal('BE_01')" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al pedido local</button>
+                    }
+                    else
+                    {
+                        <button type="button" onclick="agregarAlCarrito('BE_01', 'Limonada de Fresa', 2.75)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
+                    }
                 </div>
             </article>
 
@@ -201,7 +252,14 @@
                         <span class="precio font-black text-amber-600">$2.25</span>
                     </div>
                     <p class="mt-3 text-sm leading-6 text-slate-500">Café preparado con granos seleccionados.</p>
-                    <button onclick="agregarAlCarrito('BE_02', 'Café de la Casa', 2.25)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
+                    @if (puedePedidoLocal)
+                    {
+                        <button type="button" onclick="iniciarPedidoLocal('BE_02')" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al pedido local</button>
+                    }
+                    else
+                    {
+                        <button type="button" onclick="agregarAlCarrito('BE_02', 'Café de la Casa', 2.25)" class="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800">Agregar al Carrito</button>
+                    }
                 </div>
             </article>
 
@@ -233,6 +291,15 @@
                 }
             });
             document.getElementById('contadorMostrados').innerText = contador + ' productos mostrados';
+        }
+
+        function iniciarPedidoLocal(id) {
+            const role = document.body?.dataset.role || '';
+            if (role !== 'Barra' && role !== 'Dueno') {
+                ESFERestaurante?.ui?.mostrarToast?.('Los pedidos locales solo pueden ser creados por Barra o Administrador.', 'error');
+                return;
+            }
+            window.location.href = `/GestionDePedidos1/Index?localProduct=${encodeURIComponent(id)}`;
         }
 
         function agregarAlCarrito(id, nombre, precio) {

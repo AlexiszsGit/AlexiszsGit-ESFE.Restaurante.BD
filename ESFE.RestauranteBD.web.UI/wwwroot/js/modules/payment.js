@@ -154,33 +154,15 @@
     const originalComplete = base.complete.bind(base);
     base.complete = () => {
         if (base.method === "Tarjeta") {
+            // La tarjeta es una simulación: solo se exige que los campos estén completos.
+            // No se comprueba Luhn, vencimiento ni validez bancaria.
             const name = document.getElementById("cardName")?.value.trim() || "";
             const number = digit(document.getElementById("cardNumber")?.value || "");
             const expiry = document.getElementById("cardExpiry")?.value.trim() || "";
             const cvv = digit(document.getElementById("cardCvv")?.value || "");
-            const match = /^(0[1-9]|1[0-2])\/(\d{2})$/.exec(expiry);
-            const now = new Date();
 
-            if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñÀ-ÿ' -]{3,60}$/.test(name)) {
-                ESFERestaurante.ui.mostrarToast("Escribe el nombre del titular usando únicamente letras y espacios.", "error");
-                return;
-            }
-            if (!/^\d{13,19}$/.test(number) || !luhn(number)) {
-                ESFERestaurante.ui.mostrarToast("El número de tarjeta no es válido.", "error");
-                return;
-            }
-            if (!match) {
-                ESFERestaurante.ui.mostrarToast("Usa un vencimiento con formato MM/AA.", "error");
-                return;
-            }
-            const year = 2000 + Number(match[2]);
-            const month = Number(match[1]);
-            if (year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth() + 1)) {
-                ESFERestaurante.ui.mostrarToast("La tarjeta está vencida.", "error");
-                return;
-            }
-            if (!/^\d{3,4}$/.test(cvv)) {
-                ESFERestaurante.ui.mostrarToast("El CVV debe tener 3 o 4 dígitos.", "error");
+            if (!name || !number || !expiry || !cvv) {
+                ESFERestaurante.ui.mostrarToast("Completa los datos de la tarjeta para continuar con la simulación.", "error");
                 return;
             }
         }

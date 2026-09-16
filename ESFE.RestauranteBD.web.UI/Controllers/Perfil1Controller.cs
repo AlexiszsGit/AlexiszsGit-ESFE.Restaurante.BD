@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using ESFE.RestauranteBD.web.UI.Models;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Http;
 
 namespace ESFE.RestauranteBD.web.UI.Controllers;
 
+[RequirePermission(RoleStore.Profile)]
 public class Perfil1Controller : Controller
 {
     [HttpGet]
@@ -16,6 +18,86 @@ public class Perfil1Controller : Controller
         }
 
         return View(user);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [RequestSizeLimit(3 * 1024 * 1024)]
+    public async Task<IActionResult> ActualizarFoto(IFormFile? foto)
+    {
+        var email = HttpContext.Session.GetString("UsuarioLogueado");
+        if (string.IsNullOrWhiteSpace(email) || !UserStore.TryGet(email, out var user) || user is null)
+            return RedirectToAction("Index", "IniciarSesion1");
+
+        if (foto is null || foto.Length == 0)
+        {
+            TempData["ProfileError"] = "Selecciona una imagen.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        if (foto.Length > 2 * 1024 * 1024)
+        {
+            TempData["ProfileError"] = "La foto no puede superar 2 MB.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var allowed = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["image/jpeg"] = "jpeg",
+            ["image/png"] = "png",
+            ["image/webp"] = "webp"
+        };
+
+        if (!allowed.ContainsKey(foto.ContentType ?? string.Empty))
+        {
+            TempData["ProfileError"] = "Solo se permiten imágenes JPG, PNG o WebP.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        await using var stream = new MemoryStream();
+        await foto.CopyToAsync(stream);
+        var bytes = stream.ToArray();
+
+        if (!IsValidImageSignature(bytes, foto.ContentType))
+        {
+            TempData["ProfileError"] = "El archivo seleccionado no es una imagen válida.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        user.ProfilePhotoData = $"data:{foto.ContentType};base64,{Convert.ToBase64String(bytes)}";
+        if (!UserStore.Update(user))
+        {
+            TempData["ProfileError"] = "No se pudo guardar la foto de perfil.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        TempData["ProfileSuccess"] = "Foto de perfil actualizada correctamente.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult EliminarFoto()
+    {
+        var email = HttpContext.Session.GetString("UsuarioLogueado");
+        if (string.IsNullOrWhiteSpace(email) || !UserStore.TryGet(email, out var user) || user is null)
+            return RedirectToAction("Index", "IniciarSesion1");
+
+        user.ProfilePhotoData = string.Empty;
+        UserStore.Update(user);
+        TempData["ProfileSuccess"] = "Foto de perfil eliminada.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    private static bool IsValidImageSignature(byte[] bytes, string contentType)
+    {
+        if (contentType.Equals("image/jpeg", StringComparison.OrdinalIgnoreCase))
+            return bytes.Length >= 3 && bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF;
+        if (contentType.Equals("image/png", StringComparison.OrdinalIgnoreCase))
+            return bytes.Length >= 8 && bytes.AsSpan(0, 8).SequenceEqual(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 });
+        if (contentType.Equals("image/webp", StringComparison.OrdinalIgnoreCase))
+            return bytes.Length >= 12 && bytes.AsSpan(0, 4).SequenceEqual("RIFF"u8) && bytes.AsSpan(8, 4).SequenceEqual("WEBP"u8);
+        return false;
     }
 
     [HttpPost]

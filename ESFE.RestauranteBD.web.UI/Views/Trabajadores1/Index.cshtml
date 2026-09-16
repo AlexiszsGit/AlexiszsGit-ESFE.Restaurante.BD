@@ -1,182 +1,127 @@
 @model IReadOnlyCollection<ESFE.RestauranteBD.web.UI.Models.UserAccount>
+@using ESFE.RestauranteBD.web.UI.Models
+@using System.Text.Json
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Trabajadores";
-    var clients = ViewBag.Clients as IReadOnlyCollection<ESFE.RestauranteBD.web.UI.Models.UserAccount> ?? Array.Empty<ESFE.RestauranteBD.web.UI.Models.UserAccount>();
-    string roleName(string role) => role == "Dueno" ? "Administrador" : role;
+    var clients = ViewBag.Clients as IReadOnlyCollection<UserAccount> ?? Array.Empty<UserAccount>();
+    var roles = ViewBag.Roles as IReadOnlyCollection<RoleDefinition> ?? Array.Empty<RoleDefinition>();
+    var labels = ViewBag.PermissionLabels as IReadOnlyDictionary<string,string> ?? RoleStore.PermissionLabels;
+    string RoleLabel(string role) => RoleStore.DisplayName(role);
+    var permissionGroups = new[]
+    {
+        new { Title = "Operación", Items = new[] { RoleStore.Dashboard, RoleStore.Menu, RoleStore.Orders, RoleStore.Kitchen, RoleStore.Delivery, RoleStore.LocalOrders } },
+        new { Title = "Clientes y sala", Items = new[] { RoleStore.Reservations, RoleStore.Customers, RoleStore.Ratings } },
+        new { Title = "Control", Items = new[] { RoleStore.Payments, RoleStore.Reports, RoleStore.Workers, RoleStore.Notifications, RoleStore.Information } }
+    };
 }
-
 <section class="page-shell">
-    <div class="page-head">
-        <div>
-            <span class="eyebrow">Administración de personal</span>
-            <h2>Trabajadores y roles</h2>
-            <p>Solo aparecen cuentas que ya fueron convertidas en trabajadores. Las cuentas de clientes se gestionan en su apartado independiente.</p>
-        </div>
-        <span class="result-count">@Model.Count trabajadores</span>
-    </div>
-
-    @if (ViewBag.WorkerError != null)
-    {
-        <div class="alert-error">@ViewBag.WorkerError</div>
-    }
-
-    @if (ViewBag.WorkerSuccess != null)
-    {
-        <div class="alert-success">@ViewBag.WorkerSuccess</div>
-    }
-
+    <div class="page-head"><div><span class="eyebrow">Administración de personal</span><h2>Trabajadores, roles y permisos</h2><p>Los roles se crean una sola vez y quedan disponibles automáticamente para asignarlos a nuevos empleados.</p></div><span class="result-count">@Model.Count trabajadores · @roles.Count roles</span></div>
+    @if (ViewBag.WorkerError != null) { <div class="alert-error">@ViewBag.WorkerError</div> }
+    @if (ViewBag.WorkerSuccess != null) { <div class="alert-success">@ViewBag.WorkerSuccess</div> }
     <div class="worker-admin-grid">
         <section class="panel">
-            <div class="panel-head">
-                <div>
-                    <span class="eyebrow">Personal actual</span>
-                    <h3>Todos los trabajadores</h3>
-                </div>
-                <span class="result-count">@Model.Count activos / inactivos</span>
-            </div>
-
-            <div class="worker-search-toolbar">
-                <div class="search-box">
-                    <span>⌕</span>
-                    <input id="workerSearch" type="search" placeholder="Buscar por nombre, correo, DUI o teléfono..." autocomplete="off" />
-                </div>
-            </div>
-
+            <div class="panel-head"><div><span class="eyebrow">Personal actual</span><h3>Todos los trabajadores</h3></div><span class="result-count">@Model.Count registrados</span></div>
+            <div class="worker-search-toolbar"><div class="search-box"><span>⌕</span><input id="workerSearch" type="search" placeholder="Buscar por nombre, correo, DUI o teléfono..." autocomplete="off" /></div></div>
             <div class="worker-list" id="workerList">
                 @foreach (var worker in Model)
                 {
-                    <article class="worker-card" data-search="@($"{worker.Nombre} {worker.Email} {worker.Dui} {worker.Telefono}")">
+                    <article class="worker-card" data-search="@($"{worker.Nombre} {worker.Email} {worker.Dui} {worker.Telefono} {RoleLabel(worker.Rol)}")">
                         <div class="avatar">@worker.Nombre.FirstOrDefault().ToString().ToUpperInvariant()</div>
-                        <div class="worker-main">
-                            <div class="worker-name-line">
-                                <strong>@worker.Nombre</strong>
-                                <span class="status-pill @(worker.Activo ? "success" : "warning")">@(worker.Activo ? "Activo" : "Inactivo")</span>
-                            </div>
-                            <small>@worker.Email</small>
-                            <small>Teléfono: @worker.Telefono · DUI: @worker.Dui</small>
-                            <small>@worker.Direccion</small>
-                        </div>
-                        <div class="worker-role">
-                            <span class="role-badge role-@worker.Rol.ToLowerInvariant()">@roleName(worker.Rol)</span>
-                        </div>
-
+                        <div class="worker-main"><div class="worker-name-line"><strong>@worker.Nombre</strong><span class="status-pill @(worker.Activo ? "success" : "warning")">@(worker.Activo ? "Activo" : "Inactivo")</span></div><small>@worker.Email</small><small>Teléfono: @worker.Telefono · DUI: @worker.Dui</small><small>@RoleLabel(worker.Rol)</small></div>
+                        <div class="worker-role"><span class="role-badge role-@worker.Rol.ToLowerInvariant()">@RoleLabel(worker.Rol)</span></div>
                         @if (!worker.Rol.Equals("Dueno", StringComparison.OrdinalIgnoreCase))
                         {
                             <div class="worker-actions">
                                 <form asp-action="CambiarRol" method="post" class="inline-form">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="email" value="@worker.Email" />
-                                    <label class="inline-label">
-                                        Rol
+                                    <label class="inline-label">Rol
                                         <select name="rol" aria-label="Nuevo rol de @worker.Nombre">
-                                            @if (worker.Rol == "Cocina")
+                                            @foreach (var r in roles.Where(r => r.Name != "Dueno"))
                                             {
-                                                <option value="Cocina" selected="selected">Cocina</option>
-                                            }
-                                            else
-                                            {
-                                                <option value="Cocina">Cocina</option>
-                                            }
-                                            @if (worker.Rol == "Barra")
-                                            {
-                                                <option value="Barra" selected="selected">Barra</option>
-                                            }
-                                            else
-                                            {
-                                                <option value="Barra">Barra</option>
-                                            }
-                                            @if (worker.Rol == "Repartidor")
-                                            {
-                                                <option value="Repartidor" selected="selected">Repartidor</option>
-                                            }
-                                            else
-                                            {
-                                                <option value="Repartidor">Repartidor</option>
+                                                if (r.Name.Equals(worker.Rol, StringComparison.OrdinalIgnoreCase))
+                                                {
+                                                    <option value="@r.Name" selected>@r.DisplayName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@r.Name">@r.DisplayName</option>
+                                                }
                                             }
                                         </select>
                                     </label>
                                     <button class="secondary-btn small" type="submit">Actualizar rol</button>
                                 </form>
-                                <form asp-action="CambiarEstado" method="post">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="email" value="@worker.Email" />
-                                    <button class="@(worker.Activo ? "danger-btn" : "secondary-btn") small" type="submit">
-                                        @(worker.Activo ? "Desactivar" : "Activar")
-                                    </button>
-                                </form>
-                                <form asp-action="CambiarACliente" method="post" onsubmit="return confirm('¿Convertir esta cuenta nuevamente en Cliente?');">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="email" value="@worker.Email" />
-                                    <button class="secondary-btn small" type="submit">Volver a Cliente</button>
-                                </form>
+                                <form asp-action="CambiarEstado" method="post">@Html.AntiForgeryToken()<input type="hidden" name="email" value="@worker.Email" /><button class="@(worker.Activo ? "danger-btn" : "secondary-btn") small" type="submit">@(worker.Activo ? "Desactivar" : "Activar")</button></form>
+                                <form asp-action="CambiarACliente" method="post" onsubmit="return confirm('¿Convertir esta cuenta nuevamente en Cliente?');">@Html.AntiForgeryToken()<input type="hidden" name="email" value="@worker.Email" /><button class="secondary-btn small" type="submit">Volver a Cliente</button></form>
                             </div>
                         }
                     </article>
                 }
-
-                @if (Model.Count == 0)
-                {
-                    <div class="empty-state compact">
-                        <span>◌</span>
-                        <strong>Aún no hay trabajadores</strong>
-                        <p>Busca primero una cuenta de cliente y asígnale un rol.</p>
-                    </div>
-                }
+                @if (Model.Count == 0) { <div class="empty-state compact"><strong>Aún no hay trabajadores</strong><p>Convierte una cuenta Cliente en empleado desde el panel lateral.</p></div> }
             </div>
         </section>
-
         <aside class="panel worker-promotion-panel">
-            <span class="eyebrow">Alta de trabajador</span>
-            <h3>Convertir cliente en trabajador</h3>
-            <p class="form-help">El trabajador debe crear primero una cuenta normal. Aquí buscas su correo y solamente después le asignas el área y una contraseña de trabajador.</p>
-
-            <form asp-action="AgregarDesdeCliente" method="post" class="form-stack" id="workerPromotionForm">
-                @Html.AntiForgeryToken()
-
-                <label class="field-label">
-                    Buscar cliente por correo
-                    <input id="workerEmailSearch" name="email" type="email" list="workerClientList" maxlength="120" autocomplete="email" placeholder="cliente@correo.com" required />
-                </label>
-
-                <datalist id="workerClientList">
-                    @foreach (var client in clients)
-                    {
-                        <option value="@client.Email">@client.Nombre · @client.Email</option>
-                    }
-                </datalist>
-
-                <div id="workerClientPreview" class="worker-client-preview">
-                    <span>Cuenta pendiente de selección</span>
-                    <strong>Escribe un correo registrado como Cliente.</strong>
-                </div>
-
-                <label class="field-label">
-                    Nuevo rol
-                    <select name="rol" required>
-                        <option value="Cocina">Cocina</option>
-                        <option value="Barra">Barra</option>
-                        <option value="Repartidor">Repartidor</option>
-                    </select>
-                </label>
-
-                <label class="field-label">
-                    Nueva contraseña de trabajador
-                    <input name="password" type="password" minlength="8" autocomplete="new-password" placeholder="Mínimo 8 caracteres" required />
-                </label>
-
-                <div class="role-permission-summary">
-                    <div><strong>Cocina</strong><span>Solo operación de cocina.</span></div>
-                    <div><strong>Barra</strong><span>Pedidos, reservas, entregas y clientes.</span></div>
-                    <div><strong>Repartidor</strong><span>Solo entregas.</span></div>
-                </div>
-
+            <span class="eyebrow">Alta de trabajador</span><h3>Convertir cliente en trabajador</h3><p class="form-help">Busca una cuenta registrada, asigna el rol recién creado o uno existente y define su acceso.</p>
+            <form asp-action="AgregarDesdeCliente" method="post" class="form-stack">@Html.AntiForgeryToken()
+                <label class="field-label">Cliente por nombre o correo<input id="workerEmailSearch" name="email" type="email" list="workerClientList" maxlength="120" autocomplete="email" placeholder="cliente@correo.com" required /></label>
+                <datalist id="workerClientList">@foreach (var client in clients){<option value="@client.Email">@client.Nombre · @client.Email</option>}</datalist>
+                <div id="workerClientPreview" class="worker-client-preview"><span>Cuenta pendiente de selección</span><strong>Escribe el correo exacto de un cliente registrado.</strong></div>
+                <label class="field-label">Nuevo rol<select name="rol" required>@foreach(var r in roles.Where(r=>r.Name!="Dueno")){<option value="@r.Name">@r.DisplayName</option>}</select></label>
+                <label class="field-label">Nueva contraseña<input name="password" type="password" minlength="8" autocomplete="new-password" placeholder="Mínimo 8 caracteres" required /></label>
                 <button class="primary-btn large full" type="submit">Agregar a trabajadores <span>+</span></button>
             </form>
         </aside>
     </div>
+    <div class="role-admin-grid">
+        <section class="panel">
+            <div class="panel-head"><div><span class="eyebrow">Catálogo de roles</span><h3>Roles disponibles</h3><p>Cada rol controla qué pantallas aparecen y qué áreas puede utilizar su cuenta.</p></div><span class="result-count">@roles.Count roles</span></div>
+            <div class="role-catalog-grid">
+                @foreach(var r in roles){
+                    <article class="role-definition-card role-definition-card-pro">
+                        <div class="role-card-top"><span class="role-card-icon">◈</span><div><strong>@r.DisplayName</strong><small>Clave: @r.Name</small></div>@if(new[]{"Dueno","Cocina","Barra","Delivery","Mesero"}.Contains(r.Name)){<span class="status-pill success">Base</span>}</div>
+                        <div class="role-permission-wrap">@foreach(var p in r.Permissions){<span class="permission-chip">@(labels.TryGetValue(p,out var label)?label:p)</span>}</div>
+                        <details class="role-editor">
+                            <summary><span>Editar pantallas y permisos</span><b>⌄</b></summary>
+                            <form asp-action="EditarPermisos" method="post" class="role-editor-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="rol" value="@r.Name" />
+                                @foreach(var group in permissionGroups)
+                                {
+                                    <div class="permission-group role-editor-group">
+                                        <div class="permission-group-title">@group.Title</div>
+                                        <div class="permission-check-grid">
+                                            @foreach(var key in group.Items)
+                                            {
+                                                var checkedPermission = r.Permissions.Contains(key, StringComparer.OrdinalIgnoreCase);
+                                                <label class="permission-check"><input type="checkbox" name="permisos" value="@key" @(checkedPermission ? "checked" : null) /><span><strong>@(labels.TryGetValue(key,out var label)?label:key)</strong><small>@key</small></span></label>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                                <div class="role-editor-actions"><button class="primary-btn small" type="submit">Guardar acceso</button><button type="button" class="secondary-btn small" onclick="this.closest('details').open=false">Cancelar</button></div>
+                            </form>
+                        </details>
+                        @if(!new[]{"Dueno","Cocina","Barra","Delivery","Mesero"}.Contains(r.Name)){<form asp-action="EliminarRol" method="post" onsubmit="return confirm('¿Eliminar este rol? Las cuentas que lo usen volverán a Cliente.');">@Html.AntiForgeryToken()<input type="hidden" name="rol" value="@r.Name"/><button class="danger-btn small" type="submit">Eliminar rol</button></form>}
+                    </article>
+                }
+            </div>
+        </section>
+        <aside class="panel role-create-panel">
+            <div class="role-create-hero"><span class="eyebrow">Constructor de acceso</span><h3>Crear nuevo rol</h3><p>Ejemplo: Limpieza, Caja, Supervisión. Marca exactamente las pantallas que quieres mostrarle al iniciar sesión.</p></div>
+            <form asp-action="CrearRol" method="post" class="form-stack role-create-form">@Html.AntiForgeryToken()
+                <label class="field-label">Nombre del nuevo rol<input name="nombre" maxlength="40" pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñÀ-ÿ0-9 _-]{3,40}" placeholder="Ej. Limpieza" required /></label>
+                <div class="permission-selector-head"><div><strong>Pantallas y permisos</strong><span>Inicio y Perfil son la base. El resto lo eliges tú.</span></div><button type="button" class="secondary-btn small" onclick="document.querySelectorAll('#newRolePermissions input[type=checkbox]').forEach(x=>x.checked=false)">Limpiar</button></div>
+                <div id="newRolePermissions" class="permission-groups">
+                    @foreach(var group in permissionGroups){
+                        <div class="permission-group"><div class="permission-group-title">@group.Title</div><div class="permission-check-grid">@foreach(var key in group.Items){<label class="permission-check"><input type="checkbox" name="permisos" value="@key" /><span><strong>@(labels.TryGetValue(key,out var label)?label:key)</strong><small>Pantalla: @key</small></span></label>}</div></div>
+                    }
+                    <div class="role-base-note"><span>✓</span><div><strong>Perfil incluido automáticamente</strong><small>Toda cuenta conserva acceso a su perfil y sesión. No necesitas marcarlo.</small></div></div>
+                </div>
+                <button class="primary-btn large full" type="submit">Crear rol personalizado <span>+</span></button>
+            </form>
+        </aside>
+    </div>
 </section>
-
-@section Scripts {
-    <script src="~/js/modules/workers.js" asp-append-version="true"></script>
-}
+@section Scripts { <script src="~/js/modules/workers.js" asp-append-version="true"></script> }

@@ -1,16 +1,26 @@
 (() => {
+    const nowSafe = () => new Date();
     const syncWalkInFields = () => {
         const table = document.getElementById("walkInTable");
         if (!table) return;
-        table.innerHTML = ESFERestaurante.tables.map(item => `<option value="${item.id}">Mesa ${String(item.id).padStart(2, "0")} · ${item.seats} personas · ${item.zone}</option>`).join("");
         const now = new Date();
         const date = document.getElementById("walkInDate");
         const time = document.getElementById("walkInTime");
-        if (date) {
+        if (date && !date.value) {
             date.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
             date.min = date.value;
-        }
-        if (time) time.value = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+        } else if (date) { date.min = date.min || date.value; }
+        if (time && !time.value) time.value = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+        const reservations = JSON.parse(localStorage.getItem(ESFERestaurante.KEY.reservations) || "[]");
+        const selectedDate = date?.value || ESFERestaurante.localDate(nowSafe());
+        const selectedTime = time?.value || "19:00";
+        const previous = table.value;
+        table.innerHTML = ESFERestaurante.tables.map(item => { const busy=reservations.some(r=>r.tableId===item.id&&r.date===selectedDate&&r.time===selectedTime&&r.status==="Confirmada"); return `<option value="${item.id}" ${busy?"disabled":""}>Mesa ${String(item.id).padStart(2,"0")} · ${item.seats} personas · ${item.zone}${busy?" · OCUPADA":""}</option>`; }).join("");
+        if (previous && table.querySelector(`option[value="${previous}"]:not([disabled])`)) table.value=previous;
+        date?.removeEventListener("change", syncWalkInFields);
+        time?.removeEventListener("change", syncWalkInFields);
+        date?.addEventListener("change", syncWalkInFields);
+        time?.addEventListener("change", syncWalkInFields);
     };
 
     const originalInit = ESFERestaurante.reservas.init.bind(ESFERestaurante.reservas);
@@ -79,5 +89,17 @@
 
     document.addEventListener("DOMContentLoaded", () => {
         if (document.getElementById("walkInTable")) syncWalkInFields();
+        const tablesMap = document.getElementById("tablesMap");
+        if (tablesMap) {
+            tablesMap.addEventListener("click", event => {
+                const button = event.target.closest(".restaurant-table");
+                if (!button || button.disabled) return;
+                const id = Number(button.dataset.tableId);
+                if (Number.isFinite(id)) {
+                    event.preventDefault();
+                    ESFERestaurante.reservas.select(id);
+                }
+            });
+        }
     });
 })();

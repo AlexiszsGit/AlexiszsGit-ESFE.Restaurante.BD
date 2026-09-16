@@ -1,6 +1,24 @@
+using ESFE.RestauranteBD.web.UI.Models;
 using Microsoft.AspNetCore.Mvc;
+
 namespace ESFE.RestauranteBD.web.UI.Controllers;
+
+[RequireAnyPermission(RoleStore.Orders, RoleStore.LocalOrders)]
 public class GestionDePedidos1Controller : Controller
 {
-    public IActionResult Index() => View();
+    [HttpGet]
+    public IActionResult Index()
+    {
+        var role = HttpContext.Session.GetString("RolUsuario") ?? "";
+        var canCreateLocal = role.Equals("Dueno", StringComparison.OrdinalIgnoreCase) || role.Equals("Barra", StringComparison.OrdinalIgnoreCase);
+        ViewBag.Customers = canCreateLocal
+            ? UserStore.All().Where(x => x.Rol.Equals("Cliente", StringComparison.OrdinalIgnoreCase) && x.Activo).OrderBy(x => x.Nombre).ToArray()
+            : Array.Empty<UserAccount>();
+        ViewBag.Attendants = canCreateLocal
+            ? UserStore.All().Where(x => x.Activo && !x.Rol.Equals("Cliente", StringComparison.OrdinalIgnoreCase) && !x.Rol.Equals("Dueno", StringComparison.OrdinalIgnoreCase)).OrderBy(x => x.Nombre).ToArray()
+            : Array.Empty<UserAccount>();
+        ViewBag.CanCreateLocal = canCreateLocal;
+        ViewBag.CanViewAllOrders = role.Equals("Dueno", StringComparison.OrdinalIgnoreCase) || role.Equals("Barra", StringComparison.OrdinalIgnoreCase);
+        return View();
+    }
 }

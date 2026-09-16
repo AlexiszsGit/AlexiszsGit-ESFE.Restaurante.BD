@@ -9,11 +9,35 @@
         { id: "mx", name: "México", code: "52", lengths: [10], group: [3, 3, 4] },
         { id: "us", name: "Estados Unidos", code: "1", lengths: [10], group: [3, 3, 4] },
         { id: "ca", name: "Canadá", code: "1", lengths: [10], group: [3, 3, 4] },
-        { id: "es", name: "España", code: "34", lengths: [9], group: [3, 3, 3] }
+        { id: "do", name: "República Dominicana", code: "1", lengths: [10], group: [3, 3, 4] },
+        { id: "pr", name: "Puerto Rico", code: "1", lengths: [10], group: [3, 3, 4] },
+        { id: "es", name: "España", code: "34", lengths: [9], group: [3, 3, 3] },
+        { id: "ar", name: "Argentina", code: "54", lengths: [10], group: [3, 3, 2, 2] },
+        { id: "bo", name: "Bolivia", code: "591", lengths: [8], group: [4, 4] },
+        { id: "br", name: "Brasil", code: "55", lengths: [10, 11], group: [2, 5, 4] },
+        { id: "cl", name: "Chile", code: "56", lengths: [9], group: [3, 3, 3] },
+        { id: "co", name: "Colombia", code: "57", lengths: [10], group: [3, 3, 4] },
+        { id: "ec", name: "Ecuador", code: "593", lengths: [9], group: [3, 3, 3] },
+        { id: "pe", name: "Perú", code: "51", lengths: [9], group: [3, 3, 3] },
+        { id: "py", name: "Paraguay", code: "595", lengths: [9], group: [3, 3, 3] },
+        { id: "uy", name: "Uruguay", code: "598", lengths: [8], group: [3, 4, 1] },
+        { id: "ve", name: "Venezuela", code: "58", lengths: [10], group: [3, 3, 4] },
+        { id: "cu", name: "Cuba", code: "53", lengths: [8], group: [4, 4] },
+        { id: "gb", name: "Reino Unido", code: "44", lengths: [10, 11], group: [4, 3, 4] },
+        { id: "fr", name: "Francia", code: "33", lengths: [9], group: [1, 2, 2, 2, 2] },
+        { id: "de", name: "Alemania", code: "49", lengths: [10, 11], group: [3, 3, 4] },
+        { id: "it", name: "Italia", code: "39", lengths: [9, 10], group: [3, 3, 4] },
+        { id: "jp", name: "Japón", code: "81", lengths: [10], group: [2, 4, 4] },
+        { id: "cn", name: "China", code: "86", lengths: [11], group: [3, 4, 4] },
+        { id: "in", name: "India", code: "91", lengths: [10], group: [5, 5] },
+        { id: "au", name: "Australia", code: "61", lengths: [9], group: [1, 4, 4] },
+        { id: "nz", name: "Nueva Zelanda", code: "64", lengths: [9, 10], group: [2, 3, 4] },
+        { id: "za", name: "Sudáfrica", code: "27", lengths: [9], group: [3, 3, 3] },
+        { id: "kr", name: "Corea del Sur", code: "82", lengths: [9, 10], group: [2, 3, 4] }
     ];
 
     const normalizeDigits = value => String(value || "").replace(/\D/g, "");
-    const getCountry = id => countries.find(country => country.id === id) || countries[0];
+    const getCountry = id => countries.find(country => country.id === id || country.code === id) || countries[0];
 
     const formatGrouped = (digits, group) => {
         const chunks = [];
@@ -39,7 +63,7 @@
             .slice()
             .sort((a, b) => b.code.length - a.code.length)
             .find(country => initialDigits.startsWith(country.code));
-        select.value = detectedCountry?.id || field.dataset.defaultCountry || "sv";
+        select.value = detectedCountry?.id || (getCountry(field.dataset.defaultCountry)?.id || "sv");
 
         const initialCountry = getCountry(select.value);
         const initial = initialDigits.startsWith(initialCountry.code)
@@ -53,7 +77,7 @@
             input.value = formatGrouped(digits, country.group);
             input.dataset.countryCode = country.code;
             input.dataset.rawDigits = digits;
-            input.setCustomValidity(country.lengths.includes(digits.length) ? "" : `Introduce ${country.lengths.join(" o ")} dígitos.`);
+            input.setCustomValidity(country.lengths.includes(digits.length) ? "" : `Introduce ${country.lengths.join(" o ")} dígitos para ${country.name}.`);
         };
 
         input.addEventListener("input", update);
@@ -69,14 +93,7 @@
                 input.focus();
                 return;
             }
-            let hidden = form.querySelector('input[name="codigoPais"]');
-            if (!hidden) {
-                hidden = document.createElement("input");
-                hidden.type = "hidden";
-                hidden.name = "codigoPais";
-                form.appendChild(hidden);
-            }
-            hidden.value = country.code;
+            select.value = country.id;
         });
     };
 

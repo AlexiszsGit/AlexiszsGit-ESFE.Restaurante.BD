@@ -11,14 +11,16 @@
         <div class="page-head">
             <div>
                 <span class="eyebrow">Administración del catálogo</span>
-                <h2>Gestiona tu menú sin complicarte</h2>
-                <p>Agrega productos y nuevas categorías desde un panel claro. Las imágenes quedan preparadas para que tú coloques las fotografías reales.</p>
+                <h2>Centro de catálogo</h2>
+                <p>Diseña la carta, crea nuevas secciones y deja cada producto listo para vender. Todo se guarda localmente por ahora, preparado para conectarse a la base de datos después.</p>
             </div>
             <div class="page-head-actions">
                 <button class="secondary-btn" onclick="document.getElementById('categoryAdminModal')?.classList.remove('hidden')"><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span>Nueva categoría</button>
-                <button class="primary-btn" onclick="ESFERestaurante.adminProducts.open()"><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span>Nuevo producto</button>
+                <button class="primary-btn menu-primary-create" onclick="ESFERestaurante.adminProducts.open()"><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span>Nuevo producto</button>
             </div>
         </div>
+
+        <div class="catalog-command-center"><div class="catalog-command-copy"><span class="eyebrow">Catálogo profesional</span><strong>Todo lo que vendes, en un solo lugar.</strong><small>Nombre · categoría · precio · foto · descripción · ingredientes</small></div><div class="catalog-command-actions"><button class="secondary-btn" onclick="document.getElementById('categoryAdminModal')?.classList.remove('hidden')">+ Nueva sección</button><button class="primary-btn menu-primary-create" onclick="ESFERestaurante.adminProducts.open()">+ Crear producto</button></div></div>
 
         <div class="stats-grid compact">
             <div class="stat-card">
@@ -72,8 +74,8 @@
         <div class="category-modal admin-modal">
             <button class="modal-close" onclick="ESFERestaurante.adminProducts.close()">×</button>
             <div class="modal-heading">
-                <span class="eyebrow">Nuevo producto</span>
-                <h2 id="productModalTitle">Datos del producto</h2>
+                <span class="eyebrow">Editor de producto</span>
+                <h2 id="productModalTitle">Crear producto</h2>
                 <p class="modal-help">Completa cada campo y deja preparada la ruta de imagen. Puedes añadir la fotografía real después.</p>
             </div>
             <div class="admin-form-grid">

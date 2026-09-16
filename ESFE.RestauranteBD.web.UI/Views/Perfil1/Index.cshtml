@@ -28,11 +28,45 @@
     <div class="profile-layout">
         <section class="panel profile-summary-panel">
             <div class="profile-hero profile-hero-large">
-                <div class="profile-avatar">@Model.Nombre.FirstOrDefault().ToString().ToUpperInvariant()</div>
+                <div class="profile-avatar profile-avatar-photo">
+                    @if (!string.IsNullOrWhiteSpace(Model.ProfilePhotoData))
+                    {
+                        <img src="@Model.ProfilePhotoData" alt="Foto de perfil de @Model.Nombre" />
+                    }
+                    else
+                    {
+                        <span>@Model.Nombre.FirstOrDefault().ToString().ToUpperInvariant()</span>
+                    }
+                </div>
                 <div>
                     <span class="eyebrow">Cuenta activa</span>
                     <h3>@Model.Nombre</h3>
                     <p>@Model.Email</p>
+                </div>
+            </div>
+
+            <div class="profile-photo-manager">
+                <div>
+                    <span class="eyebrow">Imagen de perfil</span>
+                    <strong>Personaliza tu cuenta</strong>
+                    <p>JPG, PNG o WebP · máximo 2 MB. La imagen se guarda dentro de tu perfil.</p>
+                </div>
+                <div class="profile-photo-actions">
+                    <form asp-action="ActualizarFoto" method="post" enctype="multipart/form-data" class="profile-photo-form">
+                        @Html.AntiForgeryToken()
+                        <label class="secondary-btn small profile-photo-picker">
+                            <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 17.5V6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5Z" stroke="currentColor" stroke-width="1.7"/><circle cx="8.5" cy="9" r="1.5" stroke="currentColor" stroke-width="1.5"/><path d="m5 17 4.5-4.5 3 3 2.5-2.5L19 17" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span>
+                            Cambiar foto
+                            <input name="foto" type="file" accept="image/jpeg,image/png,image/webp" hidden onchange="this.form.submit()" />
+                        </label>
+                    </form>
+                    @if (!string.IsNullOrWhiteSpace(Model.ProfilePhotoData))
+                    {
+                        <form asp-action="EliminarFoto" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="danger-btn small">Eliminar foto</button>
+                        </form>
+                    }
                 </div>
             </div>
 
