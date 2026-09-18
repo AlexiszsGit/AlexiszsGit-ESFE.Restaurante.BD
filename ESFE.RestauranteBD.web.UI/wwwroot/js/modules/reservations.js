@@ -31,7 +31,7 @@
 
     ESFERestaurante.reservas.createWalkIn = function () {
         const role = document.body.dataset.role;
-        if (!["Dueno", "Barra"].includes(role)) {
+        if (!["Dueno", "Administrador", "Barra"].includes(role)) {
             ESFERestaurante.ui.mostrarToast("Solo Barra o Administrador pueden registrar reservas presenciales.", "error");
             return;
         }

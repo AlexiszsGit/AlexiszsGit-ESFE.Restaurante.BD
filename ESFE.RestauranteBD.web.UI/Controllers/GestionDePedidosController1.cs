@@ -10,15 +10,15 @@ public class GestionDePedidos1Controller : Controller
     public IActionResult Index()
     {
         var role = HttpContext.Session.GetString("RolUsuario") ?? "";
-        var canCreateLocal = role.Equals("Dueno", StringComparison.OrdinalIgnoreCase) || role.Equals("Barra", StringComparison.OrdinalIgnoreCase);
+        var canCreateLocal = RoleStore.IsAdministrator(role) || role.Equals("Barra", StringComparison.OrdinalIgnoreCase);
         ViewBag.Customers = canCreateLocal
             ? UserStore.All().Where(x => x.Rol.Equals("Cliente", StringComparison.OrdinalIgnoreCase) && x.Activo).OrderBy(x => x.Nombre).ToArray()
             : Array.Empty<UserAccount>();
         ViewBag.Attendants = canCreateLocal
-            ? UserStore.All().Where(x => x.Activo && !x.Rol.Equals("Cliente", StringComparison.OrdinalIgnoreCase) && !x.Rol.Equals("Dueno", StringComparison.OrdinalIgnoreCase)).OrderBy(x => x.Nombre).ToArray()
+            ? UserStore.All().Where(x => x.Activo && !x.Rol.Equals("Cliente", StringComparison.OrdinalIgnoreCase) && !RoleStore.IsAdministrator(x.Rol)).OrderBy(x => x.Nombre).ToArray()
             : Array.Empty<UserAccount>();
         ViewBag.CanCreateLocal = canCreateLocal;
-        ViewBag.CanViewAllOrders = role.Equals("Dueno", StringComparison.OrdinalIgnoreCase) || role.Equals("Barra", StringComparison.OrdinalIgnoreCase);
+        ViewBag.CanViewAllOrders = RoleStore.IsAdministrator(role) || role.Equals("Barra", StringComparison.OrdinalIgnoreCase);
         return View();
     }
 }

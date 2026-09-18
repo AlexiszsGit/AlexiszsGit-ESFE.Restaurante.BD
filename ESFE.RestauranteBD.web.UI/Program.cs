@@ -1,8 +1,13 @@
 using ESFE.RestauranteBD.web.UI.Models;
+using ESFE.RestauranteBD.web.UI.Data;
+using ESFE.RestauranteBD.web.UI.Services;
 using Microsoft.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton<GeminiAssistantService>();
+RestaurantDb.Configure(builder.Configuration);
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -13,6 +18,7 @@ builder.Services.AddSession(options =>
 });
 
 var app = builder.Build();
+try { RestaurantDb.EnsureBridgeSchema(); } catch { /* La aplicación sigue funcionando localmente hasta configurar SQL Server. */ }
 
 if (!app.Environment.IsDevelopment())
 {

@@ -1,10 +1,11 @@
 @using ESFE.RestauranteBD.web.UI.Models
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery AntiForgery
 @{
     var controller = ViewContext.RouteData.Values["controller"]?.ToString();
     var mostrarApp = controller != "IniciarSesion1";
     var settings = AppSettingsStore.Current;
     var rol = Context.Session.GetString("RolUsuario") ?? "Cliente";
-    var esDueno = rol == "Dueno";
+    var esDueno = RoleStore.IsAdministrator(rol);
     var esCocina = rol == "Cocina";
     var esBarra = rol == "Barra";
     var usuario = Context.Session.GetString("UsuarioLogueado") ?? string.Empty;
@@ -25,12 +26,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="@settings.PrimaryColor" />
+    <meta name="request-verification-token" content="@AntiForgery.GetAndStoreTokens(Context).RequestToken" />
     <title>@ViewData["Title"] - RestauranteBD</title>
     <link rel="stylesheet" href="~/css/tailwind.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/premium.css" asp-append-version="true" />
 </head>
-<body class="app-body @(settings.CompactMode ? "compact-mode" : "")" style="--accent:@settings.PrimaryColor;--accent2:@settings.PrimaryDarkColor;--accent-soft:@settings.PrimarySoftColor;--bg:@settings.BackgroundColor;--white:@settings.SurfaceColor;--ink:@settings.TextColor;--muted:@settings.MutedColor;--line:@settings.LineColor;--sidebar:@settings.SidebarColor;--secondary:@settings.SecondaryColor;--success:@settings.SuccessColor;--danger:@settings.DangerColor;--warning:@settings.WarningColor;" data-role="@(autenticado ? rol : "Publico")" data-auth="@autenticado" data-user="@usuario" data-user-name="@nombreUsuario" data-phone="@telefonoUsuario" data-dui="@duiUsuario" data-address="@direccionUsuario" data-profile-photo="@fotoPerfil" data-local-orders="@((rol == "Dueno" || rol == "Barra") ? "true" : "false")" data-tax="@settings.TaxPercent" data-currency="@settings.CurrencySymbol" data-opening="@settings.OpeningTime" data-closing="@settings.ClosingTime" data-settings-animations="@(settings.EnableAnimations ? "true" : "false")" data-settings-reduce-shadows="@(settings.ReduceShadows ? "true" : "false")" data-show-images="@(settings.ShowProductImages ? "true" : "false")" data-demo-card="@(settings.DemoCardPayments ? "true" : "false")" data-notifications="@(RoleStore.CanAccess(rol, RoleStore.Notifications) ? "true" : "false")" data-role-permissions='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(RoleStore.Get(rol)?.Permissions ?? new List<string>()))' data-page-controller="@controller" data-page-action="@ViewContext.RouteData.Values["action"]">
+<body class="app-body @(settings.CompactMode ? "compact-mode" : "")" style="--accent:@settings.PrimaryColor;--accent2:@settings.PrimaryDarkColor;--accent-soft:@settings.PrimarySoftColor;--bg:@settings.BackgroundColor;--white:@settings.SurfaceColor;--ink:@settings.TextColor;--muted:@settings.MutedColor;--line:@settings.LineColor;--sidebar:@settings.SidebarColor;--secondary:@settings.SecondaryColor;--success:@settings.SuccessColor;--danger:@settings.DangerColor;--warning:@settings.WarningColor;" data-role="@(autenticado ? rol : "Publico")" data-auth="@autenticado" data-user="@usuario" data-user-name="@nombreUsuario" data-phone="@telefonoUsuario" data-dui="@duiUsuario" data-address="@direccionUsuario" data-profile-photo="@fotoPerfil" data-local-orders="@((esDueno || rol == "Barra") ? "true" : "false")" data-tax="@settings.TaxPercent" data-currency="@settings.CurrencySymbol" data-opening="@settings.OpeningTime" data-closing="@settings.ClosingTime" data-settings-animations="@(settings.EnableAnimations ? "true" : "false")" data-settings-reduce-shadows="@(settings.ReduceShadows ? "true" : "false")" data-show-images="@(settings.ShowProductImages ? "true" : "false")" data-demo-card="@(settings.DemoCardPayments ? "true" : "false")" data-notifications="@(RoleStore.CanAccess(rol, RoleStore.Notifications) ? "true" : "false")" data-role-permissions='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(RoleStore.Get(rol)?.Permissions ?? new List<string>()))' data-page-controller="@controller" data-page-action="@ViewContext.RouteData.Values["action"]">
 
     @if (mostrarApp && !autenticado)
     {
@@ -259,6 +261,7 @@
         @RenderBody()
     }
 
+    <script src="~/js/db-bridge.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/modules/local-orders.js" asp-append-version="true"></script>
     <script src="~/js/modules/validation.js" asp-append-version="true"></script>

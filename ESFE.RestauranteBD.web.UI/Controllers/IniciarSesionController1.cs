@@ -77,6 +77,11 @@ public class IniciarSesion1Controller : Controller
     {
         var messages = role switch
         {
+            "Administrador" => new[]
+            {
+                "Bienvenido al panel administrativo.",
+                "Puedes administrar el menú, pedidos, personal, pagos y reportes."
+            },
             "Dueno" => new[]
             {
                 "Bienvenido nuevamente. Es un gusto recibirte; el panel de administración está listo.",

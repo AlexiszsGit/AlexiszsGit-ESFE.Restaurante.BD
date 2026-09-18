@@ -2,7 +2,7 @@
     Layout = "_Layout";
     ViewData["Title"] = "Menú";
     var rolActual = Context.Session.GetString("RolUsuario") ?? "";
-    var puedePedidoLocal = rolActual.Equals("Barra", StringComparison.OrdinalIgnoreCase) || rolActual.Equals("Dueno", StringComparison.OrdinalIgnoreCase);
+    var puedePedidoLocal = rolActual.Equals("Barra", StringComparison.OrdinalIgnoreCase) || RoleStore.IsAdministrator(rolActual);
 }
 
 <div class="menu-v11-shell min-h-full bg-slate-100 text-slate-900">
@@ -295,7 +295,7 @@
 
         function iniciarPedidoLocal(id) {
             const role = document.body?.dataset.role || '';
-            if (role !== 'Barra' && role !== 'Dueno') {
+            if (role !== 'Barra' && role !== 'Dueno' && role !== 'Administrador') {
                 ESFERestaurante?.ui?.mostrarToast?.('Los pedidos locales solo pueden ser creados por Barra o Administrador.', 'error');
                 return;
             }

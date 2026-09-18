@@ -2,7 +2,7 @@
     Layout = "_Layout";
     ViewData["Title"] = "Inicio";
     var rol = Context.Session.GetString("RolUsuario") ?? "Cliente";
-    var esDueno = rol == "Dueno";
+    var esDueno = RoleStore.IsAdministrator(rol);
     var esCocina = rol == "Cocina";
     var esBarra = rol == "Barra";
     var loginWelcome = TempData["LoginWelcome"] as string;

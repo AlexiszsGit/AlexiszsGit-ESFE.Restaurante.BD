@@ -1,7 +1,7 @@
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Menú";
-    var esDueno = Context.Session.GetString("RolUsuario") == "Dueno";
+    var esDueno = RoleStore.IsAdministrator(Context.Session.GetString("RolUsuario"));
     var autenticado = !string.IsNullOrWhiteSpace(Context.Session.GetString("UsuarioLogueado"));
 }
 

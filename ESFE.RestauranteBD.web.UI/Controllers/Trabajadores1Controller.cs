@@ -14,7 +14,7 @@ public class Trabajadores1Controller : Controller
         ViewBag.Clients = UserStore.All().Where(x => x.Rol.Equals("Cliente", StringComparison.OrdinalIgnoreCase)).OrderBy(x => x.Nombre).ToArray();
         ViewBag.Roles = RoleStore.All();
         ViewBag.PermissionLabels = RoleStore.PermissionLabels;
-        return View(UserStore.All().Where(x => !x.Rol.Equals("Cliente", StringComparison.OrdinalIgnoreCase)).OrderBy(x => x.Rol == "Dueno" ? 0 : 1).ThenBy(x => x.Nombre).ToArray());
+        return View(UserStore.All().Where(x => !x.Rol.Equals("Cliente", StringComparison.OrdinalIgnoreCase)).OrderBy(x => RoleStore.IsAdministrator(x.Rol) ? 0 : 1).ThenBy(x => x.Nombre).ToArray());
     }
 
     [HttpPost]
@@ -89,7 +89,7 @@ public class Trabajadores1Controller : Controller
         if (!IsOwner()) return Forbid();
         rol = (rol ?? string.Empty).Trim();
         if (!RoleStore.IsKnown(rol) || rol.Equals("Cliente", StringComparison.OrdinalIgnoreCase)) return WorkerError("Ese rol no está disponible.");
-        if (UserStore.TryGet(email, out var user) && user is not null && !user.Rol.Equals("Dueno", StringComparison.OrdinalIgnoreCase))
+        if (UserStore.TryGet(email, out var user) && user is not null && !RoleStore.IsAdministrator(user.Rol))
         {
             user.Rol = rol;
             UserStore.Update(user);
@@ -106,7 +106,7 @@ public class Trabajadores1Controller : Controller
         if (!IsOwner()) return Forbid();
         email = UserStore.NormalizeEmail(email);
         if (!UserStore.TryGet(email, out var user) || user is null) return WorkerError("No se encontró el trabajador indicado.");
-        if (user.Rol.Equals("Dueno", StringComparison.OrdinalIgnoreCase)) return WorkerError("El administrador principal no puede convertirse en Cliente.");
+        if (RoleStore.IsAdministrator(user.Rol)) return WorkerError("El administrador principal no puede convertirse en Cliente.");
         user.Rol = "Cliente"; user.Activo = true; UserStore.Update(user);
         TempData["WorkerSuccess"] = $"{user.Nombre} volvió a tener el rol Cliente.";
         return RedirectToAction(nameof(Index));
@@ -117,7 +117,7 @@ public class Trabajadores1Controller : Controller
     public IActionResult CambiarEstado(string email)
     {
         if (!IsOwner()) return Forbid();
-        if (UserStore.TryGet(email, out var user) && user is not null && !user.Rol.Equals("Dueno", StringComparison.OrdinalIgnoreCase))
+        if (UserStore.TryGet(email, out var user) && user is not null && !RoleStore.IsAdministrator(user.Rol))
         {
             user.Activo = !user.Activo; UserStore.Update(user);
             TempData["WorkerSuccess"] = $"{user.Nombre} ahora está {(user.Activo ? "activo" : "inactivo")}.";
@@ -126,6 +126,6 @@ public class Trabajadores1Controller : Controller
     }
 
     private IActionResult WorkerError(string message) { TempData["WorkerError"] = message; return RedirectToAction(nameof(Index)); }
-    private bool IsOwner() => HttpContext.Session.GetString("RolUsuario") == "Dueno";
+    private bool IsOwner() => RoleStore.IsAdministrator(HttpContext.Session.GetString("RolUsuario"));
     private static bool IsValidPassword(string value) => value.Length >= 8 && value.Any(char.IsUpper) && value.Any(char.IsLower) && value.Any(char.IsDigit);
 }

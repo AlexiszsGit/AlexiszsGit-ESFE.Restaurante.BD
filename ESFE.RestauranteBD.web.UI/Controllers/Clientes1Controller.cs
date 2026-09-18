@@ -32,6 +32,6 @@ public class Clientes1Controller : Controller
     private bool CanViewCustomers()
     {
         var role = HttpContext.Session.GetString("RolUsuario");
-        return role is "Dueno" or "Barra";
+        return RoleStore.IsAdministrator(role) || role == "Barra";
     }
 }

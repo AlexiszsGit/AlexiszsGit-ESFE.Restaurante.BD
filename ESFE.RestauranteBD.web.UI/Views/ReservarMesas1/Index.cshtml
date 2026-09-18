@@ -2,7 +2,7 @@
     Layout = "_Layout";
     ViewData["Title"] = "Reservas";
     var rol = Context.Session.GetString("RolUsuario") ?? "Cliente";
-    var esTrabajador = rol == "Dueno" || rol == "Barra";
+    var esTrabajador = RoleStore.IsAdministrator(rol) || rol == "Barra";
 }
 
 <section class="page-shell">

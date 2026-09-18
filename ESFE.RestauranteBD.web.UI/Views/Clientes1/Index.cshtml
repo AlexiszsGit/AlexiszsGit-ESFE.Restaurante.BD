@@ -4,7 +4,7 @@
     ViewData["Title"] = "Clientes";
     var query = ViewBag.Query as string ?? string.Empty;
     var rol = Context.Session.GetString("RolUsuario") ?? string.Empty;
-    var esAdmin = rol == "Dueno";
+    var esAdmin = RoleStore.IsAdministrator(rol);
 }
 
 <section class="page-shell">

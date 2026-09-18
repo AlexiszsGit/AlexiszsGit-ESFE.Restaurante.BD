@@ -7,7 +7,7 @@
     const money = value => app.money(Number(value) || 0);
     const products = () => app.catalogProducts ? app.catalogProducts() : (app.products || []);
     const role = () => (document.body?.dataset.role || "Publico").trim();
-    const canOperate = () => ["Dueno", "Barra"].includes(role());
+    const canOperate = () => ["Dueno", "Administrador", "Barra"].includes(role());
     const customers = () => {
         try { return JSON.parse(input("localCustomerData")?.textContent || "[]"); } catch { return []; }
     };
@@ -241,7 +241,7 @@
         const sales=JSON.parse(localStorage.getItem(app.KEY.sales)||"[]"); if(!sales.some(x=>x.id===target.id)) sales.unshift({...target,saleStatus:"Cobrado"}); localStorage.setItem(app.KEY.sales,JSON.stringify(sales));
         const invoice=app.invoices.create(target);
         if(target.customer && !String(target.customer).startsWith("presencial-")) app.addNotification(`Pago confirmado para ${target.id}.`,target.customer,{type:"factura",orderId:target.id,title:"Pago confirmado",detail:`${target.payment} · ${money(target.total)} · Factura ${invoice?.invoiceNumber||"digital"}.`,action:"invoice"});
-        app.addNotification(`Pago registrado para ${target.id}.`,null,{type:"pago",orderId:target.id,title:"Pago presencial confirmado",detail:`${target.payment} · ${money(target.total)} · ${target.customerName||"Cliente"}.`,roles:["Dueno","Barra"]});
+        app.addNotification(`Pago registrado para ${target.id}.`,null,{type:"pago",orderId:target.id,title:"Pago presencial confirmado",detail:`${target.payment} · ${money(target.total)} · ${target.customerName||"Cliente"}.`,roles:["Dueno","Administrador","Barra"]});
         state.pendingPaymentOrder=null; close(); app.ui.mostrarToast(`Pago confirmado. Pedido ${target.id} finalizado.`); app.orders?.render();
     }
 
@@ -297,7 +297,7 @@
             const meta=isCashPaidNow?{type:"factura",orderId:id,title:"Pedido presencial pagado",detail:`Tu pedido ${id} fue registrado en el restaurante. Total ${money(total)}. La factura digital está disponible.`,action:"invoice"}:{type:"pago",orderId:id,title:"Tienes un pago pendiente",detail:`Tu pedido ${id} fue registrado en el restaurante por ${money(total)}. Puedes abrir el pago desde allí.`,action:"payment"};
             if (typeof app.addNotification === 'function') app.addNotification(meta.detail, registeredEmail, { ...meta, fromName:"RestauranteBD · Atención", fromEmail:"notificaciones@restaurantebd.local" });
         }
-        const operationalRoles = type === "Domicilio" ? ["Dueno","Cocina","Barra","Delivery"] : ["Dueno","Cocina","Barra"];
+        const operationalRoles = type === "Domicilio" ? ["Dueno","Administrador","Cocina","Barra","Delivery"] : ["Dueno","Administrador","Cocina","Barra"];
         if (typeof app.addNotification === 'function') app.addNotification(`Nuevo pedido presencial ${id}.`, null, {type:"pedido",orderId:id,title:"Nuevo pedido presencial",detail:`${name} · ${type} · ${money(total)} · ${order.items.length} líneas.`,roles:operationalRoles});
         app.ui.mostrarToast(isCashPaidNow?`Pedido ${id} creado y pagado.`:`Pedido ${id} creado. El cliente recibirá el aviso de pago pendiente.`);
         close(); app.orders?.render();

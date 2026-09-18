@@ -16,7 +16,7 @@
         selectedId: null,
         filter: "",
         init(){
-            if(!["Dueno","Barra"].includes(role())) return;
+            if(!["Dueno","Administrador","Barra"].includes(role())) return;
             const search=document.getElementById("manualPaymentSearch");
             search?.addEventListener("input",()=>{this.filter=search.value.trim().toLowerCase();this.renderList();});
             this.renderList();
@@ -30,7 +30,7 @@
             box.innerHTML=list.map(o=>`<button type="button" class="manual-payment-order ${this.selectedId===o.id?'selected':''}" onclick="ESFERestaurante.manualPayments.open('${esc(o.id)}')"><span><strong>${esc(o.id)}</strong><small>${esc(o.customerName||"Cliente")} · ${esc(o.payment||"Sin método")}</small></span><b>${app.money(o.total)}</b></button>`).join("") || '<div class="empty-state compact"><strong>No hay pagos pendientes</strong><p>Los pedidos pendientes aparecerán aquí automáticamente.</p></div>';
         },
         open(id){
-            if(!["Dueno","Barra"].includes(role())) { app.ui.mostrarToast("Solo Barra o Administración pueden registrar pagos presenciales.","error"); return; }
+            if(!["Dueno","Administrador","Barra"].includes(role())) { app.ui.mostrarToast("Solo Barra o Administración pueden registrar pagos presenciales.","error"); return; }
             const order=getOrder(id); if(!order){app.ui.mostrarToast("No se encontró el pedido.","error");return;}
             if(order.paymentStatus==="Pagado"){app.ui.mostrarToast("Este pedido ya está pagado.","info");return;}
             this.selectedId=id;
@@ -75,7 +75,7 @@
             const sales=read(app.KEY.sales);if(!sales.some(x=>x.id===id))sales.unshift({...target,saleStatus:"Cobrado"});write(app.KEY.sales,sales);
             const invoice=app.invoices.create(target);
             if(target.customer && !String(target.customer).startsWith("presencial-")) app.addNotification(`Pago confirmado para ${target.id}.`,target.customer,{type:"factura",orderId:target.id,title:"Pago confirmado",detail:`${target.payment} · ${app.money(target.total)} · Factura ${invoice?.invoiceNumber||"digital"}.`,action:"invoice"});
-            app.addNotification(`Pago registrado para ${target.id}.`,null,{type:"pago",orderId:target.id,title:"Pago presencial confirmado",detail:`${target.payment} · ${app.money(target.total)} · ${target.customerName||"Cliente"}.`,roles:["Dueno","Barra"]});
+            app.addNotification(`Pago registrado para ${target.id}.`,null,{type:"pago",orderId:target.id,title:"Pago presencial confirmado",detail:`${target.payment} · ${app.money(target.total)} · ${target.customerName||"Cliente"}.`,roles:["Dueno","Administrador","Barra"]});
             app.ui.mostrarToast(`Pedido ${target.id} marcado como pagado.`);this.close();this.renderList();app.orders?.render();
         }
     };

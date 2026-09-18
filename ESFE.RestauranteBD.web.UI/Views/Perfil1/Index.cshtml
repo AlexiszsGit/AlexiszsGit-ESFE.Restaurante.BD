@@ -2,7 +2,7 @@
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Mi perfil";
-    var displayRole = Model.Rol == "Dueno" ? "Administrador" : Model.Rol;
+    var displayRole = RoleStore.IsAdministrator(Model.Rol) ? "Administrador" : Model.Rol;
 }
 
 <section class="page-shell narrow-page">

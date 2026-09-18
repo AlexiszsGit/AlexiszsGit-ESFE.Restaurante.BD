@@ -1,7 +1,7 @@
 @{
     Layout = "_Layout";
-    ViewData["Title"] = Context.Session.GetString("RolUsuario") == "Dueno" ? "Calificaciones" : "Calificar servicio";
-    var esDueno = Context.Session.GetString("RolUsuario") == "Dueno";
+    ViewData["Title"] = RoleStore.IsAdministrator(Context.Session.GetString("RolUsuario")) ? "Calificaciones" : "Calificar servicio";
+    var esDueno = RoleStore.IsAdministrator(Context.Session.GetString("RolUsuario"));
 }
 
 @if (esDueno)
