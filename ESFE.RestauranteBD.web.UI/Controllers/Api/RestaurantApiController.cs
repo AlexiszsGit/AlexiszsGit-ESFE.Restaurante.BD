@@ -28,7 +28,11 @@ public sealed class RestaurantApiController : ControllerBase
     [HttpGet("chat/status")]
     public IActionResult ChatStatus()
     {
-        var key = HttpContext.RequestServices.GetRequiredService<IConfiguration>()["Gemini:ApiKey"];
+        var configuration = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+
+        var key =
+            Environment.GetEnvironmentVariable("GEMINI_API_KEY")
+            ?? configuration["Gemini:ApiKey"];
         var enabled = HttpContext.RequestServices.GetRequiredService<IConfiguration>().GetValue<bool>("Gemini:Enabled");
         var model = HttpContext.RequestServices.GetRequiredService<IConfiguration>()["Gemini:Model"] ?? "gemini-3.1-flash-lite";
         var keyConfigured = !string.IsNullOrWhiteSpace(key) && !key.StartsWith("PON_AQUI", StringComparison.OrdinalIgnoreCase);

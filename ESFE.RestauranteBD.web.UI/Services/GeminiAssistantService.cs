@@ -34,7 +34,9 @@ public sealed class GeminiAssistantService
         if (question.Length == 0) return "Escribe tu pregunta y te ayudo.";
 
         var enabled = _configuration.GetValue<bool>("Gemini:Enabled");
-        var apiKey = _configuration["Gemini:ApiKey"];
+        var apiKey =
+    Environment.GetEnvironmentVariable("GEMINI_API_KEY")
+    ?? _configuration["Gemini:ApiKey"];
         var model = _configuration["Gemini:Model"] ?? "gemini-3.1-flash-lite";
         var role = user?.Rol ?? "Publico";
         string context;

@@ -1,10 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <NuGetAudit>false</NuGetAudit>
     <NoWarn>$(NoWarn);NU1900</NoWarn>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>98477917-dbef-4114-8119-b77687f0eb6a</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.3" />

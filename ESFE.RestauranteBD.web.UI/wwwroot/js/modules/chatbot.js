@@ -74,7 +74,26 @@
         }catch{add('El asistente inteligente no está disponible en este momento.');}
     }
 
-    bot.ask=text=>{const v=String(text||'').trim();if(!v)return;bot.toggle(true);add(esc(v),'user');handle(v);};
+    bot.ask = text => {
+        const v = String(text || '').trim();
+        if (!v) return;
+
+        bot.toggle(true);
+        add(esc(v), 'user');
+        askAi(v);
+    };
+
+    bot.send = () => {
+        const input = document.getElementById('chatInput');
+        const v = String(input?.value || '').trim();
+
+        if (!v) return;
+
+        input.value = '';
+        bot.toggle(true);
+        add(esc(v), 'user');
+        askAi(v);
+    };
     bot.voice={active:false,recognition:null,start(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){add('Este navegador no tiene reconocimiento de voz disponible.');return;}if(this.active){this.stop();return;}const r=new SR();r.lang='es-SV';r.interimResults=false;r.continuous=false;r.maxAlternatives=1;this.recognition=r;this.active=true;const b=document.getElementById('chatVoiceButton');b?.classList.add('recording');b?.setAttribute('aria-label','Detener grabación');r.onresult=e=>{const text=e.results?.[0]?.[0]?.transcript||'';document.getElementById('chatInput').value=text;this.active=false;b?.classList.remove('recording');bot.ask(text);};r.onerror=e=>{this.active=false;b?.classList.remove('recording');add(`No pude procesar el audio (${esc(e.error||'error')}). Puedes escribirlo en el campo.`);};r.onend=()=>{this.active=false;b?.classList.remove('recording');};try{r.start();add('🎙️ Te escucho…');}catch{this.active=false;b?.classList.remove('recording');}},stop(){try{this.recognition?.stop()}catch{}this.active=false;document.getElementById('chatVoiceButton')?.classList.remove('recording');}};
     document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementById('chatVoiceButton');b?.addEventListener('click',()=>bot.voice.start());});
     bot.__enhancedReady=true;

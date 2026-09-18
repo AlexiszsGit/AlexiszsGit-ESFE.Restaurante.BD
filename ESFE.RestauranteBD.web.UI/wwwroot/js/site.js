@@ -188,10 +188,8 @@ const ESFERestaurante = (() => {
     const chat={
         toggle(show){
             const el=document.getElementById('chatbot');el?.classList.toggle('show',show);
-            if(show&&!document.getElementById('chatMessages')?.children.length){
-                const role=currentRole();
-                const greeting=['Dueno','Administrador'].includes(role)?'Hola. Puedo ayudarte con pedidos, reservas, empleados, reportes, pagos, menú y operación.':role==='Cocina'?'Hola. Puedo ayudarte con estados de cocina y el flujo de preparación.':role==='Barra'?'Hola. Puedo ayudarte con pedidos y reservas.':role==='Delivery'?'Hola. Puedo ayudarte a localizar pedidos listos y completar entregas.':'Hola. Puedo ayudarte con menú, recomendaciones, reservas, pedidos, pagos, domicilio y el estado de tu orden.';
-                this.add('bot',greeting);this.refreshSuggestions();
+            if (show && !document.getElementById('chatMessages')?.children.length) {
+                this.refreshSuggestions();
             }
         },
         add(type,text){const box=document.getElementById('chatMessages');if(!box)return;const item=document.createElement('div');item.className=`chat-bubble ${type}`;item.textContent=text;box.appendChild(item);box.scrollTop=box.scrollHeight;},
