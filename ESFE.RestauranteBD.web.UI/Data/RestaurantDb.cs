@@ -804,6 +804,42 @@ IF @@ROWCOUNT=0 INSERT dbo.AppUserState(AccountId,StateKey,StateJson) VALUES(@ac
         using var connection=Open(); using var cmd=connection.CreateCommand(); cmd.CommandText=@"UPDATE dbo.AppGlobalState SET StateJson=@json,UpdatedAt=SYSUTCDATETIME() WHERE StateKey=@key; IF @@ROWCOUNT=0 INSERT dbo.AppGlobalState(StateKey,StateJson) VALUES(@key,@json);"; cmd.Parameters.Add("@key",SqlDbType.NVarChar,160).Value=key;cmd.Parameters.Add("@json",SqlDbType.NVarChar,-1).Value=rawJson;cmd.ExecuteNonQuery();
     }
 
+    public static string GetOperationalOrdersJson(string key)
+    {
+        if (!IsConfigured) return "[]";
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = @"
+SELECT TOP(1) StateJson FROM dbo.AppGlobalState WHERE StateKey=@key;
+";
+        cmd.Parameters.Add("@key",SqlDbType.NVarChar,160).Value = key;
+        var value = cmd.ExecuteScalar();
+        if (value is string text && !string.IsNullOrWhiteSpace(text)) return text;
+
+        // Bootstrap legacy orders written before the operational shared channel existed.
+        using var legacy = connection.CreateCommand();
+        legacy.CommandText = "SELECT StateJson FROM dbo.AppUserState WHERE StateKey=N'esfe_pedidos' ORDER BY UpdatedAt ASC;";
+        using var rd = legacy.ExecuteReader();
+        var merged = new List<System.Text.Json.JsonElement>();
+        while (rd.Read())
+        {
+            if (rd.IsDBNull(0)) continue;
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(rd.GetString(0));
+                if (doc.RootElement.ValueKind != System.Text.Json.JsonValueKind.Array) continue;
+                foreach (var item in doc.RootElement.EnumerateArray()) merged.Add(item.Clone());
+            }
+            catch { }
+        }
+        return System.Text.Json.JsonSerializer.Serialize(merged);
+    }
+
+    public static void SaveOperationalOrdersJson(string key, string rawJson)
+    {
+        SaveGlobalState(key, rawJson);
+    }
+
     public static void DeleteUserState(int accountId,string key)
     {
         using var connection=Open(); using var cmd=connection.CreateCommand();cmd.CommandText="DELETE dbo.AppUserState WHERE AccountId=@accountId AND StateKey=@key;";cmd.Parameters.Add("@accountId",SqlDbType.Int).Value=accountId;cmd.Parameters.Add("@key",SqlDbType.NVarChar,160).Value=key;cmd.ExecuteNonQuery();
