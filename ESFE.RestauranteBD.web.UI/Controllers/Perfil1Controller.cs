@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ESFE.RestauranteBD.web.UI.Models;
+using ESFE.RestauranteBD.web.UI.Data;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
 
@@ -64,14 +65,34 @@ public class Perfil1Controller : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        user.ProfilePhotoData = $"data:{foto.ContentType};base64,{Convert.ToBase64String(bytes)}";
-        if (!UserStore.Update(user))
+        try
         {
-            TempData["ProfileError"] = "No se pudo guardar la foto de perfil.";
-            return RedirectToAction(nameof(Index));
+            if (!RestaurantDb.IsConfigured || !RestaurantDb.SaveProfilePhoto(user.AccountId,
+                    Path.GetFileName(foto.FileName), foto.ContentType, bytes))
+            {
+                TempData["ProfileError"] = "No se pudo guardar la foto de perfil.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var refreshed = RestaurantDb.GetAccount(user.Email, includeInactive: true);
+            if (refreshed is not null)
+            {
+                user.ProfilePhotoMediaAssetId = refreshed.ProfilePhotoMediaAssetId;
+                user.ProfilePhotoData = refreshed.ProfilePhotoData;
+            }
+            else
+            {
+                user.ProfilePhotoData = $"/Perfil1/Foto?v={DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+            }
+
+            TempData["ProfileSuccess"] = "Foto de perfil actualizada correctamente.";
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error guardando foto de perfil de la cuenta {user.AccountId}: {ex.Message}");
+            TempData["ProfileError"] = "No se pudo guardar la foto de perfil. Verifica la conexión con la base de datos y vuelve a intentarlo.";
         }
 
-        TempData["ProfileSuccess"] = "Foto de perfil actualizada correctamente.";
         return RedirectToAction(nameof(Index));
     }
 
@@ -83,10 +104,47 @@ public class Perfil1Controller : Controller
         if (string.IsNullOrWhiteSpace(email) || !UserStore.TryGet(email, out var user) || user is null)
             return RedirectToAction("Index", "IniciarSesion1");
 
-        user.ProfilePhotoData = string.Empty;
-        UserStore.Update(user);
-        TempData["ProfileSuccess"] = "Foto de perfil eliminada.";
+        try
+        {
+            if (!RestaurantDb.IsConfigured || !RestaurantDb.DeleteProfilePhoto(user.AccountId))
+            {
+                TempData["ProfileError"] = "No se pudo eliminar la foto de perfil.";
+                return RedirectToAction(nameof(Index));
+            }
+            user.ProfilePhotoData = string.Empty;
+            user.ProfilePhotoMediaAssetId = null;
+            TempData["ProfileSuccess"] = "Foto de perfil eliminada.";
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error eliminando foto de perfil de la cuenta {user.AccountId}: {ex.Message}");
+            TempData["ProfileError"] = "No se pudo eliminar la foto de perfil.";
+        }
+
         return RedirectToAction(nameof(Index));
+    }
+
+    [HttpGet]
+    [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
+    public IActionResult Foto(int? accountId = null)
+    {
+        var email = HttpContext.Session.GetString("UsuarioLogueado");
+        if (string.IsNullOrWhiteSpace(email) || !UserStore.TryGet(email, out var currentUser) || currentUser is null || !currentUser.Activo)
+            return NotFound();
+
+        var targetAccountId = accountId.GetValueOrDefault(currentUser.AccountId);
+        if (targetAccountId <= 0) targetAccountId = currentUser.AccountId;
+
+        try
+        {
+            var photo = RestaurantDb.GetProfilePhoto(targetAccountId);
+            return photo is null ? NotFound() : File(photo.Content, photo.ContentType);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error obteniendo foto de perfil de la cuenta {targetAccountId}: {ex.Message}");
+            return NotFound();
+        }
     }
 
     private static bool IsValidImageSignature(byte[] bytes, string contentType)
@@ -153,7 +211,12 @@ public class Perfil1Controller : Controller
         user.Telefono = telefono;
         user.Dui = dui;
         user.Direccion = direccion;
-        UserStore.Update(user);
+
+        if (!UserStore.Update(user))
+        {
+            TempData["ProfileError"] = "No se pudo guardar la información del perfil.";
+            return RedirectToAction(nameof(Index));
+        }
 
         HttpContext.Session.SetString("NombreUsuario", user.Nombre);
         HttpContext.Session.SetString("TelefonoUsuario", user.Telefono);

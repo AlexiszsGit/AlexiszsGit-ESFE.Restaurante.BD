@@ -1,100 +1,631 @@
-(() => {
+﻿(() => {
     if (!window.ESFERestaurante?.chat) return;
-    const bot=ESFERestaurante.chat;
-    const norm=t=>String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
-    const read=k=>{try{return JSON.parse(localStorage.getItem(k)||'[]')}catch{return[]}};
-    const role=()=>document.body?.dataset.role||'Publico';
-    const user=()=>document.body?.dataset.user||'';
-    const auth=()=>document.body?.dataset.auth==='True'||document.body?.dataset.auth==='true';
-    const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const money=v=>ESFERestaurante.money(v);
-    const add=(html,kind='bot')=>{const box=document.getElementById('chatMessages');if(!box)return;const n=document.createElement('div');n.className=`chat-bubble ${kind}`;n.innerHTML=html;box.appendChild(n);box.scrollTop=box.scrollHeight;};
-    const action=(label,fn)=>{const box=document.getElementById('chatMessages');if(!box)return;const w=document.createElement('div');w.className='chat-inline-actions';const b=document.createElement('button');b.type='button';b.className='chat-action-button';b.textContent=label;b.onclick=fn;w.appendChild(b);box.appendChild(w);box.scrollTop=box.scrollHeight;};
-    const orders=()=>read(ESFERestaurante.KEY.orders).sort((a,b)=>new Date(b.date)-new Date(a.date));
-    const userOrders=()=>orders().filter(o=>o.customer===user());
-    const today=()=>ESFERestaurante.localDate();
-    const rolePermissions=()=>{try{return JSON.parse(document.body?.dataset.rolePermissions||'[]')}catch{return[]}};
-    const permissionMap={inicio:'Dashboard',menu:'Menu',orders:'Orders',kitchen:'Kitchen',delivery:'Delivery',reservations:'Reservations',customers:'Customers',notifications:'Notifications',reports:'Reports',payments:'Payments',workers:'Workers',profile:'Profile',local:'LocalOrders',ratings:'Ratings',info:'Information'};
-    const rIsAdmin=()=>['Dueno','Administrador'].includes(role());
-    const can=p=>{const r=role(), perms=rolePermissions(); if(rIsAdmin()) return true; if(r==='Cliente') return ['menu','inicio','profile','info','orders','reservations','payments','notifications','ratings'].includes(p); if(perms.length) return perms.some(x=>x===permissionMap[p]); return p==='menu'||p==='inicio'||p==='profile';};
-    const routes={inicio:'/Inicio1/Index',menu:'/GestionDeMenu1/Index',orders:'/GestionDePedidos1/Index',kitchen:'/PantallaDeCocina1/Index',delivery:'/PedidoListo1/Index',reservations:'/ReservarMesas1/Index',customers:'/Clientes1/Index',notifications:'/NotificacionesController1/Index',reports:'/Reportes1/Index',payments:'/ProcesarPago1/Index',workers:'/Trabajadores1/Index',profile:'/Perfil1/Index',ratings:'/CalificarServicio1/Index',info:'/Informacion1/Index',local:'/GestionDePedidos1/Index'};
-    const open=(key)=>{if(!can(key)){add('Esa pantalla no está disponible para este rol.');return;} let target=routes[key]||'/Inicio1/Index'; if(key==='orders'&&role()==='Cliente')target='/PedidoyCarrito1/Index'; location.href=target;};
-    const list=(items,title)=>{if(!items.length){add(`<strong>${title}</strong><br>No hay registros para mostrar ahora.`);return;}add(`<strong>${title}</strong><div class="assistant-list">${items.slice(0,10).map(o=>`<div class="assistant-list-row"><span><strong>${esc(o.id)}</strong><small>${esc(o.customerName||o.customer||'Cliente')} · ${esc(o.orderType||'Pedido')} · ${esc(o.status||'')}</small></span><b>${money(o.total||0)}</b></div>`).join('')}</div>`);};
-    const speak=text=>{if(!window.speechSynthesis||!text)return;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(String(text).replace(/<[^>]+>/g,' '));u.lang='es-SV';u.rate=.98;u.pitch=1;window.speechSynthesis.speak(u);};
-    const describeOpen=(screen)=>{const label={menu:'Menú',orders:'Pedidos',kitchen:'Cocina',delivery:'Delivery',reservations:'Reservas',customers:'Clientes',notifications:'Notificaciones',reports:'Reportes',payments:'Pagos',workers:'Trabajadores',profile:'Perfil',inicio:'Inicio'}[screen];return label?`Te abro ${label}.`:'Te llevo a esa pantalla.';};
-    function reservations(){return read(ESFERestaurante.KEY.reservations);}
-    function handle(q){
-        const r=role(), owner=rIsAdmin(), normalized=norm(q);
-        if(/(realizar|hacer|crear|quiero|necesito).*pedido/.test(normalized) && r==='Cliente'){ add('Te explico el flujo y te abro el pedido. Elige productos, cantidad y forma de entrega desde el carrito.'); speak('Abriendo tu pedido.'); action('Realizar pedido',()=>open('orders')); return; }
-        // navigation
-        const map=[['trabajadores|empleados|personal|roles','workers'],['notificaciones|avisos|mensajes','notifications'],['pago|pagos|cobro|caja','payments'],['reporte|reportes|ventas','reports'],['cocina','kitchen'],['delivery|entrega|reparto','delivery'],['reserva|reservacion|mesa','reservations'],['cliente|clientes','customers'],['pedido|ordenes|orden','orders'],['menu|productos|carta|comida','menu'],['perfil|mi cuenta','profile'],['calificacion|calificaciones','ratings'],['informacion|información|acerca','info'],['inicio|principal','inicio']];
-        if(/\b(abr(e|eme)|abre|abrir|llevame|dirigeme|mostrame|muest(r|ra)me|quiero ver|ir a)\b/.test(normalized)){
-            const hit=map.find(([pattern])=>new RegExp(`(${pattern})`).test(normalized));
-            if(hit){add(esc(describeOpen(hit[1])));speak(describeOpen(hit[1]));action('Abrir ahora',()=>open(hit[1]));return;}
-        }
-        if(/crear pedido presencial|pedido presencial|cliente viene|pedido en barra/.test(normalized)){
-            if(can('local')){add('Voy a abrir la gestión de pedidos para iniciar una orden presencial y, desde ahí, puedes buscar al cliente, seleccionar mesa, productos y forma de cobro.');speak('Abriendo pedidos presenciales.');open('local');setTimeout(()=>window.ESFERestaurante.localOrders?.open?.(),600);}else add('La creación de pedidos presenciales está reservada a roles con ese permiso.');return;
-        }
-        if(/\b(pedidos? de hoy|pedidos? ahora|pedidos? actuales|mostrar.*pedidos|muest(r|ra)me.*pedido)/.test(normalized)){
-            const os=r==='Cliente'?userOrders():orders().filter(o=>String(o.date||'').startsWith(today()));
-            list(os,r==='Cliente'?'Mis pedidos de hoy':'Pedidos de hoy');action('Abrir pedidos',()=>open('orders'));return;
-        }
-        if(/\b(pendientes?|por preparar|en preparacion)/.test(normalized)&&['Dueno','Administrador','Cocina','Barra','Mesero'].includes(r)){list(orders().filter(o=>['Pendiente','Preparando'].includes(o.status)),'Pedidos pendientes');return;}
-        if(/\b(listos?|terminados?)/.test(normalized)&&['Dueno','Administrador','Barra','Delivery','Mesero'].includes(r)){list(orders().filter(o=>o.status==='Listo'),'Pedidos listos');return;}
-        if(/\b(mesas?|disponib)/.test(normalized)){
-            const res=reservations().filter(x=>x.date===today()&&x.status==='Confirmada');const used=new Set(res.map(x=>Number(x.tableId)));const free=(ESFERestaurante.tables||[]).filter(t=>!used.has(t.id));
-            add(`<strong>Mesas de hoy</strong><br><span class="assistant-muted">${free.length} disponibles · ${used.size} reservadas.</span><div class="assistant-table-grid">${(ESFERestaurante.tables||[]).map(t=>`<span class="assistant-table-chip ${used.has(t.id)?'busy':'free'}">Mesa ${String(t.id).padStart(2,'0')} · ${t.seats}p</span>`).join('')}</div>`);action('Abrir reservas',()=>open('reservations'));return;
-        }
-        if(/\b(reserva|reservar|reservacion)/.test(normalized)){add(auth()? 'Puedo abrirte Reservas para elegir fecha, hora y mesa.':'Para reservar una mesa necesitas iniciar sesión.');action('Abrir Reservas',()=>open('reservations'));return;}
-        if(/\b(pagar|pago pendiente|factura|quiero pagar)/.test(normalized)){
-            if(r==='Cliente'){const p=userOrders().find(o=>o.paymentStatus!=='Pagado');if(p){add(`Tienes el pedido <strong>${esc(p.id)}</strong> pendiente por <strong>${money(p.total)}</strong>.`);action('Pagar pedido',()=>{sessionStorage.setItem('esfe_pay_order_id',p.id);open('payments');});}else add('No encuentro pagos pendientes en tu cuenta.');}
-            else {add('Abro Caja para buscar el pedido y registrar efectivo, tarjeta o transferencia.');action('Abrir Pagos',()=>open('payments'));}return;
-        }
-        if(/\b(productos?|hamburg|pizza|bebida|postre|menu|carta|que tienen|muestrame)/.test(normalized)){
-            const ps=ESFERestaurante.catalogProducts?.()||ESFERestaurante.products||[];
-            let matches=ps.filter(p=>norm(`${p.name} ${p.cat} ${p.desc} ${(p.tags||[]).join(' ')}`).includes(normalized));
-            if(!matches.length){const terms=['hamburg','pizza','pollo','carne','pasta','bebida','postre','taco','ensalada','marisco','combo'].filter(t=>normalized.includes(t));if(terms.length)matches=ps.filter(p=>terms.some(t=>norm(`${p.name} ${p.cat} ${p.desc}`).includes(t)));}
-            if(matches.length)list(matches.map(p=>({id:p.name,customerName:p.cat,status:'Disponible',total:p.price,orderType:p.desc})),'Productos encontrados');else add('Puedo abrir la carta para que busques por nombre, categoría, ingrediente o precio.');action('Abrir menú',()=>open('menu'));return;
-        }
-        if(/\b(horario|abren|cierran|hora de atencion)/.test(normalized)){const text='El restaurante atiende todos los días de 06:00 a. m. a 10:00 p. m.';add(text);speak(text);return;}
-        if(/\b(ayuda|que puedes hacer|funciones|asistente)/.test(normalized)){add(`<strong>Asistente RestauranteBD</strong><br>Puedo consultar pedidos, pagos, mesas, reservas y menú; buscar información operativa y llevarte a las pantallas que tu rol tiene permitidas. También puedes hablarme usando el micrófono.`);return;}
-        add('Déjame consultar al asistente inteligente…');
-        askAi(q);
-    }
-    const originalAsk=bot.ask.bind(bot); bot.__baseAsk=originalAsk;    async function askAi(question){
-        try{
-            const token=document.querySelector('meta[name="request-verification-token"]')?.content||'';
-            const headers={'Content-Type':'application/json'}; if(token)headers['RequestVerificationToken']=token;
-            const response=await fetch('/api/chat/ask',{method:'POST',credentials:'same-origin',headers,body:JSON.stringify({message:question})});
-            if(!response.ok)throw new Error('assistant');
-            const data=await response.json();
-            const answer=String(data?.answer||'').trim();
-            if(answer)add(esc(answer)); else add('No pude obtener una respuesta ahora.');
-            if(answer)speak(answer);
-        }catch{add('El asistente inteligente no está disponible en este momento.');}
-    }
 
-    bot.ask = text => {
-        const v = String(text || '').trim();
-        if (!v) return;
+    const bot = ESFERestaurante.chat;
 
-        bot.toggle(true);
-        add(esc(v), 'user');
-        askAi(v);
+    const esc = value =>
+        String(value ?? '').replace(
+            /[&<>"']/g,
+            char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[char])
+        );
+
+    const add = (html, kind = 'bot') => {
+        const box = document.getElementById('chatMessages');
+        if (!box) return null;
+
+        const item = document.createElement('div');
+        item.className = `chat-bubble ${kind}`;
+        item.innerHTML = html;
+
+        box.appendChild(item);
+        box.scrollTop = box.scrollHeight;
+
+        return item;
     };
+
+    const addTyping = () => {
+        const box = document.getElementById('chatMessages');
+        if (!box) return null;
+
+        const item = document.createElement('div');
+        item.className = 'chat-bubble bot chat-typing';
+        item.setAttribute('aria-label', 'El asistente está escribiendo');
+        item.innerHTML = `
+            <span></span>
+            <span></span>
+            <span></span>
+        `;
+
+        box.appendChild(item);
+        box.scrollTop = box.scrollHeight;
+
+        return item;
+    };
+
+    const removeTyping = item => {
+        if (item?.parentNode) {
+            item.remove();
+        }
+    };
+
+    const getVoiceModeButton = () =>
+        document.getElementById('chatVoiceModeButton');
+
+    const getVoiceButton = () =>
+        document.getElementById('chatVoiceButton');
+
+    const getInput = () =>
+        document.getElementById('chatInput');
+
+    const getVoiceOverlay = () =>
+        document.getElementById('chatVoiceMode');
+
+    const setVoiceOverlay = open => {
+        const overlay = getVoiceOverlay();
+        overlay?.classList.toggle('show', open);
+        overlay?.setAttribute('aria-hidden', String(!open));
+    };
+
+    const setVoiceStatus = (status, hint) => {
+        const state = document.getElementById('chatVoiceStatus');
+        const help = document.getElementById('chatVoiceHint');
+        const orb = document.getElementById('chatVoiceOrb');
+        if (state && status) state.textContent = status;
+        if (help && hint) help.textContent = hint;
+        orb?.classList.toggle('listening', String(status || '').toLowerCase().includes('escuch'));
+    };
+
+    const canUseSpeechRecognition = () =>
+        !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+
+    const canUseSpeechSynthesis = () =>
+        !!window.speechSynthesis;
+
+    // ---------------------------------------------------------
+    // VOZ DE RESPUESTA
+    // ---------------------------------------------------------
+
+    const speak = text => {
+        if (!canUseSpeechSynthesis() || !text) return Promise.resolve();
+
+        return new Promise(resolve => {
+            try {
+                window.speechSynthesis.cancel();
+
+                const utterance =
+                    new SpeechSynthesisUtterance(String(text));
+
+                utterance.lang = 'es-SV';
+                utterance.rate = 1;
+                utterance.pitch = 1;
+
+                utterance.onend = () => resolve();
+                utterance.onerror = () => resolve();
+
+                window.speechSynthesis.speak(utterance);
+            }
+            catch {
+                resolve();
+            }
+        });
+    };
+
+    // ---------------------------------------------------------
+    // ESTADO DE VOZ
+    // ---------------------------------------------------------
+
+    const voiceState = {
+        active: false,
+        listening: false,
+        processing: false,
+        recognition: null,
+        currentRequest: 0
+    };
+
+    const setVoiceModeButton = active => {
+        const button = getVoiceModeButton();
+        if (!button) return;
+
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-pressed', String(active));
+
+        button.setAttribute(
+            'title',
+            active
+                ? 'Desactivar conversación por voz'
+                : 'Activar conversación por voz'
+        );
+
+        const text =
+            button.querySelector('.chat-voice-mode-label');
+
+        if (text) {
+            text.textContent = active
+                ? 'Voz activa'
+                : 'Voz';
+        }
+    };
+
+    // ---------------------------------------------------------
+    // RECONOCIMIENTO DE VOZ
+    // ---------------------------------------------------------
+
+    const stopListening = () => {
+        voiceState.listening = false;
+
+        try {
+            voiceState.recognition?.stop();
+        }
+        catch { }
+
+        const button = getVoiceButton();
+        button?.classList.remove('recording');
+        setVoiceStatus('Pausado', 'Puedes cerrar este modo o volver a escuchar.');
+
+        if (button) {
+            button.setAttribute(
+                'aria-label',
+                'Hablar con el asistente'
+            );
+        }
+    };
+
+    const startListening = () => {
+        if (!voiceState.active || voiceState.processing || voiceState.listening) return;
+
+        if (!canUseSpeechRecognition()) {
+            add(
+                'Este navegador no tiene reconocimiento de voz disponible.'
+            );
+            voiceState.active = false;
+            setVoiceModeButton(false);
+            return;
+        }
+
+        stopListening();
+
+        const SpeechRecognition =
+            window.SpeechRecognition ||
+            window.webkitSpeechRecognition;
+
+        const recognition = new SpeechRecognition();
+
+        recognition.lang = 'es-SV';
+        recognition.interimResults = false;
+        recognition.continuous = false;
+        recognition.maxAlternatives = 1;
+
+        voiceState.recognition = recognition;
+        voiceState.listening = true;
+        setVoiceStatus('Escuchando...', 'Habla normalmente con el asistente.');
+
+        const voiceButton = getVoiceButton();
+
+        voiceButton?.classList.add('recording');
+        voiceButton?.setAttribute(
+            'aria-label',
+            'Detener escucha'
+        );
+
+        recognition.onresult = event => {
+            const text =
+                event.results?.[0]?.[0]?.transcript?.trim() || '';
+
+            voiceState.listening = false;
+
+            voiceButton?.classList.remove('recording');
+
+            if (!text) {
+                if (voiceState.active) {
+                    setTimeout(startListening, 250);
+                }
+                return;
+            }
+
+            const input = getInput();
+
+            if (input) {
+                input.value = text;
+            }
+
+            // Evita que onend vuelva a activar el micrófono mientras Gemini responde.
+            voiceState.processing = true;
+            setVoiceStatus('Procesando...', 'Estoy preparando la respuesta.');
+            sendToAi(text, true);
+        };
+
+        recognition.onerror = event => {
+            voiceState.listening = false;
+            voiceButton?.classList.remove('recording');
+
+            if (
+                event.error === 'not-allowed' ||
+                event.error === 'service-not-allowed'
+            ) {
+                add(
+                    'El navegador no permitió usar el micrófono.'
+                );
+
+                voiceState.active = false;
+                setVoiceModeButton(false);
+                setVoiceOverlay(false);
+
+                return;
+            }
+
+            if (voiceState.active) {
+                setTimeout(startListening, 500);
+            }
+        };
+
+        recognition.onend = () => {
+            voiceState.listening = false;
+            voiceButton?.classList.remove('recording');
+
+            if (voiceState.active && !voiceState.processing) {
+                setTimeout(startListening, 300);
+            }
+        };
+
+        try {
+            recognition.start();
+        }
+        catch {
+            voiceState.listening = false;
+            voiceButton?.classList.remove('recording');
+        }
+    };
+
+    // ---------------------------------------------------------
+    // ENVIAR A GEMINI
+    // ---------------------------------------------------------
+
+    const sendToAi = async (question, speakResponse = false) => {
+        const text = String(question || '').trim();
+
+        if (!text) return;
+
+        const typing = addTyping();
+
+        try {
+            const token =
+                document.querySelector(
+                    'meta[name="request-verification-token"]'
+                )?.content || '';
+
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+
+            if (token) {
+                headers['RequestVerificationToken'] = token;
+            }
+
+            const response = await fetch(
+                '/api/chat/ask',
+                {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers,
+                    body: JSON.stringify({
+                        message: text
+                    })
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    `HTTP ${response.status}`
+                );
+            }
+
+            const data = await response.json();
+
+            const answer =
+                String(data?.answer || '').trim();
+
+            removeTyping(typing);
+
+            if (!answer) {
+                add(
+                    'No pude obtener una respuesta en este momento.'
+                );
+
+                if (speakResponse) {
+                    voiceState.processing = false;
+                    if (voiceState.active) {
+                        setTimeout(startListening, 500);
+                    }
+                }
+
+                return;
+            }
+
+            // La respuesta SIEMPRE aparece escrita.
+            add(esc(answer), 'bot');
+
+            // Solo habla cuando está activado el modo voz.
+            if (speakResponse && voiceState.active) {
+                setVoiceStatus('Hablando...', 'Escucha la respuesta. Después volveré a escucharte.');
+                await speak(answer);
+            }
+
+            if (speakResponse) {
+                voiceState.processing = false;
+                if (voiceState.active) {
+                    setTimeout(startListening, 250);
+                }
+            }
+        }
+        catch (error) {
+            removeTyping(typing);
+
+            console.error(
+                'Error del asistente:',
+                error
+            );
+
+            add(
+                'El asistente no pudo responder en este momento. Intenta nuevamente.'
+            );
+
+            if (speakResponse) {
+                voiceState.processing = false;
+                if (voiceState.active) {
+                    setVoiceStatus('Error temporal', 'Intentaré escucharte de nuevo.');
+                    setTimeout(startListening, 800);
+                }
+            }
+        }
+    };
+
+    // ---------------------------------------------------------
+    // ENVIAR TEXTO
+    // ---------------------------------------------------------
 
     bot.send = () => {
-        const input = document.getElementById('chatInput');
-        const v = String(input?.value || '').trim();
+        const input = getInput();
 
-        if (!v) return;
+        const text =
+            String(input?.value || '').trim();
 
-        input.value = '';
+        if (!text) return;
+
+        if (input) {
+            input.value = '';
+        }
+
         bot.toggle(true);
-        add(esc(v), 'user');
-        askAi(v);
+
+        add(esc(text), 'user');
+
+        // TEXTO = SOLO TEXTO
+        sendToAi(text, false);
     };
-    bot.voice={active:false,recognition:null,start(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){add('Este navegador no tiene reconocimiento de voz disponible.');return;}if(this.active){this.stop();return;}const r=new SR();r.lang='es-SV';r.interimResults=false;r.continuous=false;r.maxAlternatives=1;this.recognition=r;this.active=true;const b=document.getElementById('chatVoiceButton');b?.classList.add('recording');b?.setAttribute('aria-label','Detener grabación');r.onresult=e=>{const text=e.results?.[0]?.[0]?.transcript||'';document.getElementById('chatInput').value=text;this.active=false;b?.classList.remove('recording');bot.ask(text);};r.onerror=e=>{this.active=false;b?.classList.remove('recording');add(`No pude procesar el audio (${esc(e.error||'error')}). Puedes escribirlo en el campo.`);};r.onend=()=>{this.active=false;b?.classList.remove('recording');};try{r.start();add('🎙️ Te escucho…');}catch{this.active=false;b?.classList.remove('recording');}},stop(){try{this.recognition?.stop()}catch{}this.active=false;document.getElementById('chatVoiceButton')?.classList.remove('recording');}};
-    document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementById('chatVoiceButton');b?.addEventListener('click',()=>bot.voice.start());});
-    bot.__enhancedReady=true;
+
+    // ---------------------------------------------------------
+    // BOTONES DE SUGERENCIAS
+    // ---------------------------------------------------------
+
+    bot.ask = text => {
+        const value =
+            String(text || '').trim();
+
+        if (!value) return;
+
+        bot.toggle(true);
+
+        add(esc(value), 'user');
+
+        // SUGERENCIA = SOLO TEXTO
+        sendToAi(value, false);
+    };
+
+    // ---------------------------------------------------------
+    // BOTÓN DE MICRÓFONO NORMAL
+    // ---------------------------------------------------------
+
+    bot.voice = {
+        active: false,
+
+        start() {
+            // Si está activado el modo conversación,
+            // el botón controla la escucha actual.
+            if (voiceState.active) {
+                if (voiceState.listening) {
+                    stopListening();
+                }
+                else {
+                    startListening();
+                }
+
+                return;
+            }
+
+            if (!canUseSpeechRecognition()) {
+                add(
+                    'Este navegador no tiene reconocimiento de voz disponible.'
+                );
+                return;
+            }
+
+            stopListening();
+
+            const SpeechRecognition =
+                window.SpeechRecognition ||
+                window.webkitSpeechRecognition;
+
+            const recognition =
+                new SpeechRecognition();
+
+            recognition.lang = 'es-SV';
+            recognition.interimResults = false;
+            recognition.continuous = false;
+            recognition.maxAlternatives = 1;
+
+            voiceState.recognition = recognition;
+            voiceState.listening = true;
+
+            const button = getVoiceButton();
+
+            button?.classList.add('recording');
+
+            button?.setAttribute(
+                'aria-label',
+                'Detener grabación'
+            );
+
+            recognition.onresult = event => {
+                const text =
+                    event.results?.[0]?.[0]?.transcript?.trim() || '';
+
+                voiceState.listening = false;
+
+                button?.classList.remove('recording');
+
+                if (!text) return;
+
+                const input = getInput();
+
+                if (input) {
+                    input.value = text;
+                }
+
+                // MICRÓFONO NORMAL =
+                // envía el texto y responde SOLO ESCRITO.
+                bot.send();
+            };
+
+            recognition.onerror = event => {
+                voiceState.listening = false;
+                button?.classList.remove('recording');
+
+                if (
+                    event.error !== 'aborted'
+                ) {
+                    add(
+                        'No pude procesar el audio. Puedes intentarlo nuevamente.'
+                    );
+                }
+            };
+
+            recognition.onend = () => {
+                voiceState.listening = false;
+                button?.classList.remove('recording');
+            };
+
+            try {
+                recognition.start();
+            }
+            catch {
+                voiceState.listening = false;
+                button?.classList.remove('recording');
+            }
+        },
+
+        stop() {
+            stopListening();
+        }
+    };
+
+    // ---------------------------------------------------------
+    // MODO CONVERSACIÓN POR VOZ
+    // ---------------------------------------------------------
+
+    const toggleVoiceMode = () => {
+        voiceState.active = !voiceState.active;
+
+        setVoiceModeButton(
+            voiceState.active
+        );
+
+        if (!voiceState.active) {
+            voiceState.processing = false;
+            stopListening();
+            setVoiceOverlay(false);
+
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
+
+            return;
+        }
+
+        bot.toggle(true);
+        setVoiceOverlay(true);
+        setVoiceStatus('Preparando...', 'Activa el micrófono y habla normalmente.');
+
+        if (!canUseSpeechRecognition()) {
+            add(
+                'Tu navegador no permite conversación por voz.'
+            );
+
+            voiceState.active = false;
+            setVoiceModeButton(false);
+            setVoiceOverlay(false);
+            return;
+        }
+
+        if (!canUseSpeechSynthesis()) {
+            add(
+                'Tu navegador no tiene síntesis de voz disponible.'
+            );
+
+            voiceState.active = false;
+            setVoiceModeButton(false);
+            setVoiceOverlay(false);
+            return;
+        }
+
+        setTimeout(startListening, 300);
+    };
+
+    bot.stopVoiceMode = () => {
+        voiceState.active = false;
+        voiceState.processing = false;
+        stopListening();
+        setVoiceModeButton(false);
+        setVoiceOverlay(false);
+        try { window.speechSynthesis?.cancel(); } catch { }
+    };
+
+    // ---------------------------------------------------------
+    // INICIALIZACIÓN
+    // ---------------------------------------------------------
+
+    document.addEventListener(
+        'DOMContentLoaded',
+        () => {
+            const voiceButton =
+                getVoiceButton();
+
+            voiceButton?.addEventListener(
+                'click',
+                () => bot.voice.start()
+            );
+
+            const voiceModeButton =
+                getVoiceModeButton();
+
+            voiceModeButton?.addEventListener(
+                'click',
+                toggleVoiceMode
+            );
+
+            document.getElementById('chatVoiceModeClose')?.addEventListener(
+                'click',
+                () => bot.stopVoiceMode()
+            );
+
+            setVoiceModeButton(false);
+        }
+    );
+
+    bot.__enhancedReady = true;
 })();

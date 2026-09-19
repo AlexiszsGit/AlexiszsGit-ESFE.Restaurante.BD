@@ -15,7 +15,7 @@
         const selectedDate = date?.value || ESFERestaurante.localDate(nowSafe());
         const selectedTime = time?.value || "19:00";
         const previous = table.value;
-        table.innerHTML = ESFERestaurante.tables.map(item => { const busy=reservations.some(r=>r.tableId===item.id&&r.date===selectedDate&&r.time===selectedTime&&r.status==="Confirmada"); return `<option value="${item.id}" ${busy?"disabled":""}>Mesa ${String(item.id).padStart(2,"0")} · ${item.seats} personas · ${item.zone}${busy?" · OCUPADA":""}</option>`; }).join("");
+        table.innerHTML = ESFERestaurante.tables.map(item => { const busy=reservations.some(r=>r.tableId===item.id&&r.date===selectedDate&&r.time===selectedTime&&(r.status==="Confirmada"||r.status==="Atendida")); return `<option value="${item.id}" ${busy?"disabled":""}>Mesa ${String(item.id).padStart(2,"0")} · ${item.seats} personas · ${item.zone}${busy?" · OCUPADA":""}</option>`; }).join("");
         if (previous && table.querySelector(`option[value="${previous}"]:not([disabled])`)) table.value=previous;
         date?.removeEventListener("change", syncWalkInFields);
         time?.removeEventListener("change", syncWalkInFields);
@@ -53,7 +53,7 @@
 
         const isOpen = ESFERestaurante.reservas.inOpeningHours(time);
         const reservations = JSON.parse(localStorage.getItem(ESFERestaurante.KEY.reservations) || "[]");
-        const conflict = isOpen && reservations.some(reservation => reservation.tableId === table.id && reservation.date === date && reservation.time === time && reservation.status === "Confirmada");
+        const conflict = isOpen && reservations.some(reservation => reservation.tableId === table.id && reservation.date === date && reservation.time === time && (reservation.status === "Confirmada" || reservation.status === "Atendida"));
         if (conflict) {
             ESFERestaurante.ui.mostrarToast("Esa mesa ya está ocupada para ese horario.", "error");
             return;

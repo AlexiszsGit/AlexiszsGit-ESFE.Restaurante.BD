@@ -40,7 +40,16 @@
         {
             <article class="customer-card">
                 <div class="customer-card-head">
-                    <div class="profile-avatar customer-avatar">@customer.Nombre.FirstOrDefault().ToString().ToUpperInvariant()</div>
+                    <div class="profile-avatar customer-avatar">
+                        @if (!string.IsNullOrWhiteSpace(customer.ProfilePhotoData))
+                        {
+                            <img src="@customer.ProfilePhotoData" alt="Foto de perfil de @customer.Nombre" loading="lazy" />
+                        }
+                        else
+                        {
+                            <span>@customer.Nombre.FirstOrDefault().ToString().ToUpperInvariant()</span>
+                        }
+                    </div>
                     <div>
                         <span class="status-pill success">Cliente</span>
                         <h3>@customer.Nombre</h3>

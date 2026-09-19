@@ -1,0 +1,23 @@
+ESFE RestauranteBD - SQL Heart
+
+1) Abrir SQL Server Management Studio y seleccionar:
+   db_ace55a_orellana2026001
+
+2) Ejecutar:
+   ESFE_SQL_HEART_REPARACION_20260919.sql
+
+3) Ejecutar despues:
+   ESFE_SQL_HEART_VERIFICACION_CORREGIDA_20260919.sql
+
+No ejecutar el archivo basededatos.sql completo para reemplazar la BD remota.
+La migracion es idempotente y solo alinea la estructura existente.
+
+Debe quedar:
+- MasterKey = 1
+- Certificate = 1
+- SymmetricKey = 1
+- EncryptionWorks = 1
+- EmployeeUpdatedAt = 1
+- PaidAtNullable = 1
+- Clientes con empleado activo = 0
+- Trabajadores sin perfil empleado = 0

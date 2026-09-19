@@ -19,7 +19,8 @@ public class NotificacionesController1Controller : Controller
                 {
                     u.Nombre,
                     u.Email,
-                    u.Rol
+                    u.Rol,
+                    u.ProfilePhotoData
                 })
                 .OrderBy(u => u.Rol)
                 .ThenBy(u => u.Nombre)

@@ -62,15 +62,24 @@ public static class RoleStore
 
     public static IReadOnlyCollection<RoleDefinition> All()
     {
-        try
+        if (RestaurantDb.IsConfigured)
         {
-            var db = RestaurantDb.GetRoles();
-            if (db.Count > 0)
+            try
             {
+                var db = RestaurantDb.GetRoles();
+                Roles.Clear();
                 foreach (var d in db) Roles[d.Name] = Canonicalize(d);
+                return Roles.Values
+                    .OrderBy(x => IsAdministrator(x.Name) ? 0 : 1)
+                    .ThenBy(x => x.Name)
+                    .Select(Clone)
+                    .ToArray();
+            }
+            catch
+            {
+                return Array.Empty<RoleDefinition>();
             }
         }
-        catch { }
 
         return Roles.Values
             .OrderBy(x => IsAdministrator(x.Name) ? 0 : 1)
@@ -83,17 +92,21 @@ public static class RoleStore
     {
         if(string.IsNullOrWhiteSpace(role))return null;
         var key=role.Trim();
-        try
+        if (RestaurantDb.IsConfigured)
         {
-            var db=RestaurantDb.GetRoles().FirstOrDefault(x=>x.Name.Equals(key,StringComparison.OrdinalIgnoreCase));
-            if(db is not null)
+            try
             {
-                db = Canonicalize(db);
-                Roles[key]=db;
-                return Clone(db);
+                var db=RestaurantDb.GetRoles().FirstOrDefault(x=>x.Name.Equals(key,StringComparison.OrdinalIgnoreCase));
+                if(db is not null)
+                {
+                    db = Canonicalize(db);
+                    Roles[key]=db;
+                    return Clone(db);
+                }
             }
+            catch { }
+            return null;
         }
-        catch{}
         return Roles.TryGetValue(key,out var def)?Clone(Canonicalize(def)):null;
     }
     public static bool IsKnown(string? role)=>Get(role) is not null;
@@ -135,10 +148,11 @@ public static class RoleStore
 
     private static void LoadCustomRoles()
     {
+        if (RestaurantDb.IsConfigured) return;
         try{if(!File.Exists(LocalFile))return;var roles=JsonSerializer.Deserialize<List<RoleDefinition>>(File.ReadAllText(LocalFile))??[];foreach(var role in roles){if(string.IsNullOrWhiteSpace(role.Name)||IsAdministrator(role.Name))continue;var perms=role.Permissions.Where(PermissionLabels.ContainsKey).Distinct(StringComparer.OrdinalIgnoreCase).ToList();if(!perms.Contains(Dashboard,StringComparer.OrdinalIgnoreCase))perms.Insert(0,Dashboard);if(!perms.Contains(Profile,StringComparer.OrdinalIgnoreCase))perms.Add(Profile);Roles[role.Name]=new RoleDefinition{Name=role.Name,DisplayName=string.IsNullOrWhiteSpace(role.DisplayName)?role.Name:role.DisplayName,Permissions=perms};}}catch{}
     }
 
-    private static void SaveCustomRoles(){try{lock(FileLock){var custom=Roles.Values.Where(x=>!IsBaseRole(x.Name)).Select(Clone).OrderBy(x=>x.Name).ToList();File.WriteAllText(LocalFile,JsonSerializer.Serialize(custom,new JsonSerializerOptions{WriteIndented=true}));}}catch{}}
+    private static void SaveCustomRoles(){ if(RestaurantDb.IsConfigured) return; try{lock(FileLock){var custom=Roles.Values.Where(x=>!IsBaseRole(x.Name)).Select(Clone).OrderBy(x=>x.Name).ToList();File.WriteAllText(LocalFile,JsonSerializer.Serialize(custom,new JsonSerializerOptions{WriteIndented=true}));}}catch{}}
     private static bool IsBaseRole(string name)=>new[]{"Administrador","Dueno","Gerente","Cajero","Inventario","Cocina","Barra","Delivery","Mesero","Cliente"}.Contains(name,StringComparer.OrdinalIgnoreCase);
     private static RoleDefinition Clone(RoleDefinition source)=>new(){Name=source.Name,DisplayName=source.DisplayName,Permissions=source.Permissions.Distinct(StringComparer.OrdinalIgnoreCase).ToList()};
 }

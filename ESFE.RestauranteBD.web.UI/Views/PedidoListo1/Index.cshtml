@@ -1,14 +1,17 @@
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Entregas";
+    var rol = Context.Session.GetString("RolUsuario") ?? "";
+    var esDelivery = string.Equals(rol, "Delivery", StringComparison.OrdinalIgnoreCase);
+    var esBarra = string.Equals(rol, "Barra", StringComparison.OrdinalIgnoreCase);
 }
 
 <section class="page-shell">
     <div class="page-head">
         <div>
-            <span class="eyebrow">Entrega</span>
-            <h2>Pedidos listos</h2>
-            <p>Busca por nombre, correo, ID del pedido, teléfono o DUI y entrega sin perderte entre las órdenes.</p>
+            <span class="eyebrow">@(esDelivery ? "Delivery" : esBarra ? "Recogida en restaurante" : "Entrega")</span>
+            <h2>@(esDelivery ? "Domicilios pendientes" : esBarra ? "Pedidos para recoger" : "Pedidos listos")</h2>
+            <p>@(esDelivery ? "Solo aparecen pedidos marcados como Domicilio. Confirma el cobro cuando corresponda y registra la entrega al cliente." : esBarra ? "Aquí aparecen los pedidos para recoger en el restaurante. Barra puede confirmar efectivo y registrar que el cliente ya recogió su pedido." : "Consulta pedidos listos y registra su entrega según el tipo de pedido.")</p>
         </div>
         <span id="readyCounter" class="result-count">0 disponibles</span>
     </div>
@@ -17,7 +20,7 @@
         <div class="toolbar-row ready-toolbar">
             <div class="search-box small ready-search">
                 <span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-                <input id="readySearch" placeholder="Nombre, correo, ID, teléfono o DUI..." autocomplete="off" />
+                <input id="readySearch" placeholder="Nombre, correo, ID, teléfono..." autocomplete="off" />
             </div>
             <button class="secondary-btn" type="button" onclick="ESFERestaurante.ready.clearSearch()">Limpiar</button>
         </div>

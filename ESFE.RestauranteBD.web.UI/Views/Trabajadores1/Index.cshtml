@@ -7,7 +7,8 @@
     var clients = ViewBag.Clients as IReadOnlyCollection<UserAccount> ?? Array.Empty<UserAccount>();
     var roles = ViewBag.Roles as IReadOnlyCollection<RoleDefinition> ?? Array.Empty<RoleDefinition>();
     var labels = ViewBag.PermissionLabels as IReadOnlyDictionary<string,string> ?? RoleStore.PermissionLabels;
-    string RoleLabel(string role) => RoleStore.DisplayName(role);
+    var roleLabels = roles.ToDictionary(x => x.Name, x => x.DisplayName, StringComparer.OrdinalIgnoreCase);
+    string RoleLabel(string role) => RoleStore.IsAdministrator(role) ? "Administrador" : (roleLabels.TryGetValue(role, out var label) ? label : role);
     var permissionGroups = new[]
     {
         new { Title = "Operación", Items = new[] { RoleStore.Dashboard, RoleStore.Menu, RoleStore.Orders, RoleStore.Kitchen, RoleStore.Delivery, RoleStore.LocalOrders } },
@@ -17,8 +18,8 @@
 }
 <section class="page-shell">
     <div class="page-head"><div><span class="eyebrow">Administración de personal</span><h2>Trabajadores, roles y permisos</h2><p>Los roles se crean una sola vez y quedan disponibles automáticamente para asignarlos a nuevos empleados.</p></div><span class="result-count">@Model.Count trabajadores · @roles.Count roles</span></div>
-    @if (ViewBag.WorkerError != null) { <div class="alert-error">@ViewBag.WorkerError</div> }
-    @if (ViewBag.WorkerSuccess != null) { <div class="alert-success">@ViewBag.WorkerSuccess</div> }
+    @if (TempData["WorkerError"] is string workerError && !string.IsNullOrWhiteSpace(workerError)) { <div class="alert-error" role="alert">@workerError</div> }
+    @if (TempData["WorkerSuccess"] is string workerSuccess && !string.IsNullOrWhiteSpace(workerSuccess)) { <div class="alert-success" role="status">@workerSuccess</div> }
     <div class="worker-admin-grid">
         <section class="panel">
             <div class="panel-head"><div><span class="eyebrow">Personal actual</span><h3>Todos los trabajadores</h3></div><span class="result-count">@Model.Count registrados</span></div>
@@ -27,7 +28,16 @@
                 @foreach (var worker in Model)
                 {
                     <article class="worker-card" data-search="@($"{worker.Nombre} {worker.Email} {worker.Dui} {worker.Telefono} {RoleLabel(worker.Rol)}")">
-                        <div class="avatar">@worker.Nombre.FirstOrDefault().ToString().ToUpperInvariant()</div>
+                        <div class="avatar">
+                            @if (!string.IsNullOrWhiteSpace(worker.ProfilePhotoData))
+                            {
+                                <img src="@worker.ProfilePhotoData" alt="Foto de perfil de @worker.Nombre" loading="lazy" />
+                            }
+                            else
+                            {
+                                <span>@worker.Nombre.FirstOrDefault().ToString().ToUpperInvariant()</span>
+                            }
+                        </div>
                         <div class="worker-main"><div class="worker-name-line"><strong>@worker.Nombre</strong><span class="status-pill @(worker.Activo ? "success" : "warning")">@(worker.Activo ? "Activo" : "Inactivo")</span></div><small>@worker.Email</small><small>Teléfono: @worker.Telefono · DUI: @worker.Dui</small><small>@RoleLabel(worker.Rol)</small></div>
                         <div class="worker-role"><span class="role-badge role-@worker.Rol.ToLowerInvariant()">@RoleLabel(worker.Rol)</span></div>
                         @if (!RoleStore.IsAdministrator(worker.Rol))

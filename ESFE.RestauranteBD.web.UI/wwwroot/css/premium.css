@@ -1,4 +1,4 @@
-:root{
+﻿:root{
  --rb-black:#151617;--rb-white:#fff;--rb-paper:#f7f5f0;--rb-paper2:#f0ede6;--rb-text:#1b1d20;--rb-text2:#474c52;--rb-muted:#747a81;
  --rb-line:#e0dcd4;--rb-gold:#b9934d;--rb-gold2:#cfb477;--rb-gold-soft:#f4ecda;--rb-green:#3f7958;--rb-red:#a55353;
  --rb-shadow:0 10px 28px rgba(25,23,19,.05);--rb-shadow2:0 18px 48px rgba(25,23,19,.075)
@@ -746,4 +746,65 @@ body.welcome-active #loginWelcomeHero { visibility:visible !important; }
     .kanban { grid-template-columns: 1fr !important; overflow-x: visible !important; }
     .kanban-col { min-width: 0 !important; }
     .kitchen-card .kds-meta { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+}
+
+
+/* Ajustes finales: minimalismo, contraste y botones sin desbordes. */
+.primary-btn,
+.secondary-btn,
+.danger-btn,
+.icon-btn,
+.filter-clear,
+.chat-suggestions button,
+.chat-voice-btn,
+.chat-voice-mode-btn,
+.chat-input > button {
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+.primary-btn,
+.secondary-btn,
+.danger-btn {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.25;
+}
+
+.chatbot .chat-bubble.bot {
+    color: #1f2937 !important;
+    background: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+}
+
+.chatbot .chat-bubble.user {
+    color: #ffffff !important;
+}
+
+.chatbot .chat-input input,
+.chatbot .chat-input input::placeholder {
+    color: #334155;
+}
+
+.chatbot .chat-suggestions button {
+    min-height: 40px;
+    line-height: 1.25;
+    white-space: normal;
+}
+
+.chat-voice-overlay {
+    z-index: 1400;
+}
+
+@media (max-width: 700px) {
+    .primary-btn.large,
+    .secondary-btn.large,
+    .danger-btn.large {
+        width: 100%;
+    }
+
+    .modal-actions {
+        flex-wrap: wrap;
+    }
 }

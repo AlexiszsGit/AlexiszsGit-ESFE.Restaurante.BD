@@ -3,20 +3,6 @@
 
     const base = ESFERestaurante.payment;
     const digit = value => String(value || "").replace(/\D/g, "");
-    const luhn = number => {
-        let sum = 0;
-        let doubleDigit = false;
-        for (let index = number.length - 1; index >= 0; index -= 1) {
-            let current = Number(number[index]);
-            if (doubleDigit) {
-                current *= 2;
-                if (current > 9) current -= 9;
-            }
-            sum += current;
-            doubleDigit = !doubleDigit;
-        }
-        return sum % 10 === 0;
-    };
 
     const brand = number => {
         if (/^4/.test(number)) return "VISA";
@@ -32,7 +18,7 @@
         const cvvInput = document.getElementById("cardCvv");
         if (!numberInput || !nameInput || !expiryInput) return;
 
-        const digits = digit(numberInput.value).slice(0, 19);
+        const digits = digit(numberInput.value).slice(0, 23);
         numberInput.value = digits.replace(/(.{4})/g, "$1 ").trim();
 
         const previewNumber = document.getElementById("cardPreviewNumber");
@@ -100,7 +86,7 @@
                     <strong>Pago con tarjeta</strong>
                     <p>La tarjeta se visualiza en tiempo real. Es una simulación local: no se realiza ningún cargo.</p>
                 </div>
-                <div class="payment-security-line"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Validación local de formato, vencimiento y Luhn.</div>
+                <div class="payment-security-line"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Simulación: se acepta cualquier número de tarjeta; no se realiza ningún cargo real.</div>
 
                 <label class="field-label payment-field-wide">
                     Nombre del titular
@@ -127,7 +113,7 @@
         document.getElementById("cardName")?.addEventListener("input", updateCard);
         document.getElementById("cardNumber")?.addEventListener("input", updateCard);
         document.getElementById("cardExpiry")?.addEventListener("input", event => {
-            let value = digit(event.target.value).slice(0, 4);
+            let value = digit(event.target.value).slice(0, 8);
             if (value.length > 2) value = `${value.slice(0, 2)}/${value.slice(2)}`;
             event.target.value = value;
             updateCard();

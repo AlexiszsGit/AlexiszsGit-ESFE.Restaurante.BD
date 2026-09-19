@@ -25,6 +25,20 @@ public sealed class RestaurantApiController : ControllerBase
     [HttpGet("system/status")]
     public IActionResult Status() => Ok(new { configured = RestaurantDb.IsConfigured });
 
+    [HttpGet("database/health")]
+    public IActionResult DatabaseHealth()
+    {
+        try
+        {
+            var health = RestaurantDb.GetHealth();
+            return Ok(health);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(503, new { connected = false, error = ex.Message });
+        }
+    }
+
     [HttpGet("chat/status")]
     public IActionResult ChatStatus()
     {

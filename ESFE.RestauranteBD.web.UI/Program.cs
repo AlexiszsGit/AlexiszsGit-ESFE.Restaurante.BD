@@ -41,7 +41,10 @@ app.Use(async (context, next) =>
                    || path.StartsWith("/favicon", StringComparison.OrdinalIgnoreCase)
                    || path.StartsWith("/css", StringComparison.OrdinalIgnoreCase)
                    || path.StartsWith("/js", StringComparison.OrdinalIgnoreCase)
-                   || path.StartsWith("/images", StringComparison.OrdinalIgnoreCase);
+                   || path.StartsWith("/images", StringComparison.OrdinalIgnoreCase)
+                   || path.Equals("/api/chat/ask", StringComparison.OrdinalIgnoreCase)
+                   || path.Equals("/api/chat/status", StringComparison.OrdinalIgnoreCase)
+                   || path.Equals("/api/database/health", StringComparison.OrdinalIgnoreCase);
 
     var loggedEmail = context.Session.GetString("UsuarioLogueado");
     if (!isPublic && string.IsNullOrWhiteSpace(loggedEmail))
@@ -73,7 +76,15 @@ app.Use(async (context, next) =>
 
 app.Use(async (context, next) =>
 {
+    if (context.Request.Path.Equals("/api/chat/ask", StringComparison.OrdinalIgnoreCase)
+        || context.Request.Path.Equals("/api/chat/status", StringComparison.OrdinalIgnoreCase))
+    {
+        await next();
+        return;
+    }
+
     var controller = context.Request.RouteValues["controller"]?.ToString() ?? string.Empty;
+
     if (controller.Equals("IniciarSesion1", StringComparison.OrdinalIgnoreCase)
         || controller.Equals("GestionDeMenu1", StringComparison.OrdinalIgnoreCase)
         || controller.Equals("MenuDigital1", StringComparison.OrdinalIgnoreCase))
@@ -116,7 +127,7 @@ static string[] ControllersForRole(string role)
     if (RoleStore.CanAccess(role, RoleStore.Menu)) controllers.Add("GestionDeMenu1");
     if (RoleStore.CanAccess(role, RoleStore.Orders)) controllers.Add("GestionDePedidos1");
     if (RoleStore.CanAccess(role, RoleStore.Kitchen)) controllers.Add("PantallaDeCocina1");
-    if (RoleStore.CanAccess(role, RoleStore.Delivery)) controllers.Add("PedidoListo1");
+    if (RoleStore.CanAccess(role, RoleStore.Delivery) || RoleStore.CanAccess(role, RoleStore.LocalOrders)) controllers.Add("PedidoListo1");
     if (RoleStore.CanAccess(role, RoleStore.Reservations)) controllers.Add("ReservarMesas1");
     if (RoleStore.CanAccess(role, RoleStore.Customers)) controllers.Add("Clientes1");
     if (RoleStore.CanAccess(role, RoleStore.Notifications)) controllers.Add("NotificacionesController1");

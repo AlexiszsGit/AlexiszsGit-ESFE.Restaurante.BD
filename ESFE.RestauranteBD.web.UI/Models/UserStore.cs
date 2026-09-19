@@ -19,7 +19,11 @@ public sealed class UserAccount
     public int PasswordIterations { get; set; } = 120_000;
     public int PasswordKeyBytes { get; set; } = 32;
     public bool PasswordNeedsChange { get; set; }
+    // URL de la foto almacenada en MediaAssets; no guarda Base64 en memoria ni en JSON local.
+    public long? ProfilePhotoMediaAssetId { get; set; }
     public string ProfilePhotoData { get; set; } = string.Empty;
+    public int FailedLoginCount { get; set; }
+    public DateTime? LockedUntil { get; set; }
     public bool Activo { get; set; } = true;
     public DateTime CreadoEn { get; set; } = DateTime.UtcNow;
 }
@@ -44,33 +48,46 @@ public static class UserStore
             try
             {
                 var dbUsers = RestaurantDb.GetAccounts();
+                Users.Clear();
                 foreach (var dbUser in dbUsers)
                 {
-                    if (!string.IsNullOrWhiteSpace(dbUser.Email)) Users[NormalizeEmail(dbUser.Email)] = dbUser;
+                    if (!string.IsNullOrWhiteSpace(dbUser.Email))
+                        Users[NormalizeEmail(dbUser.Email)] = dbUser;
                 }
+                return dbUsers.OrderBy(x => x.Nombre).ToArray();
             }
-            catch { }
+            catch
+            {
+                // Cuando SQL está configurado, no devolvemos usuarios locales
+                // antiguos como si fueran la fuente de verdad.
+                return Users.Values.Where(x => x.AccountId > 0).OrderBy(x => x.Nombre).ToArray();
+            }
         }
         return Users.Values.OrderBy(x => x.Nombre).ToArray();
     }
 
-    public static bool TryGet(string email, out UserAccount? user)
+    public static bool TryGet(string email, out UserAccount? user, bool includeInactive = false)
     {
         var normalized = NormalizeEmail(email);
         if (RestaurantDb.IsConfigured)
         {
             try
             {
-                var dbUser = RestaurantDb.GetAccount(normalized);
+                var dbUser = RestaurantDb.GetAccount(normalized, includeInactive);
                 if (dbUser is not null)
                 {
-                    if (Users.TryGetValue(normalized, out var local) && !string.IsNullOrWhiteSpace(local.ProfilePhotoData)) dbUser.ProfilePhotoData = local.ProfilePhotoData;
                     Users[normalized] = dbUser;
                     user = dbUser;
                     return true;
                 }
+                user = null;
+                return false;
             }
-            catch { }
+            catch
+            {
+                user = null;
+                return false;
+            }
         }
         return Users.TryGetValue(normalized, out user);
     }
@@ -107,6 +124,7 @@ public static class UserStore
 
     private static void LoadLocalUsers()
     {
+        if (RestaurantDb.IsConfigured) return;
         try
         {
             if (!File.Exists(LocalFile)) return;
@@ -125,6 +143,7 @@ public static class UserStore
 
     private static void SaveLocalUsers()
     {
+        if (RestaurantDb.IsConfigured) return;
         try
         {
             lock (FileLock)
@@ -151,31 +170,124 @@ public static class UserStore
     public static bool ChangePassword(UserAccount user, string password)
     {
         if (string.IsNullOrWhiteSpace(password)) return false;
+
+        if (RestaurantDb.IsConfigured)
+        {
+            try
+            {
+                if (user.AccountId <= 0)
+                {
+                    var db = RestaurantDb.GetAccount(user.Email, true);
+                    if (db is null) return false;
+                    user.AccountId = db.AccountId;
+                }
+
+                if (!RestaurantDb.ChangePassword(user.AccountId, password)) return false;
+                var refreshed = RestaurantDb.GetAccount(user.Email, true);
+                if (refreshed is null) return false;
+
+                user.PasswordHash = refreshed.PasswordHash;
+                user.PasswordSalt = refreshed.PasswordSalt;
+                user.PasswordIterations = refreshed.PasswordIterations;
+                user.PasswordKeyBytes = refreshed.PasswordKeyBytes;
+                user.PasswordNeedsChange = refreshed.PasswordNeedsChange;
+                user.FailedLoginCount = refreshed.FailedLoginCount;
+                user.LockedUntil = refreshed.LockedUntil;
+                Users[NormalizeEmail(user.Email)] = user;
+                return true;
+            }
+            catch { return false; }
+        }
+
         var salt = RandomNumberGenerator.GetBytes(16);
         var hash = Rfc2898DeriveBytes.Pbkdf2(password, salt, 120_000, HashAlgorithmName.SHA256, 32);
         user.PasswordHash = Convert.ToBase64String(hash);
         user.PasswordSalt = Convert.ToBase64String(salt);
-        user.PasswordIterations=120_000; user.PasswordKeyBytes=32; user.PasswordNeedsChange=false;
+        user.PasswordIterations = 120_000;
+        user.PasswordKeyBytes = 32;
+        user.PasswordNeedsChange = false;
+        Users[NormalizeEmail(user.Email)] = user;
+        SaveLocalUsers();
+        return true;
+    }
+
+    public static bool ChangeRole(UserAccount user, string role, bool? active = null)
+    {
+        if (user is null || user.AccountId <= 0 || string.IsNullOrWhiteSpace(role)) return false;
+        role = role.Trim();
+
         if (RestaurantDb.IsConfigured)
         {
-            try { if (user.AccountId <= 0) { var db=RestaurantDb.GetAccount(user.Email); if(db is not null)user.AccountId=db.AccountId; } if(user.AccountId<=0 || !RestaurantDb.ChangePassword(user.AccountId,password)) return false; }
+            try
+            {
+                if (!RestaurantDb.UpdateAccountRole(user.AccountId, role, active)) return false;
+            }
             catch { return false; }
         }
-        Users[NormalizeEmail(user.Email)] = user; SaveLocalUsers(); return true;
+
+        user.Rol = role;
+        if (active.HasValue) user.Activo = active.Value;
+        Users[NormalizeEmail(user.Email)] = user;
+        SaveLocalUsers();
+        return true;
+    }
+
+    public static bool PromoteToWorker(UserAccount user, string role, string password)
+    {
+        if (user is null || user.AccountId <= 0 || string.IsNullOrWhiteSpace(role) || string.IsNullOrWhiteSpace(password)) return false;
+
+        if (RestaurantDb.IsConfigured)
+        {
+            try
+            {
+                if (!RestaurantDb.PromoteAccountToWorker(user.AccountId, role, password)) return false;
+                var refreshed = RestaurantDb.GetAccount(user.Email, true);
+                if (refreshed is null) return false;
+                Users[NormalizeEmail(user.Email)] = refreshed;
+                user.Rol = refreshed.Rol;
+                user.Activo = refreshed.Activo;
+                user.PasswordHash = refreshed.PasswordHash;
+                user.PasswordSalt = refreshed.PasswordSalt;
+                user.PasswordIterations = refreshed.PasswordIterations;
+                user.PasswordKeyBytes = refreshed.PasswordKeyBytes;
+                user.PasswordNeedsChange = refreshed.PasswordNeedsChange;
+                return true;
+            }
+            catch { return false; }
+        }
+
+        user.Rol = role.Trim();
+        return ChangePassword(user, password);
     }
 
     public static bool Authenticate(string email, string password, out UserAccount? user)
     {
         user = null;
         if (!TryGet(email, out var candidate) || candidate is null || !candidate.Activo) return false;
+        if (candidate.LockedUntil.HasValue && candidate.LockedUntil.Value > DateTime.UtcNow) return false;
+
         try
         {
             var salt = Convert.FromBase64String(candidate.PasswordSalt);
             var expected = Convert.FromBase64String(candidate.PasswordHash);
             var iterations = candidate.PasswordIterations > 0 ? candidate.PasswordIterations : 120_000;
             var actual = Rfc2898DeriveBytes.Pbkdf2(password ?? string.Empty, salt, iterations, HashAlgorithmName.SHA256, expected.Length);
-            if (!CryptographicOperations.FixedTimeEquals(actual, expected)) return false;
-            user = candidate; return true;
+            if (!CryptographicOperations.FixedTimeEquals(actual, expected))
+            {
+                if (RestaurantDb.IsConfigured && candidate.AccountId > 0)
+                {
+                    try { RestaurantDb.RecordLoginFailure(candidate.AccountId); } catch { }
+                }
+                return false;
+            }
+
+            if (RestaurantDb.IsConfigured && candidate.AccountId > 0)
+            {
+                try { RestaurantDb.RecordLoginSuccess(candidate.AccountId); } catch { }
+            }
+
+            user = candidate;
+            return true;
         }
         catch { return false; }
     }
