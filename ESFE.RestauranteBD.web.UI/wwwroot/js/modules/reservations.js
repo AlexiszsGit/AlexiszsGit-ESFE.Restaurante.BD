@@ -66,7 +66,7 @@
             return;
         }
 
-        // Estado compartido del módulo: reservation.
+        // Guarda los datos de la reserva que se está editando.
         const reservation = {
             id: `RES-P-${Date.now().toString(36).toUpperCase()}`,
             customer: document.body.dataset.user || "presencial@restaurante.local",

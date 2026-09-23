@@ -1,0 +1,314 @@
+/* Último ajuste para que ninguna pantalla se quede con fondos claros al usar oscuro. */
+html[data-theme="dark"] body.app-body,
+html[data-theme="dark"] body.login-body,
+html[data-theme="dark"] body.auth-page {
+    background: #0d131b !important;
+    color: #edf2f7 !important;
+}
+
+html[data-theme="dark"] .app-sidebar,
+html[data-theme="dark"] .topbar,
+html[data-theme="dark"] .side-status,
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .stat-card,
+html[data-theme="dark"] .hero-panel,
+html[data-theme="dark"] .quick-card,
+html[data-theme="dark"] .category-card,
+html[data-theme="dark"] .product-card,
+html[data-theme="dark"] .order-card,
+html[data-theme="dark"] .kitchen-card,
+html[data-theme="dark"] .customer-card,
+html[data-theme="dark"] .worker-card,
+html[data-theme="dark"] .role-definition-card,
+html[data-theme="dark"] .reservation-form-panel,
+html[data-theme="dark"] .order-summary,
+html[data-theme="dark"] .admin-category-panel,
+html[data-theme="dark"] .selected-table-box,
+html[data-theme="dark"] .manual-payment-order,
+html[data-theme="dark"] .data-table-wrap,
+html[data-theme="dark"] .table-responsive,
+html[data-theme="dark"] .table-container,
+html[data-theme="dark"] .profile-context-menu,
+html[data-theme="dark"] .mail-app-shell,
+html[data-theme="dark"] .mail-main-area,
+html[data-theme="dark"] .mail-sidebar,
+html[data-theme="dark"] .mail-list,
+html[data-theme="dark"] .mail-detail,
+html[data-theme="dark"] .mail-section,
+html[data-theme="dark"] .gmail-center,
+html[data-theme="dark"] .notification-toolbar,
+html[data-theme="dark"] .notification-detail-dialog,
+html[data-theme="dark"] .notification-row.read,
+html[data-theme="dark"] .notification-head-stat,
+html[data-theme="dark"] .assistant-list-row,
+html[data-theme="dark"] .profile-data div,
+html[data-theme="dark"] .settings-nav-panel,
+html[data-theme="dark"] .settings-section-card,
+html[data-theme="dark"] .settings-language-tile,
+html[data-theme="dark"] .currency-tile,
+html[data-theme="dark"] .settings-theme-option {
+    background: #151d28 !important;
+    color: #edf2f7 !important;
+    border-color: #2c3746 !important;
+}
+
+html[data-theme="dark"] .page-shell,
+html[data-theme="dark"] .page-content,
+html[data-theme="dark"] .dashboard-grid,
+html[data-theme="dark"] .orders-grid,
+html[data-theme="dark"] .category-grid,
+html[data-theme="dark"] .product-grid,
+html[data-theme="dark"] .mail-list,
+html[data-theme="dark"] .mail-detail,
+html[data-theme="dark"] .notification-panel,
+html[data-theme="dark"] .notification-list {
+    color: #edf2f7 !important;
+}
+
+html[data-theme="dark"] .search-box,
+html[data-theme="dark"] .menu-search-panel,
+html[data-theme="dark"] .filter-field,
+html[data-theme="dark"] .settings-inline-search,
+html[data-theme="dark"] .mail-search,
+html[data-theme="dark"] .customer-search-panel,
+html[data-theme="dark"] .customer-search-input {
+    background: #101821 !important;
+    color: #edf2f7 !important;
+    border-color: #334152 !important;
+}
+
+html[data-theme="dark"] .search-box input,
+html[data-theme="dark"] .settings-inline-search input,
+html[data-theme="dark"] .mail-search input,
+html[data-theme="dark"] .customer-search-input input,
+html[data-theme="dark"] .filter-field input,
+html[data-theme="dark"] .filter-field select,
+html[data-theme="dark"] .field-label input,
+html[data-theme="dark"] .field-label select,
+html[data-theme="dark"] .field-label textarea,
+html[data-theme="dark"] .compose-field input,
+html[data-theme="dark"] .compose-field select,
+html[data-theme="dark"] .compose-field textarea,
+html[data-theme="dark"] .payment-fields input,
+html[data-theme="dark"] .payment-fields select {
+    background: #101821 !important;
+    color: #edf2f7 !important;
+    border-color: #344252 !important;
+}
+
+html[data-theme="dark"] .search-box input::placeholder,
+html[data-theme="dark"] .settings-inline-search input::placeholder,
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+    color: #7f8b9a !important;
+}
+
+html[data-theme="dark"] .mail-row,
+html[data-theme="dark"] .notification-row,
+html[data-theme="dark"] .notification-item,
+html[data-theme="dark"] .local-order-line,
+html[data-theme="dark"] .local-menu-item,
+html[data-theme="dark"] .mail-sidebar a,
+html[data-theme="dark"] .mail-nav-item,
+html[data-theme="dark"] .assistant-list-row {
+    background: #151d28 !important;
+    color: #edf2f7 !important;
+    border-color: #2c3746 !important;
+}
+
+html[data-theme="dark"] .mail-row:hover,
+html[data-theme="dark"] .notification-row:hover,
+html[data-theme="dark"] .notification-item:hover,
+html[data-theme="dark"] .mail-sidebar a:hover,
+html[data-theme="dark"] .mail-sidebar a.active,
+html[data-theme="dark"] .mail-nav-item:hover,
+html[data-theme="dark"] .mail-nav-item.active {
+    background: #1c2735 !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .mail-toolbar,
+html[data-theme="dark"] .mail-header,
+html[data-theme="dark"] .gmail-reader-toolbar,
+html[data-theme="dark"] .gmail-reader-body,
+html[data-theme="dark"] .gmail-compose-body,
+html[data-theme="dark"] .compose-dialog,
+html[data-theme="dark"] .compose-head,
+html[data-theme="dark"] .compose-footer,
+html[data-theme="dark"] .notification-header,
+html[data-theme="dark"] .notification-footer,
+html[data-theme="dark"] .notification-selection-toolbar {
+    background: #151d28 !important;
+    color: #edf2f7 !important;
+    border-color: #2c3746 !important;
+}
+
+html[data-theme="dark"] .modal-card,
+html[data-theme="dark"] .category-modal,
+html[data-theme="dark"] .product-modal,
+html[data-theme="dark"] .form-modal,
+html[data-theme="dark"] .order-modal,
+html[data-theme="dark"] .payment-modal,
+html[data-theme="dark"] .modal-panel,
+html[data-theme="dark"] .dialog-card,
+html[data-theme="dark"] .notification-detail-dialog {
+    background: #141c27 !important;
+    color: #edf2f7 !important;
+    border-color: #2e3a4a !important;
+}
+
+html[data-theme="dark"] .product-image,
+html[data-theme="dark"] .image-preview-card,
+html[data-theme="dark"] .local-menu-browser,
+html[data-theme="dark"] .local-order-summary-pro,
+html[data-theme="dark"] .local-payment-method-card,
+html[data-theme="dark"] .local-payment-confirm,
+html[data-theme="dark"] .payment-main-panel,
+html[data-theme="dark"] .payment-items,
+html[data-theme="dark"] .premium-order-summary,
+html[data-theme="dark"] .manual-payment-list,
+html[data-theme="dark"] .card-stage,
+html[data-theme="dark"] .staff-flow,
+html[data-theme="dark"] .payment-staff-grid,
+html[data-theme="dark"] .payment-staff-guide {
+    background: #151d28 !important;
+    color: #edf2f7 !important;
+    border-color: #2c3746 !important;
+}
+
+html[data-theme="dark"] .profile-showcase,
+html[data-theme="dark"] .profile-contact-card,
+html[data-theme="dark"] .profile-identity-card,
+html[data-theme="dark"] .profile-contact-row,
+html[data-theme="dark"] .profile-security-item,
+html[data-theme="dark"] .profile-quick-card,
+html[data-theme="dark"] .profile-completion,
+html[data-theme="dark"] .profile-data div {
+    background: #151d28 !important;
+    color: #edf2f7 !important;
+    border-color: #2c3746 !important;
+}
+
+html[data-theme="dark"] .login-card,
+html[data-theme="dark"] .login-card-professional,
+html[data-theme="dark"] .login-panel,
+html[data-theme="dark"] .auth-card,
+html[data-theme="dark"] .verification-card,
+html[data-theme="dark"] .auth-security-card,
+html[data-theme="dark"] .auth-security-head {
+    background: #141d28 !important;
+    color: #edf2f7 !important;
+    border-color: #2e3a49 !important;
+}
+
+html[data-theme="dark"] .login-tabs-professional,
+html[data-theme="dark"] .login-tab:not(.active),
+html[data-theme="dark"] .login-info-grid article {
+    background: #18222e !important;
+    color: #dce5ee !important;
+    border-color: #2c3746 !important;
+}
+
+html[data-theme="dark"] .login-tab.active {
+    background: #202b38 !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .settings-signature,
+html[data-theme="dark"] .settings-signature-nav,
+html[data-theme="dark"] .settings-signature-section,
+html[data-theme="dark"] .settings-signature-content,
+html[data-theme="dark"] .settings-signature-nav-foot,
+html[data-theme="dark"] .settings-save-state,
+html[data-theme="dark"] .settings-signature-list,
+html[data-theme="dark"] .settings-selector-bar {
+    color: #edf2f7 !important;
+    border-color: #2c3746 !important;
+}
+
+html[data-theme="dark"] .settings-signature-nav,
+html[data-theme="dark"] .settings-signature-section,
+html[data-theme="dark"] .settings-signature-nav-foot,
+html[data-theme="dark"] .settings-save-state {
+    background: #151d28 !important;
+}
+
+html[data-theme="dark"] .settings-signature-link:hover,
+html[data-theme="dark"] .settings-signature-link.active,
+html[data-theme="dark"] .settings-theme-option:hover,
+html[data-theme="dark"] .settings-language-tile:hover,
+html[data-theme="dark"] .currency-tile:hover {
+    background: #1c2735 !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] table,
+html[data-theme="dark"] th,
+html[data-theme="dark"] td,
+html[data-theme="dark"] .table,
+html[data-theme="dark"] .data-table-wrap,
+html[data-theme="dark"] .table-responsive {
+    background: #151d28 !important;
+    color: #edf2f7 !important;
+    border-color: #2c3746 !important;
+}
+
+html[data-theme="dark"] th {
+    background: #1b2532 !important;
+}
+
+html[data-theme="dark"] tbody tr:hover {
+    background: #1c2735 !important;
+}
+
+html[data-theme="dark"] .chatbot .chat-window,
+html[data-theme="dark"] .chatbot .chat-panel,
+html[data-theme="dark"] .chatbot .chat-messages,
+html[data-theme="dark"] .chatbot .chat-suggestions,
+html[data-theme="dark"] .chatbot .chat-input,
+html[data-theme="dark"] .chatbot .chat-voice-mode {
+    background: #111923 !important;
+    color: #edf2f7 !important;
+    border-color: #2d3948 !important;
+}
+
+html[data-theme="dark"] .chatbot .chat-bubble.bot {
+    background: #1b2633 !important;
+    color: #e8edf4 !important;
+}
+
+html[data-theme="dark"] .chatbot .chat-input textarea,
+html[data-theme="dark"] .chatbot .chat-input input {
+    background: #0f1720 !important;
+    color: #edf2f7 !important;
+}
+
+/* Evita que reglas antiguas de las pantallas vuelvan a pintar superficies completas de blanco. */
+html[data-theme="dark"] .bg-white,
+html[data-theme="dark"] .bg-light,
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .card-body,
+html[data-theme="dark"] .list-group-item,
+html[data-theme="dark"] .dropdown-menu,
+html[data-theme="dark"] .modal-content,
+html[data-theme="dark"] .popover,
+html[data-theme="dark"] .toast,
+html[data-theme="dark"] .alert-light,
+html[data-theme="dark"] .table-light {
+    background-color: #151d28 !important;
+    color: #edf2f7 !important;
+    border-color: #2c3746 !important;
+}
+
+html[data-theme="dark"] .text-dark,
+html[data-theme="dark"] .text-body,
+html[data-theme="dark"] .text-black {
+    color: #edf2f7 !important;
+}
+
+html[data-theme="dark"] .text-muted,
+html[data-theme="dark"] .text-secondary,
+html[data-theme="dark"] .text-body-secondary,
+html[data-theme="dark"] .form-text {
+    color: #9ca8b7 !important;
+}

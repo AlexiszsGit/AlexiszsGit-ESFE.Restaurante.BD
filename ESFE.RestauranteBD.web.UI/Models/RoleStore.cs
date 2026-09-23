@@ -175,7 +175,7 @@ public static class RoleStore
             .ToArray();
     }
 
-    // Procesa la información de get.
+    // Obtiene la información necesaria para la pantalla.
     public static RoleDefinition? Get(string? role)
     {
         if (string.IsNullOrWhiteSpace(role))

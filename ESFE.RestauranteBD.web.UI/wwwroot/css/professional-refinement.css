@@ -1,0 +1,199 @@
+/* Espacio general de las pantallas */
+.app-body .page-content{padding-inline:clamp(20px,3.2vw,56px)!important}
+.app-body .page-content>.page-shell{width:min(100%,1500px);margin-inline:auto;padding-inline:4px}
+.app-body .page-head{margin-bottom:24px}
+
+/* Iconos: todos quedan centrados dentro de su botón */
+.ui-icon,.action-icon,.btn-icon,.password-toggle,.auth-security-head-icon,.profile-card-icon,.payment-tab-icon{display:grid!important;place-items:center!important;flex:0 0 auto!important}
+.ui-icon svg,.action-icon svg,.password-toggle svg,.auth-security-head-icon svg,.profile-card-icon svg,.payment-tab-icon svg{display:block!important;margin:0!important}
+
+/* Inicio de sesión: al volver se muestra otra vez el acceso completo */
+.auth-flow-chrome.hidden{display:none!important}
+.auth-page .login-tabs-professional{display:flex!important}
+.auth-page[data-auth-step="verify"] .login-tabs-professional,
+.auth-page[data-auth-step="forgot"] .login-tabs-professional,
+.auth-page[data-auth-step="resetCode"] .login-tabs-professional,
+.auth-page[data-auth-step="resetPassword"] .login-tabs-professional{display:none!important}
+.auth-page .login-card-professional{position:relative}
+.auth-page .auth-flow-chrome{width:100%}
+.auth-page .auth-security-head{justify-content:flex-start}
+.auth-page .auth-security-head-icon{margin:0}
+.auth-page .login-heading-centered,.auth-page .auth-step-actions,.auth-page .login-switch-note{width:100%;text-align:center}
+.auth-page .auth-step-actions{justify-content:center}
+.auth-page .text-action{min-height:38px;display:inline-flex;align-items:center;justify-content:center;padding-inline:10px}
+.auth-page .login-tabs-professional .login-tab{min-height:46px}
+.auth-page .login-form label{display:grid;gap:8px}
+.auth-page .password-field{position:relative;display:block}
+.auth-page .password-field input{width:100%;padding-right:52px!important}
+.auth-page .password-toggle{position:absolute!important;right:8px!important;top:50%!important;transform:translateY(-50%)!important;width:38px!important;height:38px!important;border:0!important;background:transparent!important;border-radius:10px!important;color:#68717d!important;margin:0!important;padding:0!important}
+.auth-page .password-toggle:hover{background:#f3f4f6!important;color:#1f2937!important}
+.auth-page .auth-security-head-icon{width:46px!important;height:46px!important;border-radius:15px!important}
+.auth-page .auth-security-head-icon svg{width:21px!important;height:21px!important}
+.auth-page .auth-flow-progress{justify-items:stretch}
+.auth-page .auth-flow-step{justify-content:center}
+
+/* Perfil: vista de cuenta antes de editar */
+.profile-page-head{align-items:center}
+.profile-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.profile-head-actions .primary-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.profile-dashboard{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,.65fr);gap:20px;align-items:start}
+.profile-identity-card,.profile-quick-card,.profile-contact-card{border-radius:24px!important}
+.profile-identity-hero{display:flex;align-items:center;gap:18px;padding-bottom:22px;border-bottom:1px solid var(--line)}
+.profile-avatar-xl{width:92px;height:92px;flex-basis:92px;border-radius:28px!important;display:grid;place-items:center!important;font-size:32px!important}
+.profile-identity-copy h3{margin:3px 0 3px;font-size:26px;letter-spacing:-.04em}
+.profile-identity-copy p{margin:0;color:var(--muted);font-size:12px}
+.profile-trust-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.profile-trust-pill{display:inline-flex;align-items:center;gap:7px;padding:6px 9px;border-radius:999px;border:1px solid #bbf7d0;background:#f0fdf4;color:#166534;font-size:9px;font-weight:900}
+.profile-trust-pill i{width:6px;height:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.10)}
+.profile-trust-pill.neutral{border-color:#e6dfd1;background:#fbf8f1;color:#785b2d}
+.profile-photo-manager-new{margin-top:20px;border-radius:18px;background:linear-gradient(145deg,#fbfcfe,#f7f9fb)}
+.profile-photo-copy strong{font-size:13px}
+.profile-data-modern{margin-top:18px}
+.profile-data-modern>div{min-height:78px;background:#fbfcfd;border:1px solid #e8edf2;border-radius:16px;padding:13px 14px;box-shadow:none}
+.profile-data-modern>div span,.profile-contact-row span,.profile-security-item span{font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;font-weight:900}
+.profile-data-modern>div strong{font-size:11px;line-height:1.45;overflow-wrap:anywhere}
+.profile-side-column{display:grid;gap:20px}
+.profile-card-heading{display:flex;align-items:center;gap:11px;margin-bottom:14px}
+.profile-card-icon{width:42px;height:42px;border-radius:13px;background:#fff7e8;border:1px solid #ead8ae;color:#9a722f}
+.profile-card-icon.soft{background:#eef5ff;border-color:#dce9fb;color:#54739d}
+.profile-card-icon svg{width:20px;height:20px}
+.profile-card-heading strong{display:block;font-size:12px;margin-top:2px}
+.profile-quick-card p{margin:0 0 14px;color:var(--muted);font-size:10px;line-height:1.6}
+.profile-security-item,.profile-contact-row{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid #edf1f5}
+.profile-security-item strong,.profile-contact-row strong{font-size:10px;text-align:right;overflow-wrap:anywhere}
+.profile-edit-panel{margin-top:20px;border-radius:24px!important;scroll-margin-top:28px}
+.profile-edit-header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;padding-bottom:16px;border-bottom:1px solid #edf1f5}
+.profile-edit-header h3{margin:4px 0 4px;font-size:22px;letter-spacing:-.03em}
+.profile-edit-header p{margin:0;color:var(--muted);font-size:10px}
+.profile-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+.profile-edit-wide{grid-column:1/-1}
+.profile-edit-form-modern .phone-country-field{display:grid;grid-template-columns:170px minmax(0,1fr);gap:10px}
+.profile-edit-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;padding-top:16px;border-top:1px solid #edf1f5}
+.profile-edit-actions .primary-btn,.profile-edit-actions .secondary-btn{min-width:140px}
+
+/* Pedido presencial: cobro más limpio */
+.local-payment-choice-group{padding:13px;border:1px solid #e9edf1;border-radius:17px;background:#fbfcfd;margin-top:12px}
+.local-payment-choice-heading{display:grid;gap:3px;margin-bottom:10px}
+.local-payment-choice-heading strong{font-size:11px}
+.local-payment-choice-heading small{font-size:8px;line-height:1.45;color:#94a3b8}
+.local-payment-method-switch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.local-payment-method-btn,.local-payment-timing-btn{min-width:0;border:1px solid #dde4eb;background:#fff;border-radius:13px;min-height:62px;padding:9px 10px;display:flex;align-items:center;justify-content:flex-start;gap:9px;text-align:left;cursor:pointer;transition:.18s ease}
+.local-payment-method-btn:hover,.local-payment-timing-btn:hover{transform:translateY(-1px);border-color:#d0d9e2}
+.local-payment-method-btn.active,.local-payment-timing-btn.active{border-color:#c8a25f;background:#fff9ee;box-shadow:0 0 0 3px rgba(196,154,74,.10)}
+.local-payment-method-btn>span:last-child{display:grid;gap:2px;min-width:0}
+.local-payment-method-btn strong,.local-payment-timing-btn{font-size:9px;font-weight:900}
+.local-payment-method-btn small,.local-payment-timing-btn span{font-size:7px;color:#94a3b8;font-weight:700}
+.payment-tab-icon{width:32px;height:32px;border-radius:10px;background:#f4f6f8;color:#667085}
+.local-payment-method-btn.active .payment-tab-icon{background:#fff2cf;color:#9b6d24}
+.local-payment-hidden-select{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}
+.local-payment-timing-switch{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.local-payment-timing-btn{display:grid;gap:3px;justify-content:center;text-align:center;padding:10px}
+.local-immediate-payment{margin-top:12px}
+.local-payment-due{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;border:1px solid #ece2ca;background:#fffaf0;border-radius:13px;margin:12px 0}
+.local-payment-due span{font-size:8px;color:#8b7b5e;font-weight:900;text-transform:uppercase;letter-spacing:.06em}
+.local-payment-due strong{font-size:18px;color:#6b4d22}
+.local-payment-confirm{display:flex!important;align-items:center!important;gap:9px!important;padding:11px 12px;border:1px solid #e6ebf0;border-radius:12px;background:#fff}
+.local-payment-confirm input{margin:0!important;width:16px!important;height:16px!important}
+.local-payment-confirm span{font-size:9px;font-weight:800;color:#364152}
+.local-payment-field-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.local-payment-wide-field{grid-column:1/-1}
+.local-payment-method-card{padding:14px!important;border-radius:17px!important}
+
+/* En móvil, los bloques pasan a una sola columna sin perder jerarquía */
+@media(max-width:1000px){
+    .profile-dashboard{grid-template-columns:1fr}
+}
+@media(max-width:760px){
+    .app-body .page-content{padding-inline:14px!important}
+    .app-body .page-content>.page-shell{padding-inline:0}
+    .profile-page-head{align-items:flex-start}
+    .profile-head-actions{width:100%;justify-content:space-between}
+    .profile-head-actions .primary-btn{flex:1}
+    .profile-identity-hero{align-items:flex-start}
+    .profile-avatar-xl{width:76px;height:76px;flex-basis:76px;border-radius:22px!important;font-size:25px!important}
+    .profile-identity-copy h3{font-size:21px}
+    .profile-data-modern{grid-template-columns:1fr!important}
+    .profile-data-modern .profile-data-wide{grid-column:auto}
+    .profile-edit-grid{grid-template-columns:1fr}
+    .profile-edit-wide{grid-column:auto}
+    .profile-edit-form-modern .phone-country-field{grid-template-columns:1fr}
+    .profile-edit-actions{flex-direction:column-reverse}
+    .profile-edit-actions .primary-btn,.profile-edit-actions .secondary-btn{width:100%;min-width:0}
+    .local-payment-method-switch{grid-template-columns:1fr}
+    .local-payment-method-btn{width:100%}
+    .local-payment-field-grid{grid-template-columns:1fr}
+    .local-payment-wide-field{grid-column:auto}
+}
+
+
+/* Ajuste final de espacios para separar el contenido de la barra lateral. */
+@media (min-width: 1181px){
+    body.app-body .app-shell{margin-left:300px!important}
+    body.app-body .topbar{padding-left:42px!important}
+    body.app-body .page-content{padding-left:40px!important;padding-right:40px!important}
+}
+
+/* Encabezados de cada pantalla con un pequeño margen visual. */
+@media (min-width: 1181px){
+    body.app-body .topbar-left{padding-left:4px!important}
+    body.app-body .page-head{padding-left:2px!important}
+}
+
+/* Inicio de sesión: las pestañas ocupan el ancho completo y los textos quedan centrados. */
+.auth-page .login-card-professional{overflow:hidden!important}
+.auth-page .login-tabs-professional{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;width:100%!important;padding:5px!important;gap:5px!important}
+.auth-page .login-tabs-professional .login-tab{width:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;min-height:50px!important;font-weight:900!important}
+.auth-page .login-heading-centered{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important}
+.auth-page .login-heading-centered .eyebrow,.auth-page .login-heading-centered h2,.auth-page .login-heading-centered p{margin-inline:auto!important;text-align:center!important;max-width:100%!important}
+.auth-page .login-heading-centered h2{margin-top:8px!important;margin-bottom:8px!important}
+.auth-page .auth-security-head{justify-content:center!important;text-align:left!important}
+.auth-page .auth-security-head-icon{place-items:center!important;align-self:center!important}
+.auth-page .auth-security-head>div{text-align:left!important}
+
+/* Estado visual del código: primero carga y después muestra un resultado claro. */
+.auth-result-overlay{position:absolute!important;inset:0!important;z-index:25!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;background:rgba(255,253,248,.97)!important;backdrop-filter:blur(12px)!important;padding:32px!important}
+.auth-result-overlay[hidden]{display:none!important}
+.auth-result-orb{width:118px!important;height:118px!important;border-radius:50%!important;display:grid!important;place-items:center!important;position:relative!important;margin-bottom:20px!important;background:#f7f3eb!important;border:1px solid #e6dfd2!important;box-shadow:0 20px 45px rgba(18,24,36,.09)!important}
+.auth-result-spinner{width:84px!important;height:84px!important;border-radius:50%!important;border:5px solid #e8dfce!important;border-top-color:#b8914e!important;animation:authResultSpin .78s linear infinite!important}
+.auth-result-icon{display:none!important;width:78px!important;height:78px!important}
+.auth-result-overlay[data-state="success"] .auth-result-spinner,.auth-result-overlay[data-state="error"] .auth-result-spinner{display:none!important}
+.auth-result-overlay[data-state="success"] .auth-result-icon.auth-result-success{display:block!important;color:#16845a!important;animation:authResultPop .44s cubic-bezier(.18,.9,.25,1.2) both!important}
+.auth-result-overlay[data-state="error"] .auth-result-icon.auth-result-error{display:block!important;color:#c44949!important;animation:authResultPop .44s cubic-bezier(.18,.9,.25,1.2) both!important}
+.auth-result-overlay[data-state="loading"] .auth-result-title,.auth-result-overlay[data-state="loading"] [data-auth-result-text]{opacity:.9!important}
+.auth-result-overlay [data-auth-result-title]{font-size:24px!important;letter-spacing:-.035em!important;color:#1c2430!important}
+.auth-result-overlay [data-auth-result-text]{margin-top:7px!important;font-size:11px!important;line-height:1.6!important;color:#7a8189!important;max-width:310px!important}
+@keyframes authResultSpin{to{transform:rotate(360deg)}}
+@keyframes authResultPop{0%{transform:scale(.55);opacity:0}70%{transform:scale(1.06);opacity:1}100%{transform:scale(1)}}
+
+/* Mientras se valida, las casillas muestran que el envío está en curso. */
+.code-entry.is-checking{position:relative!important}
+.code-entry.is-checking .code-boxes{animation:codeGroupPulse .8s ease-in-out infinite!important}
+.code-entry.is-checking .code-boxes input{border-color:#c7a568!important;box-shadow:0 0 0 3px rgba(184,145,78,.08),0 10px 24px rgba(18,24,36,.05)!important}
+.code-entry.is-checking::after{content:""!important;position:absolute!important;left:50%!important;top:50%!important;width:82px!important;height:82px!important;margin:-23px 0 0 -41px!important;border-radius:50%!important;border:4px solid rgba(210,193,158,.32)!important;border-top-color:#b8914e!important;animation:authResultSpin .78s linear infinite!important;pointer-events:none!important}
+@keyframes codeGroupPulse{0%,100%{transform:scale(1)}50%{transform:scale(.985)}}
+
+/* Pago con tarjeta: tarjeta visual y campos completos, sin guardar PAN/CVV. */
+.local-card-preview{position:relative!important;min-height:176px!important;border-radius:22px!important;padding:21px 22px!important;margin:15px 0!important;overflow:hidden!important;color:#fff!important;background:linear-gradient(135deg,#101a29 0%,#1c2d43 52%,#9b7a3c 150%)!important;box-shadow:0 18px 36px rgba(18,28,42,.18)!important}
+.local-card-preview:after{content:"";position:absolute!important;width:180px!important;height:180px!important;border-radius:50%!important;right:-72px!important;top:-78px!important;background:rgba(255,255,255,.10)!important}
+.local-card-preview-top,.local-card-preview-bottom{display:flex!important;justify-content:space-between!important;gap:14px!important;position:relative!important;z-index:2}
+.local-card-preview-top span{font-size:9px!important;letter-spacing:.13em!important;font-weight:900!important;opacity:.82!important}
+.local-card-preview-number{display:block!important;position:relative!important;z-index:2!important;margin:30px 0 21px!important;font-size:23px!important;letter-spacing:.16em!important;font-weight:800!important}
+.local-card-preview-bottom small,.local-card-preview-bottom b{display:block!important}
+.local-card-preview-bottom small{font-size:7px!important;letter-spacing:.16em!important;opacity:.72!important}
+.local-card-preview-bottom b{font-size:9px!important;letter-spacing:.06em!important;margin-top:4px!important}
+.local-card-fields-grid{grid-template-columns:1.2fr .8fr!important}
+.local-payment-wide-field{grid-column:1/-1!important}
+.field-optional{font-size:8px!important;color:#97908a!important;font-weight:700!important;margin-left:4px!important}
+.local-card-security-note{display:flex!important;align-items:flex-start!important;gap:9px!important}
+.local-card-security-note .ui-icon{width:20px!important;height:20px!important;display:grid!important;place-items:center!important;flex:0 0 20px!important}
+.local-card-security-note .ui-icon svg{width:15px!important;height:15px!important}
+
+@media(max-width:760px){
+    .auth-page .login-tabs-professional .login-tab{min-height:48px!important}
+    .auth-result-overlay{padding:24px!important}
+    .auth-result-orb{width:100px!important;height:100px!important}
+    .auth-result-spinner{width:72px!important;height:72px!important}
+    .local-card-fields-grid{grid-template-columns:1fr!important}
+    .local-card-preview{min-height:156px!important;padding:18px!important}
+    .local-card-preview-number{font-size:18px!important;margin:24px 0 18px!important}
+}

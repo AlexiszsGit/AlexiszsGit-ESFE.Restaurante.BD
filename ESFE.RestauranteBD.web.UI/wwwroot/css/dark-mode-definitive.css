@@ -1,0 +1,498 @@
+/* Ajuste final del modo oscuro en todas las pantallas. */
+
+html[data-theme="dark"] {
+    color-scheme: dark;
+    --dark-bg: #0c1117;
+    --dark-surface: #151c24;
+    --dark-surface-2: #1b2530;
+    --dark-surface-3: #202c38;
+    --dark-border: #2b3948;
+    --dark-border-strong: #39495a;
+    --dark-text: #f2f5f8;
+    --dark-muted: #aeb9c6;
+    --dark-faint: #7f8c9a;
+    --dark-accent: #d8ad62;
+    --dark-success-bg: #10241c;
+    --dark-success-text: #9fe3ba;
+    --dark-danger-bg: #2b171b;
+    --dark-danger-text: #f2a9b2;
+    --dark-warning-bg: #2a2113;
+    --dark-warning-text: #efd08a;
+    --dark-info-bg: #122234;
+    --dark-info-text: #a9d5ff;
+}
+
+html[data-theme="dark"] body.app-body,
+html[data-theme="dark"] body.login-body,
+html[data-theme="dark"] body.auth-page {
+    --bg: var(--dark-bg) !important;
+    --white: var(--dark-surface) !important;
+    --ink: var(--dark-text) !important;
+    --muted: var(--dark-muted) !important;
+    --line: var(--dark-border) !important;
+    --sidebar: #101821 !important;
+    --secondary: var(--dark-surface-2) !important;
+    --success: var(--dark-success-text) !important;
+    --danger: var(--dark-danger-text) !important;
+    --warning: var(--dark-warning-text) !important;
+    background: var(--dark-bg) !important;
+    color: var(--dark-text) !important;
+}
+
+html[data-theme="dark"] body,
+html[data-theme="dark"] main,
+html[data-theme="dark"] section,
+html[data-theme="dark"] article,
+html[data-theme="dark"] aside,
+html[data-theme="dark"] header,
+html[data-theme="dark"] footer,
+html[data-theme="dark"] nav {
+    scrollbar-color: var(--dark-border-strong) var(--dark-bg);
+}
+
+html[data-theme="dark"] .app-main,
+html[data-theme="dark"] .page-shell,
+html[data-theme="dark"] .page-content,
+html[data-theme="dark"] .page-container,
+html[data-theme="dark"] .content-shell,
+html[data-theme="dark"] .dashboard-shell,
+html[data-theme="dark"] .main-content,
+html[data-theme="dark"] .menu-v11-shell {
+    background: var(--dark-bg) !important;
+    color: var(--dark-text) !important;
+}
+
+html[data-theme="dark"] .app-sidebar,
+html[data-theme="dark"] .topbar,
+html[data-theme="dark"] .side-status,
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .card-body,
+html[data-theme="dark"] .stat-card,
+html[data-theme="dark"] .hero-panel,
+html[data-theme="dark"] .quick-card,
+html[data-theme="dark"] .category-card,
+html[data-theme="dark"] .product-card,
+html[data-theme="dark"] .order-card,
+html[data-theme="dark"] .kitchen-card,
+html[data-theme="dark"] .customer-card,
+html[data-theme="dark"] .worker-card,
+html[data-theme="dark"] .role-definition,
+html[data-theme="dark"] .info-card,
+html[data-theme="dark"] .summary-card,
+html[data-theme="dark"] .dashboard-card,
+html[data-theme="dark"] .report-card,
+html[data-theme="dark"] .reservation-card,
+html[data-theme="dark"] .payment-card,
+html[data-theme="dark"] .delivery-card,
+html[data-theme="dark"] .rating-card {
+    background: var(--dark-surface) !important;
+    color: var(--dark-text) !important;
+    border-color: var(--dark-border) !important;
+}
+
+html[data-theme="dark"] .bg-white,
+html[data-theme="dark"] [class*="bg-white/"],
+html[data-theme="dark"] .bg-gray-50,
+html[data-theme="dark"] .bg-gray-100,
+html[data-theme="dark"] .bg-slate-50,
+html[data-theme="dark"] .bg-slate-100,
+html[data-theme="dark"] .bg-zinc-50,
+html[data-theme="dark"] .bg-zinc-100,
+html[data-theme="dark"] .bg-neutral-50,
+html[data-theme="dark"] .bg-neutral-100,
+html[data-theme="dark"] .bg-stone-50,
+html[data-theme="dark"] .bg-stone-100 {
+    background-color: var(--dark-surface) !important;
+    color: var(--dark-text) !important;
+}
+
+html[data-theme="dark"] .bg-emerald-50,
+html[data-theme="dark"] .bg-green-50,
+html[data-theme="dark"] .bg-teal-50 {
+    background: var(--dark-success-bg) !important;
+    color: var(--dark-success-text) !important;
+}
+
+html[data-theme="dark"] .bg-rose-50,
+html[data-theme="dark"] .bg-red-50,
+html[data-theme="dark"] .bg-pink-50 {
+    background: var(--dark-danger-bg) !important;
+    color: var(--dark-danger-text) !important;
+}
+
+html[data-theme="dark"] .bg-amber-50,
+html[data-theme="dark"] .bg-yellow-50,
+html[data-theme="dark"] .bg-orange-50 {
+    background: var(--dark-warning-bg) !important;
+    color: var(--dark-warning-text) !important;
+}
+
+html[data-theme="dark"] .bg-sky-50,
+html[data-theme="dark"] .bg-blue-50,
+html[data-theme="dark"] .bg-cyan-50,
+html[data-theme="dark"] .bg-indigo-50 {
+    background: var(--dark-info-bg) !important;
+    color: var(--dark-info-text) !important;
+}
+
+html[data-theme="dark"] .border-white,
+html[data-theme="dark"] .border-gray-100,
+html[data-theme="dark"] .border-gray-200,
+html[data-theme="dark"] .border-slate-100,
+html[data-theme="dark"] .border-slate-200,
+html[data-theme="dark"] .border-zinc-100,
+html[data-theme="dark"] .border-zinc-200,
+html[data-theme="dark"] .border-neutral-100,
+html[data-theme="dark"] .border-neutral-200,
+html[data-theme="dark"] .border-stone-100,
+html[data-theme="dark"] .border-stone-200 {
+    border-color: var(--dark-border) !important;
+}
+
+html[data-theme="dark"] .text-black,
+html[data-theme="dark"] .text-gray-900,
+html[data-theme="dark"] .text-gray-800,
+html[data-theme="dark"] .text-gray-700,
+html[data-theme="dark"] .text-slate-900,
+html[data-theme="dark"] .text-slate-800,
+html[data-theme="dark"] .text-slate-700,
+html[data-theme="dark"] .text-zinc-900,
+html[data-theme="dark"] .text-zinc-800,
+html[data-theme="dark"] .text-neutral-900,
+html[data-theme="dark"] .text-neutral-800,
+html[data-theme="dark"] .text-stone-900,
+html[data-theme="dark"] .text-stone-800 {
+    color: var(--dark-text) !important;
+}
+
+html[data-theme="dark"] .text-gray-500,
+html[data-theme="dark"] .text-gray-600,
+html[data-theme="dark"] .text-slate-400,
+html[data-theme="dark"] .text-slate-500,
+html[data-theme="dark"] .text-slate-600,
+html[data-theme="dark"] .text-zinc-500,
+html[data-theme="dark"] .text-zinc-600,
+html[data-theme="dark"] .text-neutral-500,
+html[data-theme="dark"] .text-neutral-600,
+html[data-theme="dark"] .text-stone-500,
+html[data-theme="dark"] .text-stone-600 {
+    color: var(--dark-muted) !important;
+}
+
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] .form-control,
+html[data-theme="dark"] .form-select,
+html[data-theme="dark"] .field-label input,
+html[data-theme="dark"] .field-label select,
+html[data-theme="dark"] .field-label textarea,
+html[data-theme="dark"] .filter-field input,
+html[data-theme="dark"] .filter-field select,
+html[data-theme="dark"] .filter-field textarea,
+html[data-theme="dark"] .login-form input,
+html[data-theme="dark"] .login-form select,
+html[data-theme="dark"] .login-form textarea,
+html[data-theme="dark"] .compose-field input,
+html[data-theme="dark"] .compose-field select,
+html[data-theme="dark"] .compose-field textarea,
+html[data-theme="dark"] .payment-fields input,
+html[data-theme="dark"] .payment-fields select,
+html[data-theme="dark"] .payment-fields textarea {
+    background: #101820 !important;
+    color: var(--dark-text) !important;
+    border-color: var(--dark-border-strong) !important;
+    box-shadow: none !important;
+}
+
+html[data-theme="dark"] input:focus,
+html[data-theme="dark"] select:focus,
+html[data-theme="dark"] textarea:focus {
+    background: #121c26 !important;
+    border-color: var(--dark-accent) !important;
+    box-shadow: 0 0 0 3px rgba(216,173,98,.14) !important;
+}
+
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder,
+html[data-theme="dark"] select::placeholder {
+    color: var(--dark-faint) !important;
+}
+
+html[data-theme="dark"] option,
+html[data-theme="dark"] optgroup {
+    background: #101820 !important;
+    color: var(--dark-text) !important;
+}
+
+html[data-theme="dark"] input:-webkit-autofill,
+html[data-theme="dark"] input:-webkit-autofill:hover,
+html[data-theme="dark"] input:-webkit-autofill:focus,
+html[data-theme="dark"] textarea:-webkit-autofill,
+html[data-theme="dark"] select:-webkit-autofill {
+    -webkit-text-fill-color: var(--dark-text) !important;
+    -webkit-box-shadow: 0 0 0 1000px #101820 inset !important;
+    box-shadow: 0 0 0 1000px #101820 inset !important;
+}
+
+html[data-theme="dark"] table,
+html[data-theme="dark"] .table,
+html[data-theme="dark"] .table-responsive,
+html[data-theme="dark"] .data-table-wrap,
+html[data-theme="dark"] thead,
+html[data-theme="dark"] tbody,
+html[data-theme="dark"] tr,
+html[data-theme="dark"] th,
+html[data-theme="dark"] td,
+html[data-theme="dark"] .list-group,
+html[data-theme="dark"] .list-group-item {
+    background: var(--dark-surface) !important;
+    color: var(--dark-text) !important;
+    border-color: var(--dark-border) !important;
+}
+
+html[data-theme="dark"] th {
+    background: var(--dark-surface-2) !important;
+}
+
+html[data-theme="dark"] tbody tr:hover,
+html[data-theme="dark"] .list-group-item:hover {
+    background: var(--dark-surface-3) !important;
+}
+
+html[data-theme="dark"] .dropdown-menu,
+html[data-theme="dark"] .popover,
+html[data-theme="dark"] .toast,
+html[data-theme="dark"] .modal-content,
+html[data-theme="dark"] .modal-card,
+html[data-theme="dark"] .dialog-card,
+html[data-theme="dark"] .modal-panel,
+html[data-theme="dark"] .form-modal,
+html[data-theme="dark"] .order-modal,
+html[data-theme="dark"] .payment-modal,
+html[data-theme="dark"] .category-modal,
+html[data-theme="dark"] .product-modal {
+    background: var(--dark-surface) !important;
+    color: var(--dark-text) !important;
+    border-color: var(--dark-border) !important;
+}
+
+html[data-theme="dark"] .search-box,
+html[data-theme="dark"] .search-box input,
+html[data-theme="dark"] .menu-search-panel,
+html[data-theme="dark"] .filter-field,
+html[data-theme="dark"] .mail-search,
+html[data-theme="dark"] .settings-inline-search,
+html[data-theme="dark"] .customer-search-panel,
+html[data-theme="dark"] .customer-search-input {
+    background: #101820 !important;
+    color: var(--dark-text) !important;
+    border-color: var(--dark-border) !important;
+}
+
+html[data-theme="dark"] .local-menu-browser,
+html[data-theme="dark"] .local-menu-item,
+html[data-theme="dark"] .local-order-summary-pro,
+html[data-theme="dark"] .local-payment-method-card,
+html[data-theme="dark"] .local-payment-confirm,
+html[data-theme="dark"] .local-payment-due,
+html[data-theme="dark"] .payment-main-panel,
+html[data-theme="dark"] .payment-items,
+html[data-theme="dark"] .premium-order-summary,
+html[data-theme="dark"] .manual-payment-list,
+html[data-theme="dark"] .card-stage,
+html[data-theme="dark"] .staff-flow,
+html[data-theme="dark"] .payment-staff-grid,
+html[data-theme="dark"] .payment-staff-guide,
+html[data-theme="dark"] .mail-app-shell,
+html[data-theme="dark"] .mail-main-area,
+html[data-theme="dark"] .mail-sidebar,
+html[data-theme="dark"] .mail-list,
+html[data-theme="dark"] .mail-detail,
+html[data-theme="dark"] .mail-section,
+html[data-theme="dark"] .notification-panel,
+html[data-theme="dark"] .notification-list,
+html[data-theme="dark"] .notification-row,
+html[data-theme="dark"] .notification-item,
+html[data-theme="dark"] .notification-toolbar,
+html[data-theme="dark"] .profile-showcase,
+html[data-theme="dark"] .profile-contact-card,
+html[data-theme="dark"] .profile-identity-card,
+html[data-theme="dark"] .profile-quick-card,
+html[data-theme="dark"] .profile-completion,
+html[data-theme="dark"] .settings-signature,
+html[data-theme="dark"] .settings-signature-nav,
+html[data-theme="dark"] .settings-signature-section,
+html[data-theme="dark"] .settings-signature-content,
+html[data-theme="dark"] .settings-section-card,
+html[data-theme="dark"] .settings-language-tile,
+html[data-theme="dark"] .currency-tile,
+html[data-theme="dark"] .settings-theme-option {
+    background: var(--dark-surface) !important;
+    color: var(--dark-text) !important;
+    border-color: var(--dark-border) !important;
+}
+
+html[data-theme="dark"] .mail-row,
+html[data-theme="dark"] .notification-row,
+html[data-theme="dark"] .notification-item,
+html[data-theme="dark"] .mail-nav-item,
+html[data-theme="dark"] .mail-sidebar a {
+    background: var(--dark-surface) !important;
+    color: var(--dark-text) !important;
+    border-color: var(--dark-border) !important;
+}
+
+html[data-theme="dark"] .mail-row:hover,
+html[data-theme="dark"] .notification-row:hover,
+html[data-theme="dark"] .notification-item:hover,
+html[data-theme="dark"] .mail-nav-item:hover,
+html[data-theme="dark"] .mail-nav-item.active,
+html[data-theme="dark"] .mail-sidebar a:hover,
+html[data-theme="dark"] .mail-sidebar a.active {
+    background: var(--dark-surface-2) !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .product-image,
+html[data-theme="dark"] .image-preview-card,
+html[data-theme="dark"] .category-image,
+html[data-theme="dark"] .product-card .product-image,
+html[data-theme="dark"] .admin-product-row > img {
+    background: #111923 !important;
+}
+
+html[data-theme="dark"] .chatbot .chat-window,
+html[data-theme="dark"] .chatbot .chat-panel,
+html[data-theme="dark"] .chatbot .chat-messages,
+html[data-theme="dark"] .chatbot .chat-suggestions,
+html[data-theme="dark"] .chatbot .chat-input,
+html[data-theme="dark"] .chatbot .chat-voice-mode {
+    background: #111923 !important;
+    color: var(--dark-text) !important;
+    border-color: var(--dark-border) !important;
+}
+
+html[data-theme="dark"] .chatbot .chat-bubble.bot {
+    background: var(--dark-surface-2) !important;
+    color: var(--dark-text) !important;
+}
+
+html[data-theme="dark"] .chatbot .chat-input textarea,
+html[data-theme="dark"] .chatbot .chat-input input {
+    background: #0f1720 !important;
+    color: var(--dark-text) !important;
+    border-color: var(--dark-border) !important;
+}
+
+html[data-theme="dark"] .btn-light,
+html[data-theme="dark"] .button-light,
+html[data-theme="dark"] .secondary-btn,
+html[data-theme="dark"] .ghost-btn,
+html[data-theme="dark"] .outline-btn,
+html[data-theme="dark"] .login-tab:not(.active),
+html[data-theme="dark"] .settings-theme-option:hover,
+html[data-theme="dark"] .settings-language-tile:hover,
+html[data-theme="dark"] .currency-tile:hover {
+    background: var(--dark-surface-2) !important;
+    color: var(--dark-text) !important;
+    border-color: var(--dark-border-strong) !important;
+}
+
+html[data-theme="dark"] button:disabled,
+html[data-theme="dark"] .disabled,
+html[data-theme="dark"] [aria-disabled="true"] {
+    background: #18222d !important;
+    color: #778493 !important;
+    border-color: #263442 !important;
+}
+
+html[data-theme="dark"] .alert-success,
+html[data-theme="dark"] .status-success,
+html[data-theme="dark"] .success-box {
+    background: var(--dark-success-bg) !important;
+    color: var(--dark-success-text) !important;
+    border-color: #28563f !important;
+}
+
+html[data-theme="dark"] .alert-danger,
+html[data-theme="dark"] .status-danger,
+html[data-theme="dark"] .danger-box,
+html[data-theme="dark"] .error-box {
+    background: var(--dark-danger-bg) !important;
+    color: var(--dark-danger-text) !important;
+    border-color: #66323b !important;
+}
+
+html[data-theme="dark"] .alert-warning,
+html[data-theme="dark"] .status-warning,
+html[data-theme="dark"] .warning-box {
+    background: var(--dark-warning-bg) !important;
+    color: var(--dark-warning-text) !important;
+    border-color: #66502a !important;
+}
+
+html[data-theme="dark"] .alert-info,
+html[data-theme="dark"] .status-info,
+html[data-theme="dark"] .info-box {
+    background: var(--dark-info-bg) !important;
+    color: var(--dark-info-text) !important;
+    border-color: #2b536f !important;
+}
+
+/* Ningún fondo blanco escrito directamente debe sobrevivir en oscuro. */
+html[data-theme="dark"] [style*="#fff"],
+html[data-theme="dark"] [style*="#FFF"],
+html[data-theme="dark"] [style*="#ffffff"],
+html[data-theme="dark"] [style*="#FFFFFF"],
+html[data-theme="dark"] [style*="white"],
+html[data-theme="dark"] [style*="WHITE"] {
+    background: var(--dark-surface) !important;
+    color: var(--dark-text) !important;
+}
+
+html[data-theme="dark"] .app-sidebar a.active,
+html[data-theme="dark"] .nav-link.active,
+html[data-theme="dark"] .sidebar-link.active {
+    background: rgba(216,173,98,.13) !important;
+    color: #f0cf84 !important;
+    border-color: rgba(216,173,98,.30) !important;
+}
+
+html[data-theme="dark"] .eyebrow,
+html[data-theme="dark"] .section-kicker,
+html[data-theme="dark"] .text-accent,
+html[data-theme="dark"] .accent-text {
+    color: #d8ad62 !important;
+}
+
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .modal-content,
+html[data-theme="dark"] .dropdown-menu,
+html[data-theme="dark"] .product-card,
+html[data-theme="dark"] .order-card,
+html[data-theme="dark"] .notification-row,
+html[data-theme="dark"] .mail-row {
+    box-shadow: 0 14px 36px rgba(0,0,0,.24) !important;
+}
+
+/* Corrige también superficies blancas que lleguen desde HTML generado por JavaScript. */
+html[data-theme="dark"] .dark-auto-surface {
+    background: var(--dark-surface) !important;
+}
+
+html[data-theme="dark"] .dark-auto-text {
+    color: var(--dark-text) !important;
+}
+
+html[data-theme="dark"] .dark-auto-border {
+    border-color: var(--dark-border) !important;
+}
+
+html[data-theme="dark"] .focus\:bg-white:focus,
+html[data-theme="dark"] .hover\:bg-white:hover {
+    background: var(--dark-surface-2) !important;
+    color: var(--dark-text) !important;
+}

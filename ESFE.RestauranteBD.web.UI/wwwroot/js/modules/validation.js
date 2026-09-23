@@ -76,7 +76,7 @@
             : initialDigits;
         input.value = formatGrouped(initial, initialCountry.group);
 
-        // Procesa la información de update.
+        // Actualiza el dato que acaba de cambiar.
         const update = () => {
             const country = getCountry(select.value);
             const digits = normalizeDigits(input.value).slice(0, Math.max(...country.lengths));

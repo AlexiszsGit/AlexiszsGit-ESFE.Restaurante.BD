@@ -1,0 +1,187 @@
+/* Ajuste general para que todos los módulos compartan el mismo tema. */
+:root {
+    --ui-surface: #ffffff;
+    --ui-surface-2: #f8fafc;
+    --ui-surface-3: #f1f5f9;
+    --ui-text: #0f172a;
+    --ui-muted: #64748b;
+    --ui-line: #e2e8f0;
+    --ui-hover: #f8fafc;
+    --ui-input: #ffffff;
+    --ui-input-text: #0f172a;
+    --ui-input-placeholder: #94a3b8;
+}
+
+html[data-theme="dark"] {
+    color-scheme: dark;
+    --ui-surface: #151d28;
+    --ui-surface-2: #101821;
+    --ui-surface-3: #1b2532;
+    --ui-text: #edf2f7;
+    --ui-muted: #9ca8b7;
+    --ui-line: #2c3746;
+    --ui-hover: #1c2735;
+    --ui-input: #101821;
+    --ui-input-text: #edf2f7;
+    --ui-input-placeholder: #7f8b9a;
+}
+
+html[data-theme="light"] {
+    color-scheme: light;
+}
+
+body.app-body,
+body.login-body,
+body.auth-page {
+    background: var(--ui-surface-2);
+    color: var(--ui-text);
+}
+
+/* Superficies compartidas en las pantallas del sistema. */
+:is(.panel,.stat-card,.hero-panel,.quick-card,.category-card,.product-card,.order-card,.local-order-modal,.local-order-summary,
+.local-menu-browser,.local-payment-choice-group,.local-payment-method-switch,.local-payment-fields,.customer-card,.customer-search-panel,
+.floor-panel,.reservation-form-panel,.reservation-list,.checkout-grid,.payment-main-panel,.manual-payment-list,.manual-payment-modal,
+.profile-card,.profile-section,.profile-showcase,.profile-contact-card,.notification-panel,.notification-item,.mail-sidebar,.mail-list,
+.mail-detail,.mail-compose,.mail-app-shell,.mail-main-area,.mail-nav,.settings-signature-section,.settings-signature-nav,
+.settings-theme-selector,.settings-signature-list,.settings-signature-nav-foot,.settings-save-state) {
+    background: var(--ui-surface);
+    color: var(--ui-text);
+    border-color: var(--ui-line);
+}
+
+:is(.panel p,.stat-card span,.stat-card small,.page-head p,.panel-head p,.form-help,.field-hint,.local-order-policy,
+.mail-header-stats,.mail-empty p,.customer-readonly-note,.settings-section-caption,.settings-save-state small) {
+    color: var(--ui-muted);
+}
+
+:is(.field-label input,.field-label select,.field-label textarea,.filter-field input,.filter-field select,.search-box input,
+.customer-search-input,.mail-search input,.compose-field input,.compose-field textarea,.compose-field select,
+.payment-fields input,.payment-fields select,.manual-payment-fields input,.manual-payment-fields select,
+.login-form input,.login-form select,.login-form textarea,
+.settings-inline-search input,.chatbot .chat-input input,.chatbot .chat-input textarea) {
+    background: var(--ui-input);
+    color: var(--ui-input-text);
+    border-color: var(--ui-line);
+}
+
+:is(input,textarea,select)::placeholder { color: var(--ui-input-placeholder); }
+
+:is(.search-box,.settings-inline-search,.customer-search-input,.mail-search,.filter-field) {
+    border-color: var(--ui-line);
+    background: var(--ui-surface);
+}
+
+:is(.search-box input,.settings-inline-search input,.mail-search input,.customer-search-input) {
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+:is(.table-container,.table-responsive) {
+    background: var(--ui-surface);
+    border-color: var(--ui-line);
+    color: var(--ui-text);
+}
+
+:is(table,th,td) { border-color: var(--ui-line); color: var(--ui-text); }
+th { background: var(--ui-surface-3); }
+tbody tr:hover { background: var(--ui-hover); }
+
+/* Evita fondos claros heredados de Bootstrap/Tailwind. */
+body.theme-dark :is(.bg-white,.bg-light,.card,.card-body,.list-group-item,.dropdown-menu,.modal-content,.popover,.toast,.alert-light,
+.form-control,.form-select,.input-group-text,.table,.table-light) {
+    background-color: var(--ui-surface) !important;
+    color: var(--ui-text) !important;
+    border-color: var(--ui-line) !important;
+}
+body.theme-dark :is(.text-dark,.text-body,.text-black) { color: var(--ui-text) !important; }
+body.theme-dark :is(.text-muted,.form-text) { color: var(--ui-muted) !important; }
+body.theme-dark :is(.border,.border-light,.border-dark) { border-color: var(--ui-line) !important; }
+body.theme-dark :is(.dropdown-item,.list-group-item-action) { color: var(--ui-text) !important; }
+body.theme-dark :is(.dropdown-item:hover,.list-group-item-action:hover) { background: var(--ui-hover) !important; }
+
+/* Pedido presencial y pagos. */
+body.theme-dark :is(.local-order-grid,.local-menu-categories,.local-menu-grid,.local-order-lines,.local-summary-mini,
+.local-payment-method-btn,.local-payment-timing-btn,.local-payment-status-badge,.payment-method,.payment-methods-premium,
+.payment-items,.premium-order-summary,.payment-security-badge,.payment-staff-grid,.payment-staff-guide,
+.manual-payment-methods,.manual-payment-list) {
+    background: var(--ui-surface-2) !important;
+    color: var(--ui-text) !important;
+    border-color: var(--ui-line) !important;
+}
+
+/* Notificaciones y correo. */
+body.theme-dark :is(.notifications-page,.mail-app-shell,.mail-nav-item,.mail-mobile-actions,.mail-mobile-link,
+.mail-toolbar,.mail-list-head,.compose-head,.compose-footer,.compose-tools,.gmail-reader-toolbar,.gmail-reader-footer,
+.notification-selection-toolbar,.notification-detail-toolbar) {
+    background: var(--ui-surface) !important;
+    color: var(--ui-text) !important;
+    border-color: var(--ui-line) !important;
+}
+body.theme-dark :is(.mail-nav-item.active,.mail-nav-item:hover,.notification-item.active,.notification-item:hover) {
+    background: var(--ui-hover) !important;
+    color: var(--ui-text) !important;
+}
+
+/* Perfil y clientes. */
+body.theme-dark :is(.profile-identity-card,.profile-contact-row,.profile-security-item,.profile-quick-card,
+.customer-detail-wide,.customer-details) {
+    background: var(--ui-surface-2) !important;
+    color: var(--ui-text) !important;
+    border-color: var(--ui-line) !important;
+}
+
+/* Chatbot. */
+body.theme-dark :is(.chatbot .chat-window,.chatbot .chat-panel,.chatbot .chat-messages,.chatbot .chat-suggestions,
+.chatbot .chat-input,.chatbot .chat-voice-mode) {
+    background: var(--ui-surface) !important;
+    color: var(--ui-text) !important;
+    border-color: var(--ui-line) !important;
+}
+body.theme-dark .chatbot .chat-bubble.bot { background: var(--ui-surface-3) !important; color: var(--ui-text) !important; }
+body.theme-dark .chatbot .chat-bubble.user { background: #d9ab5c !important; color: #141a21 !important; }
+body.theme-dark .chatbot .chat-suggestions button { background: var(--ui-surface-2) !important; color: var(--ui-text) !important; border-color: var(--ui-line) !important; }
+
+/* Botones secundarios conservan contraste en ambos temas. */
+.secondary-btn,.cart-pill,.icon-btn { background: var(--ui-surface); color: var(--ui-text); border-color: var(--ui-line); }
+body.theme-dark .secondary-btn:hover, body.theme-dark .cart-pill:hover { background: var(--ui-hover) !important; }
+
+/* Mensajes temporales y estados. */
+body.theme-dark :is(.alert-error,.profile-alert.alert-error) { background: #2b1b20 !important; color: #fecdd3 !important; border-color: #59303b !important; }
+body.theme-dark :is(.alert-success,.profile-alert.alert-success) { background: #172c24 !important; color: #b7f7d5 !important; border-color: #2e5f4b !important; }
+
+@media (max-width: 900px) {
+    :is(.page-content,.page-shell) { width: 100%; }
+}
+
+
+body.theme-dark :is(.compact-head,.orders-grid,.order-card,.order-card-head,.order-payment-line,.order-products,.order-card-foot,
+.local-order-grid,.local-order-grid-pro,.local-order-modal-pro,.local-order-summary-pro,.local-product-add-pro,.local-order-launch,
+.local-customer-mode,.local-customer-mode-btn,.local-immediate-payment,.local-payment-choice-heading,.local-payment-fields,
+.local-payment-method-btn,.local-payment-timing-btn,.local-payment-status-badge,.local-menu-browser,.local-menu-browser-head,
+.local-menu-search,.local-menu-categories,.local-menu-grid,.local-qty-field,.worker-client-preview,
+.mail-brand-block,.mail-brand-icon,.mail-list-head,.mail-list-tools,.mail-toolbar-tabs,.mail-mobile-actions,.mail-mobile-compose,
+.mail-mobile-link,.compose-account-row,.compose-from-block,.compose-recipient-row,.compose-message-wrap,.compose-format-panel,
+.compose-footer,.gmail-compose-body,.gmail-message-body,.gmail-reader-dialog,.gmail-reader-heading,.gmail-reader-subject-wrap,
+.gmail-sender-row,.gmail-sender-copy,.notification-selection-toolbar,.notification-detail-modal,.notification-detail-dialog,
+.notification-detail-icon,.notification-detail-close,.payment-layout-premium,.payment-main-panel,.payment-items,.premium-order-summary,
+.manual-payment-modal,.manual-payment-summary,.manual-payment-list,.card-stage,.staff-flow,.payment-staff-grid,.payment-staff-guide) {
+    background: var(--ui-surface) !important;
+    color: var(--ui-text) !important;
+    border-color: var(--ui-line) !important;
+}
+
+body.theme-dark :is(.order-card small,.order-status-note,.cash-note,.paid-note,.compose-global-hint,.compose-extra-links,
+.gmail-label,.mail-list-head small,.mail-header-stats small,.notification-detail-dialog small) {
+    color: var(--ui-muted) !important;
+}
+
+body.theme-dark :is(.compose-tools button,.mail-list-tools button,.mail-mobile-actions button,.notification-action,.icon-btn) {
+    color: var(--ui-text) !important;
+    background: var(--ui-surface-2) !important;
+    border-color: var(--ui-line) !important;
+}
+
+body.theme-dark :is(.compose-tools button:hover,.mail-list-tools button:hover,.mail-mobile-actions button:hover,.notification-action:hover,.icon-btn:hover) {
+    background: var(--ui-hover) !important;
+}

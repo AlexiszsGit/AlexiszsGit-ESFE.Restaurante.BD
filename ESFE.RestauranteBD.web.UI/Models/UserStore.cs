@@ -44,6 +44,8 @@ public sealed class UserAccount
     public DateTime? LockedUntil { get; set; }
     // Indica si la cuenta está activa.
     public bool Activo { get; set; } = true;
+    // Indica si el usuario confirmó que tiene acceso al correo de la cuenta.
+    public bool EmailVerified { get; set; } = true;
     // Fecha en la que se creó la cuenta.
     public DateTime CreadoEn { get; set; } = DateTime.UtcNow;
 }
@@ -71,6 +73,11 @@ public static class UserStore
                 "1234")
         };
 
+    private static readonly ConcurrentDictionary<string, CachedUser> UserCache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly TimeSpan UserCacheDuration = TimeSpan.FromSeconds(5);
+
+    private sealed record CachedUser(UserAccount User, DateTime ExpiresAt, bool IncludeInactive);
+
     private static readonly object FileLock = new();
     private static readonly string LocalFile =
         Path.Combine(AppContext.BaseDirectory, "users.local.json");
@@ -86,6 +93,7 @@ public static class UserStore
             {
                 var dbUsers = RestaurantDb.GetAccounts();
                 Users.Clear();
+                UserCache.Clear();
 
                 foreach (var dbUser in dbUsers)
                 {
@@ -115,22 +123,35 @@ public static class UserStore
         bool includeInactive = false)
     {
         var normalized = NormalizeEmail(email);
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            user = null;
+            return false;
+        }
+
+        var cacheKey = $"{normalized}|{includeInactive}";
+        if (UserCache.TryGetValue(cacheKey, out var cached) && cached.ExpiresAt > DateTime.UtcNow)
+        {
+            user = cached.User;
+            return true;
+        }
 
         if (RestaurantDb.IsConfigured)
         {
             try
             {
                 var dbUser = RestaurantDb.GetAccount(normalized, includeInactive);
-
-                if (dbUser is not null)
+                if (dbUser is null)
                 {
-                    Users[normalized] = dbUser;
-                    user = dbUser;
-                    return true;
+                    UserCache.TryRemove(cacheKey, out _);
+                    user = null;
+                    return false;
                 }
 
-                user = null;
-                return false;
+                Users[normalized] = dbUser;
+                UserCache[cacheKey] = new CachedUser(dbUser, DateTime.UtcNow.Add(UserCacheDuration), includeInactive);
+                user = dbUser;
+                return true;
             }
             catch
             {
@@ -139,7 +160,14 @@ public static class UserStore
             }
         }
 
-        return Users.TryGetValue(normalized, out user);
+        if (Users.TryGetValue(normalized, out user) && (includeInactive || user.Activo))
+        {
+            UserCache[cacheKey] = new CachedUser(user, DateTime.UtcNow.Add(UserCacheDuration), includeInactive);
+            return true;
+        }
+
+        user = null;
+        return false;
     }
 
     // Agrega un nuevo elemento a la interfaz.
@@ -167,6 +195,8 @@ public static class UserStore
         if (!Users.TryAdd(key, user))
             return false;
 
+        UserCache[key + "|False"] = new CachedUser(user, DateTime.UtcNow.Add(UserCacheDuration), false);
+        UserCache[key + "|True"] = new CachedUser(user, DateTime.UtcNow.Add(UserCacheDuration), true);
         SaveLocalUsers();
         return true;
     }
@@ -197,6 +227,8 @@ public static class UserStore
         }
 
         Users[key] = user;
+        UserCache[key + "|False"] = new CachedUser(user, DateTime.UtcNow.Add(UserCacheDuration), false);
+        UserCache[key + "|True"] = new CachedUser(user, DateTime.UtcNow.Add(UserCacheDuration), true);
         SaveLocalUsers();
         return true;
     }
@@ -270,6 +302,7 @@ public static class UserStore
                         PasswordIterations = x.PasswordIterations,
                         PasswordKeyBytes = x.PasswordKeyBytes,
                         PasswordNeedsChange = x.PasswordNeedsChange,
+                        EmailVerified = x.EmailVerified,
                         Activo = x.Activo,
                         CreadoEn = x.CreadoEn
                     })
@@ -469,7 +502,8 @@ public static class UserStore
 
         if (!TryGet(email, out var candidate)
             || candidate is null
-            || !candidate.Activo)
+            || !candidate.Activo
+            || !candidate.EmailVerified)
         {
             return false;
         }

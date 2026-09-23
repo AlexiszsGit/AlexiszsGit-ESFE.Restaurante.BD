@@ -18,14 +18,12 @@
         new { Title = "Control", Items = new[] { RoleStore.Payments, RoleStore.Reports, RoleStore.Workers, RoleStore.Notifications, RoleStore.Information } }
     };
 }
-@* Contenido principal de la página. *@
 <section class="page-shell">
     <div class="page-head"><div><span class="eyebrow">Administración de personal</span><h2>Trabajadores, roles y permisos</h2><p>Los roles se crean una sola vez y quedan disponibles automáticamente para asignarlos a nuevos empleados.</p></div><span class="result-count">@Model.Count trabajadores · @roles.Count roles</span></div>
     @if (TempData["WorkerError"] is string workerError && !string.IsNullOrWhiteSpace(workerError)) { <div class="alert-error" role="alert">@workerError</div> }
     @if (TempData["WorkerSuccess"] is string workerSuccess && !string.IsNullOrWhiteSpace(workerSuccess)) { <div class="alert-success" role="status">@workerSuccess</div> }
     <div class="worker-admin-grid">
-        @* Contenido principal de la página. *@
-        <section class="panel">
+                <section class="panel">
             <div class="panel-head"><div><span class="eyebrow">Personal actual</span><h3>Todos los trabajadores</h3></div><span class="result-count">@Model.Count registrados</span></div>
             <div class="worker-search-toolbar"><div class="search-box"><span>⌕</span><input id="workerSearch" type="search" placeholder="Buscar por nombre, correo, DUI o teléfono..." autocomplete="off" /></div></div>
             <div class="worker-list" id="workerList">
@@ -82,7 +80,7 @@
                 @if (Model.Count == 0) { <div class="empty-state compact"><strong>Aún no hay trabajadores</strong><p>Convierte una cuenta Cliente en empleado desde el panel lateral.</p></div> }
             </div>
         </section>
-        @* Resumen y acciones secundarias de la vista. *@
+        @* Acciones y resumen de esta pantalla. *@
         <aside class="panel worker-promotion-panel">
             <span class="eyebrow">Alta de trabajador</span><h3>Convertir cliente en trabajador</h3><p class="form-help">Busca una cuenta registrada, asigna el rol recién creado o uno existente y define su acceso.</p>
             @* Campos y controles para capturar información. *@
@@ -97,8 +95,7 @@
         </aside>
     </div>
     <div class="role-admin-grid">
-        @* Contenido principal de la página. *@
-        <section class="panel">
+                <section class="panel">
             <div class="panel-head"><div><span class="eyebrow">Catálogo de roles</span><h3>Roles disponibles</h3><p>Cada rol controla qué pantallas aparecen y qué áreas puede utilizar su cuenta.</p></div><span class="result-count">@roles.Count roles</span></div>
             <div class="role-catalog-grid">
                 @foreach(var r in roles){
@@ -147,7 +144,7 @@
                 }
             </div>
         </section>
-        @* Resumen y acciones secundarias de la vista. *@
+        @* Acciones y resumen de esta pantalla. *@
         <aside class="panel role-create-panel">
             <div class="role-create-hero"><span class="eyebrow">Constructor de acceso</span><h3>Crear nuevo rol</h3><p>Ejemplo: Limpieza, Caja, Supervisión. Marca exactamente las pantallas que quieres mostrarle al iniciar sesión.</p></div>
             @* Campos y controles para capturar información. *@

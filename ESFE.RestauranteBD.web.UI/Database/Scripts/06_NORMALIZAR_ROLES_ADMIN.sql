@@ -12,11 +12,11 @@ GO
 IF NOT EXISTS (SELECT 1 FROM dbo.Roles WHERE LTRIM(RTRIM(Name))=N'Dueno')
     -- Inserta los datos necesarios en la tabla correspondiente.
     INSERT dbo.Roles(Name,DisplayName,Description,IsSystemRole,IsActive,CreatedAt)
-    VALUES(N'Dueno',N'Administrador',N'Administrador principal',1,1,SYSUTCDATETIME());
+    VALUES(N'Dueno',N'Dueño',N'Administrador principal',1,1,SYSUTCDATETIME());
 ELSE
     -- Actualiza los datos que cumplen la condición indicada.
     UPDATE dbo.Roles
-       SET IsSystemRole=1,IsActive=1,DisplayName=N'Administrador',Description=N'Administrador principal'
+       SET IsSystemRole=1,IsActive=1,DisplayName=N'Dueño',Description=N'Administrador principal'
      WHERE LTRIM(RTRIM(Name))=N'Dueno';
 GO
 

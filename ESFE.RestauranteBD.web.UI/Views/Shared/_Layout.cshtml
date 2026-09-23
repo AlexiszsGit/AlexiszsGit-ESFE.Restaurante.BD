@@ -85,6 +85,43 @@
           href="~/css/premium.css"
           asp-append-version="true" />
 
+    <link rel="stylesheet"
+          href="~/css/final-polish.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/css/responsive-final.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/css/ultra-professional.css"
+          asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/final-signature.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/professional-refinement.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/settings-pro.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/international-v9.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/settings-signature.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dark-mode-final.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/theme-unified.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dark-mode-final-overrides.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dark-mode-global-final.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dark-mode-definitive.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dark-mode-no-white.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/mobile-orders-cart-final.css" asp-append-version="true" />
+
+    <script>
+        // Aplica el tema antes de pintar la página para evitar un destello claro/oscuro.
+        (() => {
+            try {
+                const saved = localStorage.getItem('restaurantebd.theme') || 'system';
+                const dark = saved === 'dark' || (saved === 'system' && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
+                document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+            } catch {
+                document.documentElement.dataset.theme = 'light';
+            }
+        })();
+    </script>
+
 </head>
 
 <body class="app-body @(settings.CompactMode ? "compact-mode" : "")"
@@ -149,7 +186,7 @@
 
     @if (mostrarApp && !autenticado)
     {
-        @* Contenido principal de la página. *@
+                @* Encabezado y menú para visitantes. *@
         <main class="public-menu-shell">
 
             @* Encabezado de la página con título y acciones principales. *@
@@ -194,12 +231,13 @@
     }
     else if (mostrarApp)
     {
+        @* Menú lateral y contenido principal de la aplicación. *@
         <div id="mobileOverlay"
              class="mobile-overlay"
              onclick="ESFERestaurante.layout.toggleSidebar(false)">
         </div>
 
-        @* Resumen y acciones secundarias de la vista. *@
+        @* Acciones y resumen de esta pantalla. *@
         <aside id="appSidebar"
                class="app-sidebar">
 
@@ -239,7 +277,7 @@
 
                     <div>
 
-                        <strong>
+                        <strong data-i18n="nav.service">
                             Servicio activo
                         </strong>
 
@@ -1312,15 +1350,18 @@
 
                         <span class="topbar-context-dot"></span>
 
-                        <span>
+                        <span data-i18n="nav.operation">
                             Operación activa
                         </span>
 
                         <span class="topbar-context-divider"></span>
 
-                        <strong>
-                            @etiquetaRol
-                        </strong>
+                        <strong>@etiquetaRol</strong>
+
+                        <span class="db-status-pill" id="databaseStatus" data-state="checking">
+                            <span class="db-status-dot"></span>
+                            <span>Conectando</span>
+                        </span>
 
                     </div>
 
@@ -1532,7 +1573,7 @@
 
                                 <span>
 
-                                    <strong>
+                                    <strong data-i18n="nav.profile">
                                         Mi perfil
                                     </strong>
 
@@ -1554,12 +1595,36 @@
 
                                 <span>
 
-                                    <strong>
+                                    <strong data-i18n="nav.notifications">
                                         Notificaciones
                                     </strong>
 
                                     <small>
                                         Mensajes y avisos
+                                    </small>
+
+                                </span>
+
+                            </a>
+
+                            <a asp-controller="Configuracion1"
+                               asp-action="Index"
+                               class="profile-context-item"
+                               data-settings-link
+                               aria-label="Abrir configuración">
+
+                                <span class="ui-icon">
+                                    ⚙
+                                </span>
+
+                                <span>
+
+                                    <strong data-i18n="nav.settings">
+                                        Configuración
+                                    </strong>
+
+                                    <small>
+                                        Apariencia, idioma y preferencias
                                     </small>
 
                                 </span>
@@ -1599,8 +1664,7 @@
 
             </header>
 
-            @* Contenido principal de la página. *@
-            <main class="page-content">
+                        <main class="page-content">
 
                 @RenderBody()
 
@@ -1649,7 +1713,7 @@
 
         @if (settings.ShowChatbot)
         {
-            @* Contenido principal de la página. *@
+                        @* Asistente virtual del restaurante. *@
             <section id="chatbot"
                      class="chatbot"
                      aria-label="Asistente de ayuda">
@@ -2054,35 +2118,36 @@
         @RenderBody()
     }
 
-    <!-- JAVASCRIPT -->
+    @* Scripts principales de la aplicación. *@
 
-    @* Datos que la vista expone al JavaScript. *@
     <script src="~/js/db-bridge.js"
             asp-append-version="true"></script>
 
-    @* Datos que la vista expone al JavaScript. *@
+    <script src="~/js/modules/localization.js" asp-append-version="true"></script>
+
+    <script src="~/js/modules/currency.js" asp-append-version="true"></script>
+
     <script src="~/js/site.js"
             asp-append-version="true"></script>
 
-    @* Datos que la vista expone al JavaScript. *@
     <script src="~/js/modules/local-orders.js"
             asp-append-version="true"></script>
 
-    @* Datos que la vista expone al JavaScript. *@
     <script src="~/js/modules/validation.js"
             asp-append-version="true"></script>
 
-    @* Datos que la vista expone al JavaScript. *@
     <script src="~/js/modules/chatbot.js"
             asp-append-version="true"></script>
 
-    @* Datos que la vista expone al JavaScript. *@
     <script src="~/js/modules/payment.js"
             asp-append-version="true"></script>
 
-    @* Datos que la vista expone al JavaScript. *@
     <script src="~/js/modules/cart.js"
             asp-append-version="true"></script>
+
+    <script src="~/js/modules/settings.js" asp-append-version="true"></script>
+    <script src="~/js/international-v9.js" asp-append-version="true"></script>
+    <script src="~/js/modules/dark-mode-audit.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 

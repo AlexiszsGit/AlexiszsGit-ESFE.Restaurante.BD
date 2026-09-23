@@ -1,5 +1,4 @@
-
-@* Modelo: define los datos que recibe la vista. *@
+@* Datos de la cuenta y edición del perfil. *@
 @model ESFE.RestauranteBD.web.UI.Models.UserAccount
 @{
     Layout = "_Layout";
@@ -7,32 +6,82 @@
     var displayRole = RoleStore.IsAdministrator(Model.Rol) ? "Administrador" : Model.Rol;
 }
 
-@* Contenido principal de la página. *@
-<section class="page-shell narrow-page">
-    <div class="page-head">
+<section class="page-shell profile-page">
+    <div class="page-head profile-page-head">
         <div>
-            <span class="eyebrow">Cuenta</span>
+            <span class="eyebrow">Cuenta personal</span>
             <h2>Mi perfil</h2>
-            <p>Tu información personal y de contacto. El rol lo administra exclusivamente el administrador.</p>
+            <p>Tu información, seguridad y preferencias en un solo lugar.</p>
         </div>
-        <span class="role-badge role-@Model.Rol.ToLowerInvariant()">@displayRole</span>
+        <div class="profile-head-actions">
+            <span class="role-badge role-@Model.Rol.ToLowerInvariant()">@displayRole</span>
+            <button type="button" class="primary-btn" id="openProfileEditor">
+                <span class="action-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="m4 20 4.2-1 9.9-9.9a2.3 2.3 0 0 0-3.2-3.2L5 15.8 4 20Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m13.7 7.3 3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                </span>
+                Editar perfil
+            </button>
+        </div>
     </div>
 
     @if (TempData["ProfileError"] != null)
     {
-        <div class="alert-error">@TempData["ProfileError"]</div>
+        <div class="alert-error profile-alert">@TempData["ProfileError"]</div>
     }
 
     @if (TempData["ProfileSuccess"] != null)
     {
-        <div class="alert-success">@TempData["ProfileSuccess"]</div>
+        <div class="alert-success profile-alert">@TempData["ProfileSuccess"]</div>
     }
 
-    <div class="profile-layout">
-        @* Contenido principal de la página. *@
-        <section class="panel profile-summary-panel">
-            <div class="profile-hero profile-hero-large">
-                <div class="profile-avatar profile-avatar-photo">
+    @{
+        var profileComplete = new[]
+        {
+            !string.IsNullOrWhiteSpace(Model.Nombre),
+            !string.IsNullOrWhiteSpace(Model.Email),
+            !string.IsNullOrWhiteSpace(Model.Telefono),
+            !string.IsNullOrWhiteSpace(Model.Dui),
+            !string.IsNullOrWhiteSpace(Model.Direccion),
+            !string.IsNullOrWhiteSpace(Model.ProfilePhotoData)
+        }.Count(x => x);
+        var profilePercent = (int)Math.Round(profileComplete / 6d * 100d);
+    }
+
+    <section class="profile-showcase">
+        <div class="profile-showcase-avatar">
+            @if (!string.IsNullOrWhiteSpace(Model.ProfilePhotoData))
+            {
+                <img src="@Model.ProfilePhotoData" alt="Foto de perfil de @Model.Nombre" />
+            }
+            else
+            {
+                <span>@Model.Nombre.FirstOrDefault().ToString().ToUpperInvariant()</span>
+            }
+        </div>
+        <div class="profile-showcase-copy">
+            <span class="eyebrow">Cuenta personal</span>
+            <h3>@Model.Nombre</h3>
+            <p>@Model.Email · @displayRole</p>
+            <div class="profile-showcase-meta">
+                <span class="profile-showcase-pill"><i></i> Cuenta activa</span>
+                <span class="profile-showcase-pill">Desde @Model.CreadoEn.ToLocalTime().ToString("MMMM yyyy", new System.Globalization.CultureInfo("es-ES"))</span>
+            </div>
+            <div class="profile-showcase-actions">
+                <button type="button" class="primary-btn" id="openProfileEditorHero">Editar perfil</button>
+                <a asp-controller="Configuracion1" asp-action="Index" class="secondary-btn">Preferencias</a>
+            </div>
+        </div>
+        <div class="profile-completion">
+            <div class="profile-completion-head"><span>Perfil completo</span><strong>@profilePercent%</strong></div>
+            <div class="profile-completion-bar"><i style="width:@profilePercent%"></i></div>
+            <small>@(profilePercent == 100 ? "Tu información principal está completa." : "Completa tus datos para tener una cuenta más personalizada.")</small>
+        </div>
+    </section>
+
+    <div class="profile-dashboard">
+        <section class="panel profile-identity-card">
+            <div class="profile-identity-hero">
+                <div class="profile-avatar profile-avatar-photo profile-avatar-xl">
                     @if (!string.IsNullOrWhiteSpace(Model.ProfilePhotoData))
                     {
                         <img src="@Model.ProfilePhotoData" alt="Foto de perfil de @Model.Nombre" />
@@ -42,21 +91,24 @@
                         <span>@Model.Nombre.FirstOrDefault().ToString().ToUpperInvariant()</span>
                     }
                 </div>
-                <div>
+                <div class="profile-identity-copy">
                     <span class="eyebrow">Cuenta activa</span>
                     <h3>@Model.Nombre</h3>
                     <p>@Model.Email</p>
+                    <div class="profile-trust-row">
+                        <span class="profile-trust-pill"><i></i> Cuenta activa</span>
+                        <span class="profile-trust-pill neutral">@displayRole</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="profile-photo-manager">
-                <div>
+            <div class="profile-photo-manager profile-photo-manager-new">
+                <div class="profile-photo-copy">
                     <span class="eyebrow">Imagen de perfil</span>
-                    <strong>Personaliza tu cuenta</strong>
-                    <p>JPG, PNG o WebP · máximo 2 MB. La imagen se guarda dentro de tu perfil.</p>
+                    <strong>Haz tu cuenta más personal</strong>
+                    <p>JPG, PNG o WebP · máximo 2 MB.</p>
                 </div>
                 <div class="profile-photo-actions">
-                    @* Campos y controles para capturar información. *@
                     <form asp-action="ActualizarFoto" method="post" enctype="multipart/form-data" class="profile-photo-form">
                         @Html.AntiForgeryToken()
                         <label class="secondary-btn small profile-photo-picker">
@@ -67,7 +119,6 @@
                     </form>
                     @if (!string.IsNullOrWhiteSpace(Model.ProfilePhotoData))
                     {
-                        @* Campos y controles para capturar información. *@
                         <form asp-action="EliminarFoto" method="post">
                             @Html.AntiForgeryToken()
                             <button type="submit" class="danger-btn small">Eliminar foto</button>
@@ -76,30 +127,59 @@
                 </div>
             </div>
 
-            <div class="profile-data">
+            <div class="profile-data profile-data-modern">
                 <div><span>Nombre</span><strong>@Model.Nombre</strong></div>
                 <div><span>Correo</span><strong>@Model.Email</strong></div>
-                <div><span>DUI</span><strong>@Model.Dui</strong></div>
-                <div><span>Teléfono</span><strong>@Model.Telefono</strong></div>
-                <div class="profile-data-wide"><span>Dirección</span><strong>@Model.Direccion</strong></div>
+                <div><span>DUI</span><strong>@(string.IsNullOrWhiteSpace(Model.Dui) ? "No registrado" : Model.Dui)</strong></div>
+                <div><span>Teléfono</span><strong>@(string.IsNullOrWhiteSpace(Model.Telefono) ? "No registrado" : Model.Telefono)</strong></div>
+                <div class="profile-data-wide"><span>Dirección</span><strong>@(string.IsNullOrWhiteSpace(Model.Direccion) ? "No registrada" : Model.Direccion)</strong></div>
                 <div><span>Cuenta creada</span><strong>@Model.CreadoEn.ToLocalTime().ToString("dd/MM/yyyy")</strong></div>
-            </div>
-
-            <div class="profile-protection-note">
-                <span>Seguridad de la cuenta</span>
-                <strong>El rol no se puede cambiar desde este perfil.</strong>
-                <p>Los permisos se determinan en el servidor según el rol asignado por el administrador.</p>
             </div>
         </section>
 
-        @* Contenido principal de la página. *@
-        <section class="panel">
-            <span class="eyebrow">Editar información</span>
-            <h3>Datos personales</h3>
-            @* Campos y controles para capturar información. *@
-            <form asp-action="Actualizar" method="post" class="form-stack profile-edit-form">
-                @Html.AntiForgeryToken()
+        <aside class="profile-side-column">
+            <section class="panel profile-quick-card">
+                <div class="profile-card-heading">
+                    <div class="profile-card-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M12 3.8 5.5 6.5v4.3c0 4.2 2.5 7.6 6.5 9.4 4-1.8 6.5-5.2 6.5-9.4V6.5L12 3.8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <div><span class="eyebrow">Seguridad</span><strong>Cuenta protegida</strong></div>
+                </div>
+                <p>Tu rol y permisos se administran desde el sistema. Desde aquí solo puedes modificar tus datos personales.</p>
+                <div class="profile-security-item"><span>Rol</span><strong>@displayRole</strong></div>
+                <div class="profile-security-item"><span>Correo</span><strong>Verificado por el sistema</strong></div>
+            </section>
 
+            <section class="panel profile-contact-card">
+                <div class="profile-card-heading">
+                    <div class="profile-card-icon soft" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M4 6.5 12 13l8-6.5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><rect x="3.5" y="5" width="17" height="14" rx="2.5" stroke="currentColor" stroke-width="1.7"/></svg>
+                    </div>
+                    <div><span class="eyebrow">Contacto</span><strong>Información principal</strong></div>
+                </div>
+                <div class="profile-contact-row"><span>Correo</span><strong>@Model.Email</strong></div>
+                <div class="profile-contact-row"><span>Teléfono</span><strong>@(string.IsNullOrWhiteSpace(Model.Telefono) ? "No registrado" : Model.Telefono)</strong></div>
+                <div class="profile-contact-row"><span>Dirección</span><strong>@(string.IsNullOrWhiteSpace(Model.Direccion) ? "No registrada" : Model.Direccion)</strong></div>
+            </section>
+        </aside>
+    </div>
+
+    <section class="panel profile-edit-panel hidden" id="profileEditPanel" aria-hidden="true">
+        <div class="profile-edit-header">
+            <div>
+                <span class="eyebrow">Editar información</span>
+                <h3>Datos personales</h3>
+                <p>Actualiza únicamente la información que quieres cambiar.</p>
+            </div>
+            <button type="button" class="icon-btn" id="closeProfileEditor" aria-label="Cerrar edición">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+
+        <form asp-action="Actualizar" method="post" class="form-stack profile-edit-form profile-edit-form-modern">
+            @Html.AntiForgeryToken()
+
+            <div class="profile-edit-grid">
                 <label class="field-label">
                     Nombre completo
                     <input name="nombre" value="@Model.Nombre" data-letters-only minlength="3" maxlength="80" required />
@@ -127,19 +207,21 @@
                     </label>
                 </div>
 
-                <label class="field-label">
+                <label class="field-label profile-edit-wide">
                     Dirección
                     <textarea name="direccion" minlength="5" maxlength="250" rows="4" required>@Model.Direccion</textarea>
                 </label>
+            </div>
 
-                <button class="primary-btn large full" type="submit">Guardar cambios</button>
-            </form>
-        </section>
-    </div>
+            <div class="profile-edit-actions">
+                <button type="button" class="secondary-btn" id="cancelProfileEditor">Cancelar</button>
+                <button class="primary-btn" type="submit">Guardar cambios</button>
+            </div>
+        </form>
+    </section>
 </section>
 
-@* Scripts necesarios para el funcionamiento de esta vista. *@
 @section Scripts {
-    @* Datos que la vista expone al JavaScript. *@
     <script src="~/js/modules/validation.js" asp-append-version="true"></script>
+    <script src="~/js/modules/profile.js" asp-append-version="true"></script>
 }

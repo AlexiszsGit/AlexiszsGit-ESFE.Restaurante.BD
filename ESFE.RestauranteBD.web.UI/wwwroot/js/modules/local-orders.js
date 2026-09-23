@@ -150,11 +150,12 @@
         if (input("localOrderTax")) input("localOrderTax").textContent = money(total * Math.max(0,Number(document.body?.dataset?.tax||13))/100);
         if (input("localOrderTotal")) input("localOrderTotal").textContent = money(total * (1+Math.max(0,Number(document.body?.dataset?.tax||13))/100));
         if (input("localOrderTotalMirror")) input("localOrderTotalMirror").textContent = money(total * (1+Math.max(0,Number(document.body?.dataset?.tax||13))/100));
+        if (input("localPaymentTiming")?.value === "Pagado") renderImmediatePaymentFields();
         if (!box) return;
         box.innerHTML = state.lines.length ? state.lines.map((l,i) => `<article class="local-order-line"><div><strong>${l.qty} × ${esc(l.name)}</strong><small>${money(l.price*l.qty)}</small></div><button type="button" class="icon-btn danger-icon" onclick="ESFERestaurante.localOrders.removeLine(${i})" aria-label="Eliminar producto">×</button></article>`).join("") : `<div class="empty-state compact"><strong>Agrega productos</strong><p>La orden presencial seguirá el mismo flujo de cocina.</p></div>`;
     }
 
-    // Procesa la información de reset.
+    // Restablece los datos del formulario.
     function reset() {
         state.lines = []; state.customer = null; state.customerMode = "registered";
         ["localCustomerSearch","localCustomerName","localCustomerPhone","localDate","localTime","localAddress"].forEach(id => { const e=input(id); if(e)e.value=""; });
@@ -166,7 +167,7 @@
         if(input("localDate")) { input("localDate").value=app.localDate(now); input("localDate").min=app.localDate(now); }
         if(input("localTime")) input("localTime").value=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
         if(input("localPeople")) input("localPeople").value="2";
-        renderProducts(); renderMenuBrowser(); renderTables(); renderAttendants(); renderCustomer(); renderLines();
+        renderProducts(); renderMenuBrowser(); renderTables(); renderAttendants(); renderCustomer(); renderLines(); setPaymentMethod("Efectivo"); setPaymentTiming("Pendiente");
     }
 
     // Abre el formulario o módulo correspondiente.
@@ -195,90 +196,208 @@
     // Elimina una línea de producto del pedido.
     function removeLine(i){ state.lines.splice(i,1); renderLines(); }
 
-    // Muestra el formulario para capturar el pedido.
-    function showOrderForm(){
-        input("localOrderFormView")?.classList.remove("hidden");
-        input("localPaymentView")?.classList.add("hidden");
+    // Muestra u oculta el bloque de pago inmediato.
+    function showOrderForm() {
+        input("localImmediatePayment")?.classList.add("hidden");
+        input("localPaymentFields")?.replaceChildren();
+        state.pendingPaymentOrder = null;
     }
-    // Muestra el formulario para procesar el pago.
-    function showPaymentForm(order){
-        state.pendingPaymentOrder=order;
-        const form=input("localOrderFormView");
-        const view=input("localPaymentView");
-        if(!form || !view){
-            app.ui.mostrarToast("No fue posible abrir el formulario de pago. Revisa la vista del pedido.","error");
-            return false;
+
+    // Activa el método de pago que eligió el encargado.
+    function setPaymentMethod(method) {
+        const select = input("localPayment");
+        if (!select) return;
+        select.value = ["Efectivo", "Tarjeta", "Transferencia"].includes(method) ? method : "Efectivo";
+        document.querySelectorAll("[data-payment-method]").forEach(button => button.classList.toggle("active", button.dataset.paymentMethod === select.value));
+        renderImmediatePaymentFields();
+    }
+
+    // Cambia entre cobrar ahora y dejar el pago pendiente.
+    function setPaymentTiming(timing) {
+        const select = input("localPaymentTiming");
+        if (!select) return;
+        select.value = timing === "Pagado" ? "Pagado" : "Pendiente";
+        document.querySelectorAll("[data-payment-timing]").forEach(button => button.classList.toggle("active", button.dataset.paymentTiming === select.value));
+        updateCreateButtonLabel();
+        renderImmediatePaymentFields();
+    }
+
+    // Cambia el texto principal según el estado del cobro.
+    function updateCreateButtonLabel() {
+        const label = document.querySelector("[data-order-submit-label]");
+        if (label) label.textContent = input("localPaymentTiming")?.value === "Pagado" ? "Crear pedido y registrar pago" : "Crear pedido presencial";
+    }
+
+    // Muestra los campos que corresponden al método de pago elegido.
+    function renderImmediatePaymentFields() {
+        const box = input("localImmediatePayment");
+        const fields = input("localPaymentFields");
+        const timing = input("localPaymentTiming")?.value || "Pendiente";
+        const payment = input("localPayment")?.value || "Efectivo";
+        if (!box || !fields) return;
+
+        updateCreateButtonLabel();
+
+        if (timing !== "Pagado") {
+            box.classList.add("hidden");
+            fields.replaceChildren();
+            return;
         }
-        form.classList.add("hidden");
-        view.classList.remove("hidden");
-        view.setAttribute("aria-hidden","false");
-        const total=input("localPaymentTotal");
-        const title=input("localPaymentTitle");
-        const subtitle=input("localPaymentSubtitle");
-        const fields=input("localPaymentFields");
-        if(!total||!title||!subtitle||!fields){
-            app.ui.mostrarToast("Faltan elementos del formulario de pago.","error");
-            return false;
+
+        box.classList.remove("hidden");
+        const total = input("localOrderTotalMirror")?.textContent || money(0);
+
+        if (payment === "Efectivo") {
+            fields.innerHTML = `
+                <div class="local-payment-method-card compact">
+                    <div class="local-payment-method-head">
+                        <span class="payment-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M7.5 9.5h9M7.5 14.5h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+                        <div><span class="eyebrow">Efectivo</span><strong>Confirmar cobro en caja</strong><small>El total ya está calculado. Solo confirma que recibiste el importe completo.</small></div>
+                    </div>
+                    <div class="local-payment-due"><span>Total a cobrar</span><strong>${total}</strong></div>
+                    <label class="local-payment-confirm"><input id="localCashConfirmed" type="checkbox" /> <span>Confirmo que recibí el pago completo</span></label>
+                </div>`;
+            input("localCashConfirmed")?.focus({ preventScroll: true });
+            return;
         }
-        total.textContent=money(order.total);
-        title.textContent=order.payment === "Tarjeta" ? "Pago con tarjeta" : "Pago por transferencia";
-        subtitle.textContent=order.payment === "Tarjeta" ? "Completa los datos de la tarjeta para registrar el cobro." : "Registra la referencia de transferencia para completar el cobro.";
-        if(order.payment === "Transferencia"){
-            const suggested=`TRX-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
-            fields.innerHTML=`<div class="local-payment-method-card"><div class="local-payment-method-head"><span class="payment-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 7h14M6 12h12M8 17h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 5h16v14H4z" stroke="currentColor" stroke-width="1.7"/></svg></span><div><span class="eyebrow">Transferencia</span><strong>Registrar referencia</strong><small>Modo demostración. No se realiza ninguna transferencia real.</small></div></div><div class="local-payment-reference"><span>Referencia sugerida</span><strong>${suggested}</strong></div><label class="field-label">Referencia de transferencia<input id="localTransferReference" type="text" maxlength="40" value="${suggested}" placeholder="TRX-2026-001245" /></label></div>`;
-        } else {
-            fields.innerHTML=`<div class="local-payment-card-grid"><div class="local-payment-method-card"><div class="local-payment-method-head"><span class="payment-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3 10h18M7 15h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span><div><span class="eyebrow">Tarjeta</span><strong>Datos de pago</strong><small>Los datos se usan solo para esta simulación local.</small></div></div><div class="local-payment-field-grid"><label class="field-label">Nombre del titular<input id="localCardName" type="text" maxlength="60" placeholder="NOMBRE DEL TITULAR" /></label><label class="field-label">Número de tarjeta<input id="localCardNumber" type="text" maxlength="23" inputmode="numeric" placeholder="0000 0000 0000 0000" /></label><label class="field-label">Vencimiento<input id="localCardExpiry" type="text" maxlength="5" inputmode="numeric" placeholder="MM/AA" /></label><label class="field-label">CVV<input id="localCardCvv" type="password" maxlength="4" inputmode="numeric" placeholder="123" /></label></div></div><div class="local-card-preview"><span>RestauranteBD</span><strong id="localCardPreviewNumber">•••• •••• •••• ••••</strong><div><small id="localCardPreviewName">NOMBRE DEL TITULAR</small><small id="localCardPreviewExpiry">MM/AA</small></div></div></div>`;
-            // Procesa la información de update.
-            const update=()=>{
-                const n=(input("localCardNumber")?.value||"").replace(/\D/g,"").slice(0,16); const parts=n.match(/.{1,4}/g)||[];
-                if(input("localCardNumber")) input("localCardNumber").value=parts.join(" ");
-                if(input("localCardPreviewNumber")) input("localCardPreviewNumber").textContent=parts.length?parts.join(" "):"•••• •••• •••• ••••";
-                if(input("localCardPreviewName")) input("localCardPreviewName").textContent=(input("localCardName")?.value||"NOMBRE DEL TITULAR").toUpperCase().slice(0,24);
-                if(input("localCardPreviewExpiry")) input("localCardPreviewExpiry").textContent=input("localCardExpiry")?.value||"MM/AA";
+
+        if (payment === "Tarjeta") {
+            fields.innerHTML = `
+                <div class="local-payment-method-card premium compact">
+                    <div class="local-payment-method-head">
+                        <span class="payment-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3.5 10h17M7 15h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+                        <div><span class="eyebrow">Tarjeta</span><strong>Procesar cobro con POS</strong><small>El sistema toma el total del pedido automáticamente. Los datos completos solo se usan durante esta operación.</small></div>
+                    </div>
+                    <div class="local-payment-due"><span>Total a cobrar</span><strong>${total}</strong></div>
+                    <div class="local-card-preview" aria-hidden="true">
+                        <div class="local-card-preview-top"><span>RESTAURANTEBd</span><span>VISA / MASTERCARD</span></div>
+                        <strong class="local-card-preview-number" id="localCardPreviewNumber">•••• •••• •••• ••••</strong>
+                        <div class="local-card-preview-bottom"><span><small>TITULAR</small><b id="localCardPreviewName">NOMBRE DEL TITULAR</b></span><span><small>VENCE</small><b id="localCardPreviewExpiry">MM/AA</b></span></div>
+                    </div>
+                    <div class="local-payment-field-grid local-card-fields-grid">
+                        <label class="field-label local-payment-wide-field">Nombre del titular<input id="localCardName" type="text" maxlength="60" placeholder="Nombre como aparece en la tarjeta" autocomplete="cc-name" /></label>
+                        <label class="field-label local-payment-wide-field">Número de tarjeta<input id="localCardNumber" type="text" maxlength="23" inputmode="numeric" placeholder="0000 0000 0000 0000" autocomplete="cc-number" /></label>
+                        <label class="field-label">Vencimiento<input id="localCardExpiry" type="text" maxlength="5" inputmode="numeric" placeholder="MM/AA" autocomplete="cc-exp" /></label>
+                        <label class="field-label">CVV<input id="localCardCvv" type="password" maxlength="4" inputmode="numeric" placeholder="123" autocomplete="cc-csc" /></label>
+                        <label class="field-label local-payment-wide-field">Referencia / autorización <span class="field-optional">Opcional</span><input id="localCardReference" type="text" maxlength="40" placeholder="Autorización del POS" autocomplete="off" /></label>
+                    </div>
+                    <div class="local-card-security-note"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="6" y="10" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M8.5 10V7.7a3.5 3.5 0 0 1 7 0V10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><span>Los datos completos de la tarjeta no se guardan en el pedido. Solo queda la referencia del cobro y los últimos 4 dígitos.</span></div>
+                </div>`;
+
+            const name = input("localCardName");
+            const number = input("localCardNumber");
+            const expiry = input("localCardExpiry");
+            const previewNumber = input("localCardPreviewNumber");
+            const previewName = input("localCardPreviewName");
+            const previewExpiry = input("localCardPreviewExpiry");
+
+            const syncCardPreview = () => {
+                if (number) {
+                    const digits = number.value.replace(/\D/g, "").slice(0, 19);
+                    number.value = digits.replace(/(.{4})/g, "$1 ").trim();
+                    if (previewNumber) previewNumber.textContent = digits ? digits.replace(/\d(?=\d{4})/g, "•").replace(/(.{4})/g, "$1 ").trim() : "•••• •••• •••• ••••";
+                }
+                if (previewName) previewName.textContent = (name?.value || "").trim().toUpperCase() || "NOMBRE DEL TITULAR";
+                if (expiry) {
+                    const digits = expiry.value.replace(/\D/g, "").slice(0, 4);
+                    expiry.value = digits.length > 2 ? `${digits.slice(0,2)}/${digits.slice(2)}` : digits;
+                    if (previewExpiry) previewExpiry.textContent = expiry.value || "MM/AA";
+                }
             };
-            // Evento que conecta una acción del usuario con la lógica del módulo.
-            input("localCardName")?.addEventListener("input",update);
-            // Evento que conecta una acción del usuario con la lógica del módulo.
-            input("localCardNumber")?.addEventListener("input",update);
-            // Evento que conecta una acción del usuario con la lógica del módulo.
-            input("localCardExpiry")?.addEventListener("input",e=>{let v=e.target.value.replace(/\D/g,"").slice(0,4);if(v.length>2)v=v.slice(0,2)+"/"+v.slice(2);e.target.value=v;update();});
-            update();
+
+            [name, number, expiry].forEach(node => node?.addEventListener("input", syncCardPreview));
+            input("localCardCvv")?.addEventListener("input", event => { event.target.value = event.target.value.replace(/\D/g, "").slice(0, 4); });
+            syncCardPreview();
+            number?.focus({ preventScroll: true });
+            return;
         }
-        requestAnimationFrame(()=>{
-            view.scrollTop=0;
-            view.querySelector('input,button')?.focus({preventScroll:true});
-        });
+
+        const suggested = `TRX-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`;
+        fields.innerHTML = `
+            <div class="local-payment-method-card compact">
+                <div class="local-payment-method-head">
+                    <span class="payment-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4.5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M8 9h8M8 13h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+                    <div><span class="eyebrow">Transferencia</span><strong>Registrar transferencia</strong><small>El total es ${total}. Guarda el banco y la referencia que entregue el cliente.</small></div>
+                </div>
+                <div class="local-payment-due"><span>Total a cobrar</span><strong>${total}</strong></div>
+                <div class="local-payment-reference"><span>Referencia sugerida</span><strong>${suggested}</strong></div>
+                <div class="local-payment-field-grid">
+                    <label class="field-label">Banco / entidad<input id="localTransferBank" type="text" maxlength="80" placeholder="Nombre del banco" /></label>
+                    <label class="field-label">Referencia<input id="localTransferReference" type="text" maxlength="40" value="${suggested}" placeholder="TRX-2026-001245" /></label>
+                </div>
+            </div>`;
+        input("localTransferReference")?.focus({ preventScroll: true });
+    }
+
+    // Valida y recoge únicamente la información necesaria para el cobro inmediato.
+    function collectImmediatePayment(total, payment) {
+        if (payment === "Efectivo") {
+            if (!input("localCashConfirmed")?.checked) {
+                app.ui.mostrarToast(`Confirma que recibiste el total de ${money(total)}.`, "error");
+                return null;
+            }
+            return { ref: `CASH-${Date.now().toString().slice(-10)}`, detail: `Pago en efectivo confirmado por ${money(total)}` };
+        }
+
+        if (payment === "Transferencia") {
+            const bank = (input("localTransferBank")?.value || "").trim();
+            const ref = (input("localTransferReference")?.value || "").trim();
+            if (bank.length < 2) { app.ui.mostrarToast("Escribe el banco o entidad de la transferencia.", "error"); return null; }
+            if (!/^[A-Za-z0-9-]{5,40}$/.test(ref)) { app.ui.mostrarToast("Ingresa una referencia de transferencia válida.", "error"); return null; }
+            return { ref, detail: `Transferencia registrada · ${bank}` };
+        }
+
+        const name = (input("localCardName")?.value || "").trim();
+        const number = (input("localCardNumber")?.value || "").replace(/\D/g, "");
+        const expiry = (input("localCardExpiry")?.value || "").trim();
+        const cvv = (input("localCardCvv")?.value || "").replace(/\D/g, "");
+        const ref = (input("localCardReference")?.value || "").trim();
+        if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñÀ-ÿ' -]{3,60}$/.test(name)) { app.ui.mostrarToast("Escribe el nombre del titular.", "error"); return null; }
+        if (!/^\d{13,19}$/.test(number)) { app.ui.mostrarToast("Escribe un número de tarjeta válido.", "error"); return null; }
+        if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)) { app.ui.mostrarToast("Escribe el vencimiento en formato MM/AA.", "error"); return null; }
+        if (!/^\d{3,4}$/.test(cvv)) { app.ui.mostrarToast("Escribe el CVV de la tarjeta.", "error"); return null; }
+        const month = Number(expiry.slice(0, 2));
+        const year = 2000 + Number(expiry.slice(3, 5));
+        const now = new Date();
+        const expiresAt = new Date(year, month);
+        if (expiresAt <= now) { app.ui.mostrarToast("La tarjeta está vencida.", "error"); return null; }
+        const last4 = number.slice(-4);
+        const authorization = ref || `POS-${Date.now().toString().slice(-10)}`;
+        return { ref: `CARD-${authorization}`, detail: `Pago con tarjeta registrado · **** ${last4}` };
+    }
+
+    // Mantiene compatibilidad con el flujo anterior si otra parte del proyecto lo utiliza.
+    function showPaymentForm(order) {
+        state.pendingPaymentOrder = order;
+        if (input("localPayment")) input("localPayment").value = order.payment || "Efectivo";
+        if (input("localPaymentTiming")) input("localPaymentTiming").value = "Pagado";
+        renderImmediatePaymentFields();
         return true;
     }
-    // Regresa del pago al formulario del pedido.
-    function backToOrder(){ state.pendingPaymentOrder=null; showOrderForm(); }
-    // Valida el número de tarjeta mediante el algoritmo de Luhn.
-    function validLuhn(value){let sum=0,d=false;for(let i=value.length-1;i>=0;i--){let n=Number(value[i]);if(d){n*=2;if(n>9)n-=9;}sum+=n;d=!d;}return value.length>=13&&sum%10===0;}
-    // Confirma y registra el pago del pedido.
-    function confirmPayment(){
-        const order=state.pendingPaymentOrder;
-        if(!order){app.ui.mostrarToast("No hay un pago pendiente de confirmar.","error");return;}
-        let ref="";
-        if(order.payment === "Transferencia"){
-            ref=(input("localTransferReference")?.value||"").trim();
-            if(!/^[A-Za-z0-9-]{5,40}$/.test(ref)){app.ui.mostrarToast("Ingresa una referencia de transferencia válida.","error");return;}
-        } else {
-            const name=(input("localCardName")?.value||"").trim(); const number=(input("localCardNumber")?.value||"").replace(/\D/g,""); const expiry=(input("localCardExpiry")?.value||"").trim(); const cvv=(input("localCardCvv")?.value||"").replace(/\D/g,"");
-            if(!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñÀ-ÿ' -]{3,60}$/.test(name)){app.ui.mostrarToast("Escribe el nombre del titular.","error");return;}
-            if(number.length<13||number.length>19||!validLuhn(number)){app.ui.mostrarToast("El número de tarjeta no tiene un formato válido.","error");return;}
-            const [mm,yy]=(expiry||"").split("/").map(Number);const now=new Date();const month=now.getMonth()+1;const year=now.getFullYear()%100;
-            if(!mm||!yy||mm<1||mm>12||yy<year||(yy===year&&mm<month)){app.ui.mostrarToast("La fecha de vencimiento no es válida.","error");return;}
-            if(!/^(\d{3,4})$/.test(cvv)){app.ui.mostrarToast("El CVV no tiene un formato válido.","error");return;}
-            ref=`CARD-${Date.now().toString().slice(-10)}`;
-        }
-        const orders=JSON.parse(localStorage.getItem(app.KEY.orders)||"[]"); const target=orders.find(o=>o.id===order.id); if(!target){app.ui.mostrarToast("No se encontró el pedido para completar el pago.","error");return;}
-        target.paymentStatus="Pagado"; target.paymentRef=ref; target.paymentDetail=order.payment==="Tarjeta"?"Pago con tarjeta registrado (simulación)":"Transferencia registrada (simulación)"; target.paidAt=new Date().toISOString();
-        localStorage.setItem(app.KEY.orders,JSON.stringify(orders));
-        const sales=JSON.parse(localStorage.getItem(app.KEY.sales)||"[]"); if(!sales.some(x=>x.id===target.id)) sales.unshift({...target,saleStatus:"Cobrado"}); localStorage.setItem(app.KEY.sales,JSON.stringify(sales));
-        const invoice=app.invoices.create(target);
+
+    // Regresa al formulario del pedido y limpia los datos temporales del pago.
+    function backToOrder() {
+        showOrderForm();
+    }
+
+    // Confirma un pago que haya quedado pendiente en el flujo anterior.
+    function confirmPayment() {
+        const order = state.pendingPaymentOrder;
+        if (!order) { app.ui.mostrarToast("No hay un pago pendiente de confirmar.", "error"); return; }
+        const data = collectImmediatePayment(Number(order.total)||0, order.payment || "Efectivo");
+        if (!data) return;
+        const orders = JSON.parse(localStorage.getItem(app.KEY.orders)||"[]");
+        const target = orders.find(o => o.id === order.id);
+        if (!target) { app.ui.mostrarToast("No se encontró el pedido para completar el pago.", "error"); return; }
+        target.paymentStatus = "Pagado"; target.paymentRef = data.ref; target.paymentDetail = data.detail; target.paidAt = new Date().toISOString();
+        localStorage.setItem(app.KEY.orders, JSON.stringify(orders));
+        const sales = JSON.parse(localStorage.getItem(app.KEY.sales)||"[]");
+        if (!sales.some(x => x.id === target.id)) sales.unshift({...target, saleStatus:"Cobrado"});
+        localStorage.setItem(app.KEY.sales, JSON.stringify(sales));
+        const invoice = app.invoices.create(target);
         if(target.customer && !String(target.customer).startsWith("presencial-")) app.addNotification(`Pago confirmado para ${target.id}.`,target.customer,{type:"factura",orderId:target.id,title:"Pago confirmado",detail:`${target.payment} · ${money(target.total)} · Factura ${invoice?.invoiceNumber||"digital"}.`,action:"invoice"});
         app.addNotification(`Pago registrado para ${target.id}.`,null,{type:"pago",orderId:target.id,title:"Pago presencial confirmado",detail:`${target.payment} · ${money(target.total)} · ${target.customerName||"Cliente"}.`,roles:["Dueno","Administrador","Barra"]});
-        state.pendingPaymentOrder=null; close(); app.ui.mostrarToast(`Pago confirmado. Pedido ${target.id} finalizado.`); app.orders?.render();
+        close(); app.ui.mostrarToast(`Pago confirmado. Pedido ${target.id} finalizado.`); app.orders?.render();
     }
 
     // Guarda la reserva para mantenerla disponible después de recargar.
@@ -292,7 +411,7 @@
         }catch{}
     }
 
-    // Procesa la información de create.
+    // Crea el registro solicitado.
     function create(){
         if(!canOperate()) return;
         const name=input("localCustomerName")?.value.trim() || "Cliente presencial";
@@ -320,34 +439,40 @@
         if (state.customerMode === "registered" && !state.customer) { app.ui.mostrarToast("Selecciona un cliente registrado o cambia a Cliente no registrado.","error"); return; }
         if (state.customerMode === "walkin" && !input("localCustomerName")?.value.trim()) { app.ui.mostrarToast("Escribe el nombre del cliente no registrado.","error"); return; }
         const id=`POS-${Date.now().toString(36).toUpperCase()}`;
-        const isCashPaidNow=timing==="Pagado" && payment==="Efectivo";
-        const requiresPaymentReview=timing==="Pagado" && payment!=="Efectivo";
-        const assigned=attendants().find(a=>String(a.Email).toLowerCase()===attendantEmail.toLowerCase());
-        const order={id,customer:registeredEmail||`presencial-${Date.now()}`,customerName:name,customerPhone:phone||state.customer?.Telefono||"",customerDui:state.customer?.Dui||"",items:state.lines.map(x=>({...x})),subtotal,tax,total,orderType:type,table:table?`Mesa ${String(table.id).padStart(2,"0")}`:"",tableId:table?.id||null,reservationId:"",payment,timing,paymentStatus:isCashPaidNow?"Pagado":"Pendiente",paymentRef:isCashPaidNow?`POS-${Date.now().toString().slice(-10)}`:"",paymentDetail:isCashPaidNow?"Pago en efectivo registrado en caja":"Pago pendiente de confirmación",status:"Pendiente",source:role(),customerType:state.customerMode === "registered" ? "Registrado" : "No registrado",date:new Date().toISOString(),deliveryPhone:type==="Domicilio"?phone:"",deliveryAddress:type==="Domicilio"?address:"",assignedAttendant:assigned?.Email||"",assignedAttendantName:assigned?.Nombre||"",people,serviceDate:date,serviceTime:time,tableZone:table?.zone||""};
-        if(requiresPaymentReview){
-            if(showPaymentForm({...order,paymentStatus:"Pendiente",paymentDetail:"Pago pendiente de confirmación"})) app.ui.mostrarToast("Pedido preparado. Completa el pago para finalizar.","info");
+        const isPaidNow = timing === "Pagado";
+        const paymentData = isPaidNow ? collectImmediatePayment(total, payment) : null;
+        if (isPaidNow && !paymentData) {
+            renderImmediatePaymentFields();
             return;
         }
+        const assigned=attendants().find(a=>String(a.Email).toLowerCase()===attendantEmail.toLowerCase());
+        const order={id,customer:registeredEmail||`presencial-${Date.now()}`,customerName:name,customerPhone:phone||state.customer?.Telefono||"",customerDui:state.customer?.Dui||"",items:state.lines.map(x=>({...x})),subtotal,tax,total,orderType:type,table:table?`Mesa ${String(table.id).padStart(2,"0")}`:"",tableId:table?.id||null,reservationId:"",payment,timing,paymentStatus:isPaidNow?"Pagado":"Pendiente",paymentRef:paymentData?.ref||"",paymentDetail:isPaidNow?paymentData.detail:"Pago pendiente de confirmación",status:"Pendiente",source:role(),customerType:state.customerMode === "registered" ? "Registrado" : "No registrado",date:new Date().toISOString(),deliveryPhone:type==="Domicilio"?phone:"",deliveryAddress:type==="Domicilio"?address:"",assignedAttendant:assigned?.Email||"",assignedAttendantName:assigned?.Nombre||"",people,serviceDate:date,serviceTime:time,tableZone:table?.zone||""};
         persistReservation(order);
         const orders=JSON.parse(localStorage.getItem(app.KEY.orders)||"[]"); orders.unshift(order); localStorage.setItem(app.KEY.orders,JSON.stringify(orders));
-        if(isCashPaidNow){ order.paidAt=new Date().toISOString(); const sales=JSON.parse(localStorage.getItem(app.KEY.sales)||"[]"); sales.unshift({...order,saleStatus:"Cobrado"}); localStorage.setItem(app.KEY.sales,JSON.stringify(sales)); const invoice=app.invoices.create(order); app.ui.mostrarToast(`Pedido ${id} creado y pagado. Comprobante ${invoice?.invoiceNumber||'digital'} disponible.`); }
+        if(isPaidNow){ order.paidAt=new Date().toISOString(); const sales=JSON.parse(localStorage.getItem(app.KEY.sales)||"[]"); if(!sales.some(x=>x.id===order.id)) sales.unshift({...order,saleStatus:"Cobrado"}); localStorage.setItem(app.KEY.sales,JSON.stringify(sales)); const invoice=app.invoices.create(order); app.ui.mostrarToast(`Pedido ${id} creado y pagado. Comprobante ${invoice?.invoiceNumber||'digital'} disponible.`); }
         if(registeredEmail){
-            const meta=isCashPaidNow?{type:"factura",orderId:id,title:"Pedido presencial pagado",detail:`Tu pedido ${id} fue registrado en el restaurante. Total ${money(total)}. La factura digital está disponible.`,action:"invoice"}:{type:"pago",orderId:id,title:"Tienes un pago pendiente",detail:`Tu pedido ${id} fue registrado en el restaurante por ${money(total)}. Puedes abrir el pago desde allí.`,action:"payment"};
+            const meta=isPaidNow?{type:"factura",orderId:id,title:"Pedido presencial pagado",detail:`Tu pedido ${id} fue registrado en el restaurante. Total ${money(total)}. La factura digital está disponible.`,action:"invoice"}:{type:"pago",orderId:id,title:"Tienes un pago pendiente",detail:`Tu pedido ${id} fue registrado en el restaurante por ${money(total)}. Puedes abrir el pago desde allí.`,action:"payment"};
             if (typeof app.addNotification === 'function') app.addNotification(meta.detail, registeredEmail, { ...meta, fromName:"RestauranteBD · Atención", fromEmail:"notificaciones@restaurantebd.local" });
         }
         const operationalRoles = type === "Domicilio" ? ["Dueno","Administrador","Cocina","Barra","Delivery"] : ["Dueno","Administrador","Cocina","Barra"];
         if (typeof app.addNotification === 'function') app.addNotification(`Nuevo pedido presencial ${id}.`, null, {type:"pedido",orderId:id,title:"Nuevo pedido presencial",detail:`${name} · ${type} · ${money(total)} · ${order.items.length} líneas.`,roles:operationalRoles});
-        app.ui.mostrarToast(isCashPaidNow?`Pedido ${id} creado y pagado.`:`Pedido ${id} creado. El cliente recibirá el aviso de pago pendiente.`);
+        app.ui.mostrarToast(isPaidNow?`Pedido ${id} creado y pagado.`:`Pedido ${id} creado. El cliente recibirá el aviso de pago pendiente.`);
         close(); app.orders?.render();
     }
 
-    // Procesa la información de init.
+    // Prepara el módulo cuando se abre la pantalla.
     function init(){ if(!canOperate()){ input("openLocalOrderButton")?.remove(); return; } renderProducts(); renderTables(); renderAttendants(); renderLines();
         const productId = new URLSearchParams(window.location.search).get("localProduct");
         if (productId) { history.replaceState({}, document.title, window.location.pathname); setTimeout(() => open(productId), 0); }
         // Evento que conecta una acción del usuario con la lógica del módulo.
         const launch=input("openLocalOrderButton"); launch?.addEventListener("click",e=>{ e.preventDefault(); open(); });
         // Evento que conecta una acción del usuario con la lógica del módulo.
-        input("localOrderType")?.addEventListener("change",()=>{const t=input("localOrderType").value;input("localAddress")?.closest("label")?.classList.toggle("hidden",t!=="Domicilio");renderTables();}); input("localCustomerSearch")?.addEventListener("input",renderCustomer); input("localCustomerSearch")?.addEventListener("change",renderCustomer); input("localDate")?.addEventListener("change",renderTables); input("localTime")?.addEventListener("change",renderTables); }
-    app.localOrders={init,open,openFromMenu,close,addLine,removeLine,create,setCustomerMode,setMenuCategory,addProduct,backToOrder,confirmPayment};
+        input("localOrderType")?.addEventListener("change",()=>{const t=input("localOrderType").value;input("localAddress")?.closest("label")?.classList.toggle("hidden",t!=="Domicilio");renderTables();}); input("localCustomerSearch")?.addEventListener("input",renderCustomer); input("localCustomerSearch")?.addEventListener("change",renderCustomer); input("localDate")?.addEventListener("change",renderTables); input("localTime")?.addEventListener("change",renderTables);
+        document.querySelectorAll("[data-payment-method]").forEach(button => button.addEventListener("click", () => setPaymentMethod(button.dataset.paymentMethod)));
+        document.querySelectorAll("[data-payment-timing]").forEach(button => button.addEventListener("click", () => setPaymentTiming(button.dataset.paymentTiming)));
+        input("localPaymentTiming")?.addEventListener("change",renderImmediatePaymentFields);
+        input("localPayment")?.addEventListener("change",()=>setPaymentMethod(input("localPayment").value));
+        updateCreateButtonLabel();
+    }
+    app.localOrders={init,open,openFromMenu,close,addLine,removeLine,create,setCustomerMode,setMenuCategory,addProduct,backToOrder,confirmPayment,setPaymentMethod,setPaymentTiming};
 })();

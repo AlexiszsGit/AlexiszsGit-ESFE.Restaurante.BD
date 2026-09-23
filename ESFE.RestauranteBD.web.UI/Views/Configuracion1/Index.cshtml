@@ -1,0 +1,221 @@
+@using ESFE.RestauranteBD.web.UI.Models
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Configuración";
+    var current = AppSettingsStore.Current;
+    var role = Context.Session.GetString("RolUsuario") ?? "";
+    var canManageCurrency = RoleStore.IsAdministrator(role);
+}
+
+<section class="page-shell settings-page settings-signature" aria-labelledby="settingsTitle">
+    <div class="settings-signature-head">
+        <div class="settings-signature-brand">
+            <div class="settings-signature-kicker" data-i18n="settings.title">Configuración</div>
+            <h1 id="settingsTitle" data-i18n="settings.subtitleShort">Preferencias del sistema</h1>
+            <p data-i18n="settings.subtitle">Personaliza el sistema para cada negocio, dispositivo y mercado.</p>
+        </div>
+        <div class="settings-save-state" aria-live="polite">
+            <span class="settings-save-dot" aria-hidden="true"></span>
+            <div>
+                <strong data-i18n="settings.saved">Guardado automáticamente</strong>
+                <small data-i18n="settings.saveHint">Las preferencias se guardan automáticamente en este dispositivo.</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="settings-signature-body">
+        <aside class="settings-signature-nav" aria-label="Secciones de configuración">
+            <div class="settings-nav-label" data-i18n="settings.sections">Preferencias</div>
+
+            <button class="settings-signature-link active" type="button" data-settings-scroll="#appearance">
+                <span class="settings-signature-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.4"></circle><path d="M12 2.8v2.1M12 19.1v2.1M21.2 12h-2.1M4.9 12H2.8M18.5 5.5 17 7M7 17 5.5 18.5M18.5 18.5 17 17M7 7 5.5 5.5"></path></svg>
+                </span>
+                <span class="settings-signature-link-copy"><strong data-i18n="settings.appearance">Apariencia</strong><small data-i18n="settings.appearanceHelp">Tema y comodidad visual</small></span>
+            </button>
+
+            <button class="settings-signature-link" type="button" data-settings-scroll="#language">
+                <span class="settings-signature-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M4 5.2h9M8.4 2.9v2.3M6 5.2c.8 3.3 2.7 6 6 8.1M4.3 13.3c3.2 0 6.3-1.1 8.7-3.3M14.3 15.1h5.4M16.9 12.7l-3.5 8.4M20.3 21.1l-1.2-3"></path></svg>
+                </span>
+                <span class="settings-signature-link-copy"><strong data-i18n="settings.language">Idioma</strong><small data-i18n="settings.languageHelp">Interfaz internacional</small></span>
+            </button>
+
+@if (canManageCurrency)
+            {
+            <button class="settings-signature-link" type="button" data-settings-scroll="#currency">
+                <span class="settings-signature-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 3.2v17.6M16.3 6.4c-.9-1-2.3-1.6-4.1-1.6-2.4 0-4.1 1.2-4.1 3s1.5 2.8 4.1 3.5 4.1 1.8 4.1 3.8-1.7 3.4-4.5 3.4c-2 0-3.6-.7-4.6-1.8"></path></svg>
+                </span>
+                <span class="settings-signature-link-copy"><strong data-i18n="settings.currency">Moneda</strong><small data-i18n="settings.currencyHelp">Precios y formato regional</small></span>
+            </button>
+            }
+            <button class="settings-signature-link" type="button" data-settings-scroll="#behavior">
+                <span class="settings-signature-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M5 7.2h14M8.5 4.4v5.6M5 16.8h14M15.5 14v5.6"></path></svg>
+                </span>
+                <span class="settings-signature-link-copy"><strong data-i18n="settings.behavior">Comportamiento</strong><small data-i18n="settings.behaviorHelp">Animaciones y contenido</small></span>
+            </button>
+
+            <button class="settings-signature-link" type="button" data-settings-scroll="#about">
+                <span class="settings-signature-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.8"></circle><path d="M12 10.6v5.2M12 7.4h.01"></path></svg>
+                </span>
+                <span class="settings-signature-link-copy"><strong data-i18n="settings.about">Sistema</strong><small data-i18n="settings.aboutHelp">Información de esta instalación</small></span>
+            </button>
+
+            <div class="settings-signature-nav-foot">
+                <span class="settings-signature-status-mark" aria-hidden="true"></span>
+                <div>
+                    <strong>RestauranteBD</strong>
+                    <small>Control central de preferencias</small>
+                </div>
+            </div>
+        </aside>
+
+        <div class="settings-signature-content">
+            <section id="appearance" class="settings-signature-section">
+                <div class="settings-signature-section-head">
+                    <div>
+                        <span class="settings-section-number">01</span>
+                        <h2 data-i18n="settings.appearance">Apariencia</h2>
+                        <p data-i18n="settings.appearanceDesc">Elige el aspecto que te resulte más cómodo.</p>
+                    </div>
+                    <span class="settings-section-caption">VISUAL</span>
+                </div>
+
+                <div class="settings-theme-selector">
+                    <button class="settings-theme-option" type="button" data-theme-choice="light">
+                        <span class="settings-theme-swatch light" aria-hidden="true"><i></i><b></b><em></em></span>
+                        <span><strong data-i18n="settings.light">Claro</strong><small data-i18n="settings.lightHelp">Limpio y luminoso</small></span>
+                        <span class="settings-radio" aria-hidden="true"></span>
+                    </button>
+                    <button class="settings-theme-option" type="button" data-theme-choice="dark">
+                        <span class="settings-theme-swatch dark" aria-hidden="true"><i></i><b></b><em></em></span>
+                        <span><strong data-i18n="settings.dark">Oscuro</strong><small data-i18n="settings.darkHelp">Cómodo en poca luz</small></span>
+                        <span class="settings-radio" aria-hidden="true"></span>
+                    </button>
+                    <button class="settings-theme-option" type="button" data-theme-choice="system">
+                        <span class="settings-theme-swatch system" aria-hidden="true"><i></i><b></b><em></em></span>
+                        <span><strong data-i18n="settings.system">Sistema</strong><small data-i18n="settings.systemHelp">Sigue el dispositivo</small></span>
+                        <span class="settings-radio" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </section>
+
+            <section id="language" class="settings-signature-section">
+                <div class="settings-signature-section-head">
+                    <div>
+                        <span class="settings-section-number">02</span>
+                        <h2 data-i18n="settings.language">Idioma</h2>
+                        <p data-i18n="settings.languageDesc">Cambia toda la navegación y las preferencias disponibles sin perder tus datos.</p>
+                    </div>
+                    <span class="settings-section-caption">GLOBAL</span>
+                </div>
+
+                <div class="settings-selector-bar">
+                    <label class="settings-inline-search" for="languageSearch">
+                        <span class="settings-inline-search-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.2"></circle><path d="m15.6 15.6 4.1 4.1"></path></svg>
+                        </span>
+                        <input id="languageSearch" type="search" data-i18n-placeholder="common.search" placeholder="Buscar idioma" autocomplete="off">
+                    </label>
+                    <span id="languageCount" class="settings-selector-count">20 idiomas</span>
+                </div>
+                <div id="languageCatalog" class="settings-signature-list"></div>
+            </section>
+
+@if (canManageCurrency)
+            {
+            <section id="currency" class="settings-signature-section">
+                <div class="settings-signature-section-head">
+                    <div>
+                        <span class="settings-section-number">03</span>
+                        <h2 data-i18n="settings.currency">Moneda</h2>
+                        <p data-i18n="settings.currencyDesc">Escoge cómo se muestran los precios en toda la aplicación.</p>
+                    </div>
+                    <span class="settings-section-caption">FINANZAS</span>
+                </div>
+
+                <div class="settings-current-value">
+                    <div>
+                        <span class="settings-current-label" data-i18n="settings.currencySelected">Moneda seleccionada</span>
+                        <strong id="currencyCurrentLabel">USD · $</strong>
+                        <small id="currencyCurrentHelp" data-i18n="settings.currencyHelpLong">Los precios guardados en la base no cambian; solo cambia su presentación.</small>
+                    </div>
+                    <span id="currencyRateStatus" class="settings-rate-pill"><i></i><span data-i18n="settings.rateInfo">Tipo de cambio actualizado automáticamente.</span></span>
+                </div>
+
+                <div class="settings-selector-bar">
+                    <label class="settings-inline-search" for="currencySearch">
+                        <span class="settings-inline-search-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.2"></circle><path d="m15.6 15.6 4.1 4.1"></path></svg>
+                        </span>
+                        <input id="currencySearch" type="search" data-i18n-placeholder="common.search" placeholder="Buscar moneda" autocomplete="off">
+                    </label>
+                    <span id="currencyCount" class="settings-selector-count">Monedas disponibles</span>
+                </div>
+                <div id="currencyCatalog" class="settings-signature-list currency-list"></div>
+            </section>
+            }
+
+            <section id="behavior" class="settings-signature-section">
+                <div class="settings-signature-section-head">
+                    <div>
+                        <span class="settings-section-number">04</span>
+                        <h2 data-i18n="settings.behavior">Comportamiento</h2>
+                        <p data-i18n="settings.behaviorDesc">Ajusta pequeños detalles de la experiencia diaria.</p>
+                    </div>
+                    <span class="settings-section-caption">EXPERIENCIA</span>
+                </div>
+
+                <div class="settings-preference-lines">
+                    <button class="settings-preference-line" type="button" data-setting-toggle="animations">
+                        <span class="settings-line-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h5l2-7 4 14 2-7h3"></path></svg></span>
+                        <span><strong data-i18n="settings.animations">Animaciones suaves</strong><small data-i18n="settings.animationsHelp">Transiciones ligeras en la interfaz</small></span>
+                        <span class="settings-switch"><i></i></span>
+                    </button>
+                    <button class="settings-preference-line" type="button" data-setting-toggle="shadows">
+                        <span class="settings-line-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 16.5a7 7 0 1 0 14 0"></path><path d="M7.5 16.5h9"></path></svg></span>
+                        <span><strong data-i18n="settings.shadows">Interfaz más sobria</strong><small data-i18n="settings.shadowsHelp">Reduce sombras para una apariencia más limpia</small></span>
+                        <span class="settings-switch"><i></i></span>
+                    </button>
+                    <button class="settings-preference-line" type="button" data-setting-toggle="images">
+                        <span class="settings-line-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"></rect><circle cx="9" cy="9" r="1.3"></circle><path d="m5.5 17 4.2-4 3.1 2.7 2.2-2 3.5 3.3"></path></svg></span>
+                        <span><strong data-i18n="settings.images">Mostrar imágenes del menú</strong><small data-i18n="settings.imagesHelp">Mantén las fotografías visibles</small></span>
+                        <span class="settings-switch"><i></i></span>
+                    </button>
+                </div>
+            </section>
+
+            <section id="about" class="settings-signature-section settings-system-section">
+                <div class="settings-signature-section-head">
+                    <div>
+                        <span class="settings-section-number">05</span>
+                        <h2 data-i18n="settings.about">Sistema</h2>
+                        <p data-i18n="settings.aboutDesc">Datos generales de la instalación actual.</p>
+                    </div>
+                    <span class="settings-section-caption">INSTALACIÓN</span>
+                </div>
+
+                <div class="settings-system-lines">
+                    <div><span data-i18n="settings.restaurant">Restaurante</span><strong>@current.RestaurantName</strong></div>
+                    @if (canManageCurrency)
+                    {
+                        <div><span data-i18n="settings.baseCurrency">Moneda general</span><strong id="settingsBaseCurrency">USD · $</strong></div>
+                    }
+                    <div><span data-i18n="settings.opening">Horario</span><strong>@current.OpeningTime – @current.ClosingTime</strong></div>
+                    <div><span data-i18n="settings.tax">Impuesto</span><strong>@current.TaxPercent.ToString("0.##")%</strong></div>
+                </div>
+
+                <div class="settings-system-actions">
+                    <button type="button" class="settings-reset-link" id="resetSettings">
+                        <span data-i18n="settings.reset">Restablecer preferencias</span>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 1 0 2-4.9"></path><path d="M5 5v4h4"></path></svg>
+                    </button>
+                    <span class="settings-system-note">RestauranteBD · Preferencias locales</span>
+                </div>
+            </section>
+        </div>
+    </div>
+</section>

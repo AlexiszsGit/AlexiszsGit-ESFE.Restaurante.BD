@@ -1,0 +1,102 @@
+
+/* Ajustes finales para pedidos y carrito en pantallas pequeñas. */
+@media (max-width: 760px) {
+    .page-head-actions {
+        width: auto !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        overflow: visible !important;
+        margin-top: 12px !important;
+    }
+
+    .page-head-actions > *,
+    .page-head-actions .primary-btn,
+    .page-head-actions .secondary-btn {
+        width: auto !important;
+        min-width: 0 !important;
+        min-height: 42px !important;
+        flex: 0 0 auto !important;
+        padding: 9px 12px !important;
+        font-size: 11px !important;
+        border-radius: 11px !important;
+    }
+
+    .page-head-actions .action-icon {
+        width: 16px !important;
+        height: 16px !important;
+    }
+}
+
+/* Mantiene separados el control de cantidad y la acción de eliminar. */
+.cart-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 9px;
+}
+
+.cart-actions .qty-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 0 !important;
+}
+
+.cart-actions .qty-control button,
+.cart-actions .qty-control input {
+    width: 32px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+}
+
+.cart-actions .qty-control input {
+    text-align: center;
+    padding: 0 !important;
+}
+
+.cart-actions .cart-remove-small {
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    margin-left: 2px !important;
+    padding: 0 !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    border-radius: 9px !important;
+    border: 1px solid #e5c5c5 !important;
+    background: #fff7f7 !important;
+    color: #a44343 !important;
+}
+
+.cart-actions .cart-remove-small .ui-icon {
+    width: 17px !important;
+    height: 17px !important;
+}
+
+@media (max-width: 650px) {
+    .cart-actions {
+        gap: 12px;
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .cart-actions .cart-remove-small {
+        width: 36px !important;
+        min-width: 36px !important;
+        height: 36px !important;
+        min-height: 36px !important;
+    }
+}
+
+/* En oscuro, el control de eliminar mantiene el mismo lenguaje visual del tema. */
+html[data-theme="dark"] .cart-actions .cart-remove-small,
+body.theme-dark .cart-actions .cart-remove-small {
+    background: #2a1b20 !important;
+    border-color: #69404a !important;
+    color: #f0a1ad !important;
+}

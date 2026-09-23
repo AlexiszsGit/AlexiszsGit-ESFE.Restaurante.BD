@@ -4,7 +4,6 @@
     ViewData["Title"] = "Pedidos";
 }
 
-@* Contenido principal de la página. *@
 <section class="page-shell">
     <div class="page-head">
         <div>
@@ -45,8 +44,7 @@
         </div>
     </div>
 
-    @* Contenido principal de la página. *@
-    <section class="panel">
+        <section class="panel">
         <div class="toolbar-row">
             <div class="filter-tabs">
                 <button class="filter-chip active" data-status="Todos" onclick="ESFERestaurante.orders.setFilter('Todos')">Todos</button>
@@ -70,13 +68,10 @@
             <div><span class="eyebrow">Punto de atención</span><h3 id="localOrderTitle">Nuevo pedido presencial</h3><p>Busca al cliente, toma la orden, asigna mesa y mesero y decide si se cobra ahora o después.</p></div>
             <button type="button" class="icon-btn" onclick="ESFERestaurante.localOrders.close()" aria-label="Cerrar">×</button>
         </div>
-        @* Datos que la vista expone al JavaScript. *@
-        <script id="localCustomerData" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Customers))</script>
-        @* Datos que la vista expone al JavaScript. *@
-        <script id="localAttendantData" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Attendants))</script>
+            <script id="localCustomerData" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Customers))</script>
+            <script id="localAttendantData" type="application/json">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.Attendants))</script>
         <div id="localOrderFormView" class="local-order-grid local-order-grid-pro">
-            @* Contenido principal de la página. *@
-            <section>
+                        <section>
                 <div class="local-order-section-label">1 · Cliente</div>
                 <div class="local-customer-mode" role="group" aria-label="Tipo de cliente">
                     <button type="button" id="registeredCustomerMode" class="secondary-btn local-customer-mode-btn active" onclick="ESFERestaurante.localOrders.setCustomerMode('registered')">Cliente registrado</button>
@@ -112,39 +107,57 @@
                 </div>
                 <div class="local-product-add local-product-add-pro local-product-legacy"><label class="field-label">Producto<select id="localProduct"></select></label><label class="field-label local-qty-field">Cantidad<input id="localQuantity" type="number" min="1" max="20" value="1" /></label><button class="secondary-btn" type="button" onclick="ESFERestaurante.localOrders.addLine()">Agregar</button></div>
             </section>
-            @* Resumen y acciones secundarias de la vista. *@
+            @* Acciones y resumen de esta pantalla. *@
             <aside class="local-order-summary local-order-summary-pro">
-                <div class="panel-head compact-head"><div><span class="eyebrow">4 · Cobro</span><h3>Resumen</h3></div><strong id="localOrderTotal">$0.00</strong></div>
+                <div class="panel-head compact-head"><div><span class="eyebrow">4 · Cobro</span><h3>Resumen</h3></div><strong id="localOrderTotal" data-usd-amount="0">$0.00</strong></div>
                 <div id="localOrderLines" class="local-order-lines"></div>
-                <div class="local-summary-mini"><div><span>Subtotal</span><strong id="localOrderSubtotal">$0.00</strong></div><div><span>IVA @AppSettingsStore.Current.TaxPercent%</span><strong id="localOrderTax">$0.00</strong></div><div class="grand"><span>Total</span><strong id="localOrderTotalMirror">$0.00</strong></div></div>
-                <label class="field-label">Método<select id="localPayment"><option value="Efectivo">Efectivo</option><option value="Tarjeta">Tarjeta</option><option value="Transferencia">Transferencia</option></select></label>
-                <label class="field-label">Momento del pago<select id="localPaymentTiming"><option value="Pendiente">Cliente paga después</option><option value="Pagado">Cobrar y registrar ahora</option></select></label>
-                <div id="localCustomerPolicy" class="local-order-policy"><strong>Cuenta registrada</strong><span>Recibirá una notificación con el detalle. Si el pago queda pendiente, podrá entrar directamente al checkout desde allí.</span></div>
-                <button class="primary-btn large full" type="button" onclick="ESFERestaurante.localOrders.create()">Crear pedido presencial</button>
+                <div class="local-summary-mini"><div><span>Subtotal</span><strong id="localOrderSubtotal" data-usd-amount="0">$0.00</strong></div><div><span>IVA @AppSettingsStore.Current.TaxPercent%</span><strong id="localOrderTax" data-usd-amount="0">$0.00</strong></div><div class="grand"><span>Total</span><strong id="localOrderTotalMirror" data-usd-amount="0">$0.00</strong></div></div>
+                <div class="local-payment-choice-group">
+                    <div class="local-payment-choice-heading"><span class="eyebrow">Forma de pago</span><strong>¿Cómo paga el cliente?</strong><small>El total se toma automáticamente de los productos del pedido.</small></div>
+                    <div class="local-payment-method-switch" role="group" aria-label="Método de pago">
+                        <button type="button" class="local-payment-method-btn active" data-payment-method="Efectivo">
+                            <span class="payment-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M7.5 9.5h9M7.5 14.5h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+                            <span><strong>Efectivo</strong><small>En caja</small></span>
+                        </button>
+                        <button type="button" class="local-payment-method-btn" data-payment-method="Tarjeta">
+                            <span class="payment-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3.5 10h17" stroke="currentColor" stroke-width="1.7"/></svg></span>
+                            <span><strong>Tarjeta</strong><small>Terminal / POS</small></span>
+                        </button>
+                        <button type="button" class="local-payment-method-btn" data-payment-method="Transferencia">
+                            <span class="payment-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4.5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M8 9h8M8 13h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+                            <span><strong>Transferencia</strong><small>Referencia</small></span>
+                        </button>
+                    </div>
+                    <select id="localPayment" class="local-payment-hidden-select" aria-hidden="true" tabindex="-1"><option value="Efectivo">Efectivo</option><option value="Tarjeta">Tarjeta</option><option value="Transferencia">Transferencia</option></select>
+                </div>
+
+                <div class="local-payment-choice-group">
+                    <div class="local-payment-choice-heading"><span class="eyebrow">Momento del cobro</span><strong>¿Se cobra ahora o después?</strong></div>
+                    <div class="local-payment-timing-switch" role="group" aria-label="Momento del pago">
+                        <button type="button" class="local-payment-timing-btn active" data-payment-timing="Pendiente">Cobrar después<span>Queda pendiente</span></button>
+                        <button type="button" class="local-payment-timing-btn" data-payment-timing="Pagado">Cobrar ahora<span>Registrar pago</span></button>
+                    </div>
+                    <select id="localPaymentTiming" class="local-payment-hidden-select" aria-hidden="true" tabindex="-1"><option value="Pendiente">Cliente paga después</option><option value="Pagado">Cobrar y registrar ahora</option></select>
+                </div>
+
+                <div id="localCustomerPolicy" class="local-order-policy"><strong>Cuenta registrada</strong><span>Recibirá una notificación con el detalle. Si el pago queda pendiente, podrá abrir el pago desde allí.</span></div>
+
+                <div id="localImmediatePayment" class="local-immediate-payment hidden" aria-live="polite">
+                    <div class="local-immediate-payment-head">
+                        <div><span class="eyebrow">Pago inmediato</span><strong>Datos del cobro</strong><small>Elige el método y completa solo los datos necesarios para finalizar este pedido.</small></div>
+                        <span class="local-payment-status-badge">Cobrar ahora</span>
+                    </div>
+                    <div id="localPaymentFields" class="local-payment-fields"></div>
+                </div>
+
+                <button id="localCreateOrderButton" class="primary-btn large full" type="button" onclick="ESFERestaurante.localOrders.create()"><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5 9.5 17 19 7.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-order-submit-label>Crear pedido presencial</span></button>
             </aside>
         </div>
-        @* Contenido principal de la página. *@
-        <section id="localPaymentView" class="local-payment-view hidden" aria-live="polite">
-            <div class="local-payment-header">
-                <div>
-                    <span class="eyebrow">5 · Pago inmediato</span>
-                    <h3 id="localPaymentTitle">Completa el pago</h3>
-                    <p id="localPaymentSubtitle">El pedido ya está preparado. Confirma el método seleccionado para finalizar el cobro.</p>
-                </div>
-                <div class="local-payment-total"><span>Total</span><strong id="localPaymentTotal">$0.00</strong></div>
-            </div>
-            <div id="localPaymentFields" class="local-payment-fields"></div>
-            <div class="local-payment-actions">
-                <button type="button" class="secondary-btn" onclick="ESFERestaurante.localOrders.backToOrder()">Volver al pedido</button>
-                <button type="button" class="primary-btn" onclick="ESFERestaurante.localOrders.confirmPayment()">Confirmar y finalizar pedido</button>
-            </div>
-        </section>
     </div>
 </div>
 
 @* Scripts necesarios para el funcionamiento de esta vista. *@
 @section Scripts {
-    @* Datos que la vista expone al JavaScript. *@
     <script>
         document.addEventListener('DOMContentLoaded', () => ESFERestaurante.orders.init());
         document.addEventListener('DOMContentLoaded', () => ESFERestaurante.localOrders.init());

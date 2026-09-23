@@ -4,7 +4,6 @@
     ViewData["Title"] = "Reportes";
 }
 
-@* Contenido principal de la página. *@
 <section class="page-shell">
     <div class="page-head">
         <div>
@@ -25,7 +24,7 @@
     <div class="stats-grid">
         <div class="stat-card">
             <span>Ventas hoy</span>
-            <strong id="reportSales">$0.00</strong>
+            <strong id="reportSales" data-usd-amount="0">$0.00</strong>
             <small>Ingresos con IVA</small>
         </div>
         <div class="stat-card">
@@ -35,7 +34,7 @@
         </div>
         <div class="stat-card">
             <span>Ticket promedio</span>
-            <strong id="reportAverage">$0.00</strong>
+            <strong id="reportAverage" data-usd-amount="0">$0.00</strong>
             <small>Por orden pagada</small>
         </div>
         <div class="stat-card">
@@ -46,8 +45,7 @@
     </div>
 
     <div class="dashboard-grid">
-        @* Contenido principal de la página. *@
-        <section class="panel">
+                <section class="panel">
             <div class="panel-head">
                 <div>
                     <span class="eyebrow">Ventas</span>
@@ -57,8 +55,7 @@
             <div id="salesList" class="recent-list"></div>
         </section>
 
-        @* Contenido principal de la página. *@
-        <section class="panel">
+                <section class="panel">
             <div class="panel-head">
                 <div>
                     <span class="eyebrow">Formas de pago</span>
@@ -69,8 +66,7 @@
         </section>
     </div>
 
-    @* Contenido principal de la página. *@
-    <section class="panel">
+        <section class="panel">
         <div class="panel-head">
             <div>
                 <span class="eyebrow">Historial local</span>
@@ -84,7 +80,6 @@
 
 @* Scripts necesarios para el funcionamiento de esta vista. *@
 @section Scripts {
-    @* Datos que la vista expone al JavaScript. *@
     <script>
         document.addEventListener('DOMContentLoaded', () => ESFERestaurante.reports.init());
     </script>

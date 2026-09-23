@@ -8,6 +8,7 @@ obj/
 # Archivos locales de respaldo
 users.local.json
 roles.local.json
+settings.local.json
 
 # Publish local
 Properties/PublishProfiles/*.pubxml.user

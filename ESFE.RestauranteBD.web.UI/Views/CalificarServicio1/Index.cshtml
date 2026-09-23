@@ -7,8 +7,7 @@
 
 @if (esDueno)
 {
-    @* Contenido principal de la página. *@
-    <section class="page-shell">
+        <section class="page-shell">
         <div class="page-head">
             <div>
                 <span class="eyebrow">Opiniones de clientes</span>
@@ -40,16 +39,14 @@
             </div>
         </div>
 
-        @* Contenido principal de la página. *@
-        <section class="panel">
+                <section class="panel">
             <div id="ratingList"></div>
         </section>
     </section>
 }
 else
 {
-    @* Contenido principal de la página. *@
-    <section class="page-shell">
+        <section class="page-shell">
         <div class="page-head">
             <div>
                 <span class="eyebrow">Tu opinión importa</span>
@@ -99,7 +96,6 @@ else
 
 @* Scripts necesarios para el funcionamiento de esta vista. *@
 @section Scripts {
-    @* Datos que la vista expone al JavaScript. *@
     <script>
         const esDueno = @(esDueno.ToString().ToLower());
         let calificacionSeleccionada = 0;

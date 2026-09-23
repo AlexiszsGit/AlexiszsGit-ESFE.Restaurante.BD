@@ -6,7 +6,6 @@
     var contactosJson = JsonSerializer.Serialize(ViewBag.Contactos ?? new object[0]);
 }
 
-@* Contenido principal de la página. *@
 <section class="page-shell notifications-page">
     <div id="notificationContacts" data-contacts='@Html.Raw(contactosJson)' hidden></div>
 
@@ -18,9 +17,20 @@
         <div class="mail-header-stats"><div><span>No leídas</span><strong id="notificationHeaderUnread">0</strong></div><div><span>Facturas</span><strong id="notificationHeaderInvoices">0</strong></div><button type="button" class="secondary-btn" onclick="ESFERestaurante.notifications.markAllRead()"><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Marcar todo leído</button></div>
     </div>
 
-    @* Contenido principal de la página. *@
+        <div class="mail-mobile-actions" aria-label="Acciones de correo en móvil">
+        <button type="button" class="mail-mobile-compose" onclick="ESFERestaurante.notifications.openCompose()">
+            <span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 19 1.2-4.7L15.8 4.7a2.2 2.2 0 0 1 3.1 3.1L9.3 17.4 5 19Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M13.9 6.6 17.4 10.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+            <span>Redactar</span>
+        </button>
+        <button type="button" class="mail-mobile-link active" data-notification-filter="all" onclick="ESFERestaurante.notifications.setFilter('all')"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z" stroke="currentColor" stroke-width="1.7"/><path d="m5 7 7 5 7-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Principal</span></button>
+        <button type="button" class="mail-mobile-link" data-notification-filter="unread" onclick="ESFERestaurante.notifications.setFilter('unread')"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5z" stroke="currentColor" stroke-width="1.7"/><path d="m5 7 7 5 7-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>No leídas</span></button>
+        <button type="button" class="mail-mobile-link" data-notification-filter="sent" onclick="ESFERestaurante.notifications.setFilter('sent')"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><path d="m4 5 16 7-16 7 3.3-7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M7 12h9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span><span>Enviados</span></button>
+        <button type="button" class="mail-mobile-link" data-notification-filter="invoice" onclick="ESFERestaurante.notifications.setFilter('invoice')"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M6 3.5h9l3 3V20H6z" stroke="currentColor" stroke-width="1.8"/><path d="M14 3.5V7h4M8.5 11h7M8.5 15h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span><span>Facturas</span></button>
+        <button type="button" class="mail-mobile-link" data-notification-filter="archive" onclick="ESFERestaurante.notifications.setFilter('archive')"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16v12H4zM3 4h18v3H3z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 11h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span><span>Archivados</span></button>
+    </div>
+
     <section class="mail-app-shell">
-        @* Resumen y acciones secundarias de la vista. *@
+        @* Acciones y resumen de esta pantalla. *@
         <aside class="mail-sidebar">
             <button type="button" class="compose-btn" onclick="ESFERestaurante.notifications.openCompose()"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>Redactar</button>
             @* Navegación y accesos de esta vista. *@
@@ -35,8 +45,7 @@
             <div class="mail-sidebar-foot"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.7"/><path d="M12 10v6M12 7.5v.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><div><strong>Centro seguro</strong><p>Usa este canal para comunicarte con las áreas del restaurante.</p></div></div>
         </aside>
 
-        @* Contenido principal de la página. *@
-        <section class="mail-main-area">
+                <section class="mail-main-area">
             @* Encabezado de la página con título y acciones principales. *@
             <header class="mail-toolbar">
                 <div class="mail-toolbar-tabs"><button type="button" class="filter-chip active" data-notification-filter="all" onclick="ESFERestaurante.notifications.setFilter('all')">Principal</button><button type="button" class="filter-chip" data-notification-filter="unread" onclick="ESFERestaurante.notifications.setFilter('unread')">No leídas</button><button type="button" class="filter-chip" data-notification-filter="invoice" onclick="ESFERestaurante.notifications.setFilter('invoice')">Facturas</button></div>
@@ -86,7 +95,7 @@
       <label class="compose-field compose-subject-field"><span>Asunto</span><input id="composeSubject" type="text" maxlength="120" placeholder="Asunto" /></label>
       <div class="compose-message-wrap">
         <label class="compose-field compose-message-field"><span class="visually-hidden">Mensaje</span><textarea id="composeMessage" maxlength="5000" placeholder="Escribe tu mensaje..."></textarea></label>
-        <div class="compose-tools" aria-label="Herramientas del mensaje"><button type="button" aria-label="Formato" title="Formato" onclick="ESFERestaurante.notifications.toggleFormatTools()"><svg viewBox="0 0 24 24" fill="none"><path d="M6 5h12M9 5v14M15 5c-1.2 0-2.2 1-2.2 2.2S13.8 9.4 15 9.4h.2c1.4 0 2.5 1.1 2.5 2.5V14c0 1.7-1.3 3-3 3h-2.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button><button type="button" aria-label="Adjuntar archivo" title="Adjuntar archivo" onclick="document.getElementById('composeAttachmentInput')?.click()"><svg viewBox="0 0 24 24" fill="none"><path d="m8.5 12.5 5.8-5.8a3.2 3.2 0 0 1 4.5 4.5l-7.1 7.1a4.3 4.3 0 0 1-6.1-6.1l7-7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>Adjuntos: hasta 5 archivos · 200 MB c/u · 200 MB por mensaje.</span></div><div id="composeFormatPanel" class="compose-format-panel" aria-label="Formato"><button type="button" title="Negrita" onclick="ESFERestaurante.notifications.insertFormat('bold')"><strong>B</strong></button><button type="button" title="Cursiva" onclick="ESFERestaurante.notifications.insertFormat('italic')"><em>I</em></button><button type="button" title="Cita" onclick="ESFERestaurante.notifications.insertFormat('quote')">❯</button><button type="button" title="Lista" onclick="ESFERestaurante.notifications.insertFormat('list')">•</button></div><div id="composeAttachments" class="compose-attachments" hidden></div><input id="composeAttachmentInput" type="file" multiple hidden />
+        <div class="compose-tools" aria-label="Herramientas del mensaje"><button type="button" aria-label="Formato" title="Formato" onclick="ESFERestaurante.notifications.toggleFormatTools()"><svg viewBox="0 0 24 24" fill="none"><path d="M6 5h12M9 5v14M15 5c-1.2 0-2.2 1-2.2 2.2S13.8 9.4 15 9.4h.2c1.4 0 2.5 1.1 2.5 2.5V14c0 1.7-1.3 3-3 3h-2.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button><button type="button" aria-label="Adjuntar archivo" title="Adjuntar archivo" onclick="document.getElementById('composeAttachmentInput')?.click()"><svg viewBox="0 0 24 24" fill="none"><path d="m8.5 12.5 5.8-5.8a3.2 3.2 0 0 1 4.5 4.5l-7.1 7.1a4.3 4.3 0 0 1-6.1-6.1l7-7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span>Adjuntos: hasta 5 archivos · 10 MB en total por mensaje.</span></div><div id="composeFormatPanel" class="compose-format-panel" aria-label="Formato"><button type="button" title="Negrita" onclick="ESFERestaurante.notifications.insertFormat('bold')"><strong>B</strong></button><button type="button" title="Cursiva" onclick="ESFERestaurante.notifications.insertFormat('italic')"><em>I</em></button><button type="button" title="Cita" onclick="ESFERestaurante.notifications.insertFormat('quote')">❯</button><button type="button" title="Lista" onclick="ESFERestaurante.notifications.insertFormat('list')">•</button></div><div id="composeAttachments" class="compose-attachments" hidden></div><input id="composeAttachmentInput" type="file" multiple hidden />
       </div>
     </div>
     <footer class="compose-footer gmail-compose-footer"><span id="composeDraftStatus"></span><div><button type="button" class="secondary-btn" onclick="ESFERestaurante.notifications.closeCompose()">Descartar</button><button type="button" class="primary-btn" onclick="ESFERestaurante.notifications.sendCompose()"><span class="action-icon"><svg viewBox="0 0 24 24" fill="none"><path d="m4 5 16 7-16 7 3.3-7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M7 12h9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>Enviar</button></div></footer>
@@ -95,7 +104,7 @@
 
 @* Scripts necesarios para el funcionamiento de esta vista. *@
 @section Scripts {
-@* Datos que la vista expone al JavaScript. *@
+@* Datos que necesita el JavaScript de esta pantalla. *@
 <script>
 document.addEventListener('DOMContentLoaded',()=>{try{ESFERestaurante.notifications.init();}catch(error){console.error('No se pudo inicializar el centro de notificaciones.',error);const list=document.getElementById('notificationList');if(list)list.innerHTML='<div class="mail-empty"><strong>No se pudieron cargar las notificaciones.</strong><p>El resto de la aplicación sigue disponible. Actualiza esta pantalla para intentarlo de nuevo.</p></div>';}const to=document.getElementById('composeRecipient');to?.addEventListener('input',()=>ESFERestaurante.notifications.updateComposeState());document.getElementById('composeCcToggle')?.addEventListener('click',()=>{const row=document.getElementById('composeCcRow');if(row){row.hidden=!row.hidden; if(!row.hidden)document.getElementById('composeCc')?.focus();}});document.getElementById('composeBccToggle')?.addEventListener('click',()=>{const row=document.getElementById('composeBccRow');if(row){row.hidden=!row.hidden; if(!row.hidden)document.getElementById('composeBcc')?.focus();}});document.addEventListener('keydown',e=>{if(e.key==='Escape'){ESFERestaurante.notifications.close();ESFERestaurante.notifications.closeCompose();}});document.getElementById('notificationDetailModal')?.addEventListener('click',e=>{if(e.target.id==='notificationDetailModal')ESFERestaurante.notifications.close();});document.getElementById('composeMailModal')?.addEventListener('click',e=>{if(e.target.id==='composeMailModal')ESFERestaurante.notifications.closeCompose();});});
 </script>

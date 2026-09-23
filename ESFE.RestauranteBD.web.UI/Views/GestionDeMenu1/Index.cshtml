@@ -8,13 +8,12 @@
 
 @if (esDueno)
 {
-    @* Contenido principal de la página. *@
-    <section class="page-shell">
+        <section class="page-shell">
         <div class="page-head">
             <div>
                 <span class="eyebrow">Administración del catálogo</span>
                 <h2>Centro de catálogo</h2>
-                <p>Diseña la carta, crea nuevas secciones y deja cada producto listo para vender. Todo se guarda localmente por ahora, preparado para conectarse a la base de datos después.</p>
+                <p>Administra la carta y consulta los productos que están guardados en SQL Server. Las imágenes y detalles de presentación se adaptan al catálogo activo.</p>
             </div>
             <div class="page-head-actions">
                 <button class="secondary-btn" onclick="document.getElementById('categoryAdminModal')?.classList.remove('hidden')"><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span>Nueva categoría</button>
@@ -41,16 +40,14 @@
                 <small>Archivo o ruta</small>
             </div>
             <div class="stat-card">
-                <span>Guardado</span>
-                <strong>Local</strong>
-                <small>Sin cambiar la BD</small>
+                <span>Fuente</span>
+                <strong>SQL Server</strong>
+                <small>Catálogo en línea</small>
             </div>
         </div>
 
-        @* Contenido principal de la página. *@
-        <section class="admin-work-grid">
-            @* Contenido principal de la página. *@
-            <section class="panel">
+                <section class="admin-work-grid">
+                        <section class="panel">
                 <div class="panel-head">
                     <div>
                         <span class="eyebrow">Catálogo actual</span>
@@ -61,7 +58,7 @@
                 <div id="adminProductList" class="admin-product-list"></div>
             </section>
 
-            @* Resumen y acciones secundarias de la vista. *@
+            @* Acciones y resumen de esta pantalla. *@
             <aside class="panel admin-category-panel">
                 <div class="panel-head">
                     <div>
@@ -84,6 +81,10 @@
                 <p class="modal-help">Completa cada campo y deja preparada la ruta de imagen. Puedes añadir la fotografía real después.</p>
             </div>
             <div class="admin-form-grid">
+                <div class="editor-section-label full-field">
+                    <strong>Información básica</strong>
+                    <span>Nombre, categoría y precio que verá el cliente.</span>
+                </div>
                 <label class="field-label">
                     Nombre del producto
                     <input id="adminName" placeholder="Ej. Pollo a la parrilla">
@@ -97,11 +98,28 @@
                     Precio
                     <input id="adminPrice" type="number" step="0.01" min="0.01" placeholder="0.00">
                 </label>
-                <label class="field-label">
-                    Fotografía
-                    <input id="adminImageFile" type="file" accept="image/jpeg,image/png,image/webp">
-                    <small class="field-hint">Opcional. JPG, PNG o WEBP.</small>
-                </label>
+                <div class="field-label full-field">
+                    <span>Fotografía del producto</span>
+                    <label class="image-dropzone" id="adminImageDropzone" for="adminImageFile">
+                        <span class="image-dropzone-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="4" width="17" height="16" rx="2.5" stroke="currentColor" stroke-width="1.7"/><circle cx="8.5" cy="9" r="1.6" stroke="currentColor" stroke-width="1.6"/><path d="m5.5 17 4.3-4.2 3.1 2.8 2.2-2.1 3.4 3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </span>
+                        <span class="image-dropzone-copy">
+                            <strong id="adminImageFileName">Selecciona una imagen</strong>
+                            <small>JPG, PNG o WEBP · recomendado 1200 × 900 px</small>
+                        </span>
+                        <span class="image-dropzone-action">Elegir imagen</span>
+                        <input id="adminImageFile" type="file" accept="image/jpeg,image/png,image/webp">
+                    </label>
+                    <div id="adminImagePreview" class="image-preview-card hidden">
+                        <img id="adminImagePreviewImg" src="" alt="Vista previa del producto">
+                        <div><strong>Vista previa</strong><small>Esta es la imagen que quedará asociada al producto.</small></div>
+                    </div>
+                </div>
+                <div class="editor-section-label full-field">
+                    <strong>Imagen y descripción</strong>
+                    <span>Una fotografía clara y una descripción breve hacen que el producto se entienda mejor.</span>
+                </div>
                 <label class="field-label full-field">
                     Ruta de imagen
                     <input id="adminImage" placeholder="/images/productos/mi-plato.jpg">
@@ -111,6 +129,10 @@
                     Descripción
                     <textarea id="adminDesc" rows="3" placeholder="Describe brevemente el plato y qué lo hace especial."></textarea>
                 </label>
+                <div class="editor-section-label full-field">
+                    <strong>Ingredientes</strong>
+                    <span>Sepáralos con comas para mantener la información ordenada.</span>
+                </div>
                 <label class="field-label full-field">
                     Ingredientes
                     <input id="adminIngredients" placeholder="Ej. Pollo, arroz, ensalada, salsa de la casa">
@@ -156,8 +178,7 @@
 }
 else
 {
-    @* Contenido principal de la página. *@
-    <section class="page-shell">
+        <section class="page-shell">
         <div class="page-head">
             <div>
                 <span class="eyebrow">Carta completa</span>
@@ -168,14 +189,9 @@ else
             {
                 <a asp-controller="PedidoyCarrito1" asp-action="Index" class="cart-head-link"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M3 4h2l1.7 10.1a2 2 0 0 0 2 1.9h7.8a2 2 0 0 0 1.9-1.5L20 8H7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="19" r="1.4" fill="currentColor"/><circle cx="17" cy="19" r="1.4" fill="currentColor"/></svg></span><span>Carrito</span><b data-cart-badge>0</b></a>
             }
-            else
-            {
-                <a asp-controller="IniciarSesion1" asp-action="Index" class="secondary-btn">Inicia sesión para pedir</a>
-            }
         </div>
 
-        @* Contenido principal de la página. *@
-        <section class="menu-search-panel">
+                <section class="menu-search-panel">
             <div class="menu-search-title">
                 <div>
                     <span class="eyebrow">Búsqueda inteligente</span>
@@ -262,7 +278,6 @@ else
 
 @* Scripts necesarios para el funcionamiento de esta vista. *@
 @section Scripts {
-    @* Datos que la vista expone al JavaScript. *@
     <script>
         document.addEventListener('DOMContentLoaded', () => @(esDueno ? "ESFERestaurante.adminProducts.init()" : "ESFERestaurante.menu.init()"));
     </script>

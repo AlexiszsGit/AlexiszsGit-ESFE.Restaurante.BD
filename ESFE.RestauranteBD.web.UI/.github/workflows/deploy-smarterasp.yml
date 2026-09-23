@@ -1,0 +1,45 @@
+name: Publicar RestauranteBD en SmarterASP.NET
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_publish_deploy:
+    runs-on: windows-latest
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Preparar .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Restaurar dependencias
+        run: dotnet restore
+
+      - name: Compilar
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Publicar
+        run: dotnet publish --configuration Release --no-build --output ./release
+
+      - name: Publicar en SmarterASP.NET
+        shell: powershell
+        env:
+          WEBSITE_NAME: ${{ secrets.WEBSITE_NAME }}
+          SERVER_COMPUTER_NAME: ${{ secrets.SERVER_COMPUTER_NAME }}
+          SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
+          SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
+        run: |
+          $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          & $msdeploy `
+            -verb:sync `
+            -source:contentPath="$(pwd)\release" `
+            -dest:contentPath="$env:WEBSITE_NAME",ComputerName="$env:SERVER_COMPUTER_NAME",UserName="$env:SERVER_USERNAME",Password="$env:SERVER_PASSWORD",AuthType="Basic" `
+            -allowUntrusted `
+            -enableRule:AppOffline `
+            -enableRule:DoNotDeleteRule

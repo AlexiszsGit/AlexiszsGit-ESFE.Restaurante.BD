@@ -1,29 +1,43 @@
 
-// Procesa la información de esferestaurante.
+// Funciones principales que comparten las pantallas.
 const ESFERestaurante = (() => {
     const KEY = { cart:'esfe_carrito', orders:'esfe_pedidos', sales:'esfe_ventas', reservations:'esfe_reservas', user:'usuarioLogueado', ratings:'restaurantebd_calificaciones', notifications:'restaurantebd_notificaciones', productOverrides:'restaurantebd_product_overrides', productDeleted:'restaurantebd_product_deleted', customCategories:'restaurantebd_custom_categories', savedReports:'esfe_reportes_guardados', reportPeriod:'esfe_report_periodo_inicio', reportArchive:'esfe_reportes_semanales' };
-    // Convierte la configuración de tiempo a minutos.
+    // Convierte la hora configurada en minutos para comparar horarios.
     const settingMinutes = name => { const raw=document.body?.dataset?.[name]||''; const m=/(\d{2}):(\d{2})/.exec(raw); return m ? Number(m[1])*60+Number(m[2]) : (name==='opening'?360:1320); };
     // Obtiene el porcentaje de impuesto configurado.
     const taxRate = () => Math.max(0,Number(document.body?.dataset?.tax||13))/100;
-    // Procesa la información de currency.
+    // Devuelve el símbolo de moneda que usa el restaurante.
     const currency = () => document.body?.dataset?.currency || '$';
     // Da formato monetario a un valor antes de mostrarlo.
-    const money = value => { const amount=(Number(value)||0); return `${currency()}${amount.toFixed(2)}`; };
-    // Procesa la información de restaurant hours.
+    const money = value => { const amount=(Number(value)||0); return window.RestauranteCurrency?.format ? window.RestauranteCurrency.format(amount) : `${currency()}${amount.toFixed(2)}`; };
+    // Muestra el horario de atención del restaurante.
     const restaurantHours = () => `${document.body?.dataset?.opening||'06:00'}–${document.body?.dataset?.closing||'22:00'}`;
     const localDate = (date=new Date()) => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-    // Procesa la información de format date time.
-    const formatDateTime = (value, options={}) => { const d=value instanceof Date ? value : new Date(value); return Number.isNaN(d.getTime()) ? 'Fecha no disponible' : d.toLocaleString('es-SV',{dateStyle:'medium',timeStyle:'short',...options}); };
-    // Genera o recupera el identificador único usado por el módulo.
+    // Formatea una fecha para mostrarla al usuario.
+    const formatDateTime = (value, options={}) => { const d=value instanceof Date ? value : new Date(value); if(Number.isNaN(d.getTime())) return 'Fecha no disponible'; const language=window.RestauranteI18n?.getLanguage?.()||document.documentElement.lang||'es'; const localeMap={es:'es-SV',en:'en-US',pt:'pt-BR',fr:'fr-FR',de:'de-DE',it:'it-IT',nl:'nl-NL',tr:'tr-TR',ru:'ru-RU',pl:'pl-PL',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR',ar:'ar-SA',hi:'hi-IN',id:'id-ID',vi:'vi-VN',th:'th-TH',he:'he-IL',sv:'sv-SE'}; return d.toLocaleString(localeMap[language]||'es-SV',{dateStyle:'medium',timeStyle:'short',...options}); };
+    // Crea un identificador para los datos nuevos.
     const uid = prefix => `${prefix}-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random()*900+100)}`;
-    // Lee los datos guardados del módulo.
+    // Lee los datos guardados del navegador.
     const read = (key, fallback=[]) => { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } };
     // Guarda los datos actuales del módulo.
     const write = (key, value) => localStorage.setItem(key, JSON.stringify(value));
 
+    // Guarda de inmediato los cambios importantes en la base de datos.
+    async function syncGlobalStateNow(key, value){
+        try{
+            const token=document.querySelector('meta[name="request-verification-token"]')?.content||'';
+            if(!token || !isAuthenticated()) return;
+            await fetch('/api/state/sync',{
+                method:'POST',
+                credentials:'same-origin',
+                headers:{'Content-Type':'application/json','RequestVerificationToken':token},
+                body:JSON.stringify({key,value})
+            });
+        }catch{}
+    }
+
     // IMÁGENES DE CATEGORÍAS
-    const categories = [
+    let categories = [
         {id:'Hamburguesas',image:'/images/categorias/hamburguesas.jpg',desc:'Carne, pollo y opciones de autor'},
         {id:'Carnes',image:'/images/categorias/carnes.jpg',desc:'Cortes, parrilla y platos de carne'},
         {id:'Pollo',image:'/images/categorias/pollo.jpg',desc:'Pollo a la plancha, crispy y alitas'},
@@ -42,7 +56,7 @@ const ESFERestaurante = (() => {
     // Obtiene todas las categorías disponibles.
     const allCategories = () => [...categories, ...customCategories().filter(c=>!categories.some(x=>x.id===c.id))];
     // IMÁGENES DE LOS PRODUCTOS
-    const products = [
+    let products = [
         {id:'ham-clasica',cat:'Hamburguesas',name:'Clásica de la Casa',price:5.50,image:'/images/productos/ham-clasica.jpg',desc:'Carne de res, queso, lechuga y tomate.',ingredients:['Pan brioche','Carne de res 150 g','Queso americano','Lechuga','Tomate','Salsa especial'],tags:['Más pedida']},
         {id:'ham-doble',cat:'Hamburguesas',name:'Doble Queso',price:7.25,image:'/images/productos/ham-doble.jpg',desc:'Doble carne y doble queso con salsa de la casa.',ingredients:['Pan brioche','Doble carne','Doble queso','Cebolla caramelizada','Salsa especial'],tags:['Favorita']},
         {id:'ham-bacon',cat:'Hamburguesas',name:'BBQ Bacon',price:7.90,image:'/images/productos/ham-bacon.jpg',desc:'Carne, tocino crujiente y BBQ.',ingredients:['Pan brioche','Carne de res','Tocino','Queso cheddar','Salsa BBQ','Cebolla crispy'],tags:['Especial']},
@@ -96,10 +110,95 @@ const ESFERestaurante = (() => {
     ];
     // Carga los productos que forman parte del catálogo.
     const catalogProducts = () => { const deleted=read(KEY.productDeleted,[]); const overrides=read(KEY.productOverrides,[]); const map=new Map(overrides.map(x=>[x.id,x])); return products.filter(p=>!deleted.includes(p.id)).map(p=>map.get(p.id)||p).concat(overrides.filter(x=>!products.some(p=>p.id===x.id))); };
+
+    // Convierte el nombre de un producto en un archivo de imagen razonable como respaldo.
+    const productImageFallback = name => {
+        const text = String(name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+        const rules = [
+            ['hamburguesa','/images/productos/ham-clasica.jpg'],
+            ['pizza','/images/productos/piz-pep.jpg'],
+            ['alitas','/images/productos/alitas-picantes.jpg'],
+            ['pollo','/images/productos/pollo-plancha.jpg'],
+            ['carne','/images/productos/carne-parrilla.jpg'],
+            ['pasta','/images/productos/pasta-alfredo.jpg'],
+            ['taco','/images/productos/tacos.jpg'],
+            ['wrap','/images/productos/wrap-pollo.jpg'],
+            ['ensalada','/images/productos/ens-caesar.jpg'],
+            ['camar','/images/productos/camarones-ajo.jpg'],
+            ['ceviche','/images/productos/ceviche-casa.jpg'],
+            ['brownie','/images/productos/post-brownie.jpg'],
+            ['cheesecake','/images/productos/post-cheese.jpg'],
+            ['postre','/images/productos/post-choco.jpg'],
+            ['cafe','/images/productos/beb-cafe.jpg'],
+            ['agua','/images/productos/beb-agua.jpg'],
+            ['cola','/images/productos/beb-cola.jpg'],
+            ['maracuya','/images/productos/beb-maracuya.jpg'],
+            ['limon','/images/productos/beb-limon.jpg']
+        ];
+        return rules.find(([key]) => text.includes(key))?.[1] || '/images/logo.jpg';
+    };
+
+    // Sustituye el catálogo de ejemplo por la información que está guardada en SQL Server.
+    async function loadCatalogFromDatabase() {
+        try {
+            const response = await fetch('/api/menu/catalog', { credentials:'same-origin', cache:'no-store' });
+            if (!response.ok) return false;
+            const data = await response.json();
+            if (!Array.isArray(data?.products) || data.products.length === 0) return false;
+
+            const oldProducts = products.slice();
+            const oldCategories = categories.slice();
+            const byName = new Map(oldProducts.map(p => [String(p.name).trim().toLowerCase(), p]));
+            const categoryByName = new Map(oldCategories.map(c => [String(c.id).trim().toLowerCase(), c]));
+
+            products = data.products.map(item => {
+                const name = String(item.name || 'Producto');
+                const old = byName.get(name.trim().toLowerCase());
+                return {
+                    id: old?.id || `db-${item.productId}`,
+                    dbId: item.productId,
+                    cat: String(item.categoryName || 'Sin categoría'),
+                    name,
+                    price: Number(item.price || 0),
+                    image: old?.image || productImageFallback(name),
+                    desc: String(item.description || old?.desc || 'Disponible en nuestro menú.'),
+                    ingredients: Array.isArray(old?.ingredients) ? old.ingredients : [],
+                    tags: Array.isArray(old?.tags) ? old.tags : [],
+                    available: item.isAvailable !== false
+                };
+            }).filter(p => p.available);
+
+            const dbCategories = Array.isArray(data.categories) ? data.categories : [];
+            categories = dbCategories.map(item => {
+                const old = categoryByName.get(String(item.id || '').trim().toLowerCase());
+                return {
+                    id: String(item.id || 'Sin categoría'),
+                    image: old?.image || '/images/logo.jpg',
+                    desc: old?.desc || 'Productos disponibles en esta sección.'
+                };
+            });
+
+            if (!categories.length) categories = oldCategories;
+            return true;
+        } catch {
+            return false;
+        }
+    }
     // Guarda la personalización realizada sobre un producto.
-    const saveProductOverride = p => { let a=read(KEY.productOverrides,[]); a=a.filter(x=>x.id!==p.id); a.push(p); write(KEY.productOverrides,a); };
+    const saveProductOverride = p => {
+        let a=read(KEY.productOverrides,[]);
+        a=a.filter(x=>x.id!==p.id);
+        a.push(p);
+        write(KEY.productOverrides,a);
+        syncGlobalStateNow(KEY.productOverrides,a);
+    };
     // Elimina o limpia los datos de catalog product.
-    const deleteCatalogProduct = id => { let a=read(KEY.productDeleted,[]); if(!a.includes(id))a.push(id); write(KEY.productDeleted,a); };
+    const deleteCatalogProduct = id => {
+        let a=read(KEY.productDeleted,[]);
+        if(!a.includes(id))a.push(id);
+        write(KEY.productDeleted,a);
+        syncGlobalStateNow(KEY.productDeleted,a);
+    };
 
     const tables = [
         {id:1,seats:2,zone:'Ventana',x:12,y:24,shape:'round'},{id:2,seats:4,zone:'Ventana',x:30,y:22,shape:'square'},{id:3,seats:6,zone:'Centro',x:49,y:22,shape:'round'},
@@ -110,28 +209,63 @@ const ESFERestaurante = (() => {
 
     // Comprueba si existe una sesión de usuario válida.
     function isAuthenticated(){return document.body?.dataset.auth==='True'||document.body?.dataset.auth==='true'}
-    // Procesa la información de current user.
+    // Obtiene el usuario actual.
     function currentUser(){return document.body?.dataset.user || (isAuthenticated()?localStorage.getItem(KEY.user)||'':'')}
-    // Procesa la información de current role.
+    // Obtiene el rol del usuario actual.
     function currentRole(){return (document.body?.dataset.role||'Publico').trim()}
-    // Procesa la información de ratings get.
+    // Obtiene las calificaciones guardadas.
     function ratingsGet(){return read(KEY.ratings,[])}
-    // Procesa la información de ratings save.
+    // Guarda las calificaciones del usuario.
     function ratingsSave(list){write(KEY.ratings,list)}
     // ===== CENTRO DE NOTIFICACIONES =====
     // Una notificación puede pertenecer a un usuario concreto o a uno/más roles operativos.
     // Esto permite que el mismo centro funcione para cliente, dueño, cocina, barra y reparto.
-    // Procesa la información de notifications get.
-    function notificationsGet(){return read(KEY.notifications,[])}
-    // Procesa la información de notifications save.
-    function notificationsSave(list){write(KEY.notifications,list)}
-    // Procesa la información de notification visible.
+    // Obtiene las notificaciones visibles.
+    function notificationsGet(){
+        const local=read(KEY.notifications,[]).filter(x=>!String(x?.id||'').startsWith('MAIL-'));
+        const server=Array.isArray(window.__esfeMailMessages)?window.__esfeMailMessages:[];
+        return [...server,...local];
+    }
+    // Guarda solo las notificaciones que no pertenecen al correo de SQL Server.
+    function notificationsSave(list){
+        write(KEY.notifications,list.filter(x=>!String(x?.id||'').startsWith('MAIL-')));
+    }
+    // Comprueba qué mensajes puede ver el usuario actual.
     function notificationVisible(n){
         const role=currentRole();
         if(n?.sent) return n?.user===currentUser();
         return n?.user===currentUser() || (Array.isArray(n?.roles) && n.roles.includes(role));
     }
     // Guarda la notificación y actualiza su estado en la aplicación.
+    // Aplica las preferencias visuales del dispositivo desde el primer momento.
+    function applyLocalPreferences(){
+        let theme='system',language='es';
+        try{theme=localStorage.getItem('restaurantebd.theme')||'system';language=localStorage.getItem('restaurantebd.language')||'es';}catch{}
+        const resolved=theme==='system'?(window.matchMedia?.('(prefers-color-scheme: dark)').matches?'dark':'light'):theme;
+        document.documentElement.dataset.theme=resolved;
+        document.body.classList.toggle('theme-dark',resolved==='dark');
+        document.dispatchEvent(new CustomEvent('restaurantebd:theme-changed', { detail:{ theme:resolved } }));
+        document.documentElement.lang=language==='zh'?'zh-CN':language;
+        const motion=(()=>{try{return localStorage.getItem('restaurantebd.animations')!=='false'}catch{return true}})();
+        const shadows=(()=>{try{return localStorage.getItem('restaurantebd.shadows')!=='false'}catch{return true}})();
+        const images=(()=>{try{return localStorage.getItem('restaurantebd.images')!=='false'}catch{return true}})();
+        document.body.classList.toggle('reduce-ui-motion',!motion);
+        document.body.classList.toggle('reduce-ui-shadows',!shadows);
+        document.body.classList.toggle('hide-menu-images',!images);
+
+        const shellText={
+            es:{'nav.service':'Servicio activo','nav.operation':'Operación activa','nav.logout':'Cerrar sesión','nav.profile':'Mi perfil','nav.notifications':'Notificaciones','nav.settings':'Configuración'},
+            en:{'nav.service':'Service active','nav.operation':'Operation active','nav.logout':'Sign out','nav.profile':'My profile','nav.notifications':'Notifications','nav.settings':'Settings'},
+            zh:{'nav.service':'服务正常','nav.operation':'运营中','nav.logout':'退出登录','nav.profile':'我的资料','nav.notifications':'通知','nav.settings':'设置'}
+        }[language] || null;
+        if(shellText){
+            document.querySelectorAll('[data-i18n]').forEach(element=>{
+                const value=shellText[element.dataset.i18n];
+                if(value) element.textContent=value;
+            });
+        }
+    }
+
     function addNotification(message,user,meta={}){
         const list=notificationsGet();
         list.unshift({
@@ -151,16 +285,16 @@ const ESFERestaurante = (() => {
         document.querySelectorAll('#notificationBadge,#topNotificationBadge').forEach(e=>e.textContent=n);
     }
 
-    // Procesa la información de cart get.
+    // Obtiene los productos del carrito.
     function cartGet(){return read(KEY.cart,[])}
-    // Procesa la información de cart save.
+    // Guarda los cambios del carrito.
     function cartSave(c){write(KEY.cart,c); updateCartBadges();updateNotificationBadges();}
     // Actualiza los contadores visibles del carrito.
     function updateCartBadges(){const n=cartGet().reduce((s,i)=>s+Number(i.qty),0);document.querySelectorAll('[data-cart-badge]').forEach(e=>e.textContent=n);}
     // Muestra un aviso breve con el resultado de una acción.
     function toast(message,type='success'){const c=document.getElementById('toast-container');if(!c)return;const el=document.createElement('div');el.className=`toast ${type}`;el.innerHTML=`<span>${type==='success'?'✓':type==='error'?'!':'i'}</span><strong>${message}</strong>`;c.appendChild(el);setTimeout(()=>el.remove(),3200)}
 
-    // Estado compartido del módulo: welcome.
+    // Mensaje de bienvenida después de iniciar sesión.
     const welcome = {
         init(){
             const hero=document.getElementById("loginWelcomeHero");
@@ -179,7 +313,7 @@ const ESFERestaurante = (() => {
             window.setTimeout(()=>{ hero.remove(); document.body.classList.remove("welcome-active"); },420);
         }
     };
-    // Estado compartido del módulo: layout.
+    // Controla el menú lateral y los cambios de la pantalla.
     const layout={
         toggleSidebar(show){document.getElementById('appSidebar')?.classList.toggle('open',show);document.getElementById('mobileOverlay')?.classList.toggle('show',show);},
         init(){
@@ -198,6 +332,14 @@ const ESFERestaurante = (() => {
                 document.addEventListener('click',e=>{if(!menu.hidden&&!menu.contains(e.target)&&!trigger.contains(e.target))close()});
                 // Evento que conecta una acción del usuario con la lógica del módulo.
                 document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+
+                // Cierra el menú antes de abrir la pantalla de configuración.
+                menu.querySelector('[data-settings-link]')?.addEventListener('click',e=>{
+                    e.preventDefault();
+                    const href=e.currentTarget.getAttribute('href');
+                    close();
+                    if(href) window.location.assign(href);
+                });
             }
             const nav=document.querySelector('.side-nav');
             if(nav){
@@ -212,7 +354,7 @@ const ESFERestaurante = (() => {
                     });
                 }
                 let timer;
-                // Procesa la información de save.
+                // Guarda el cambio realizado por el usuario.
                 const save=()=>{clearTimeout(timer);timer=setTimeout(()=>{try{sessionStorage.setItem(key,String(Math.round(nav.scrollTop)))}catch{}},80)};
                 // Guarda inmediatamente los cambios actuales.
                 const saveNow=()=>{try{sessionStorage.setItem(key,String(Math.round(nav.scrollTop)))}catch{}};
@@ -226,7 +368,7 @@ const ESFERestaurante = (() => {
             updateCartBadges();updateNotificationBadges();
         }
     };
-    // Estado compartido del módulo: chat.
+    // Funciones principales del chatbot.
     const chat = {
         toggle(show) {
             const el = document.getElementById('chatbot');
@@ -234,10 +376,10 @@ const ESFERestaurante = (() => {
             if (!show) this.stopVoiceMode?.();
         }
     };
-    // Estado compartido del módulo: menu.
+    // Funciones del menú y su búsqueda.
     const menu={
         selected:'Todas',term:'',priceMax:'',sort:'relevance',tag:'Todos',modalCategory:null,modalProduct:null,
-        init(){this.renderCategories();this.bindFilters();this.renderProducts();},
+        init(){this.renderCategories();this.bindFilters();this.renderProducts();loadCatalogFromDatabase().then(ok=>{ if(ok){ this.renderCategories(); this.renderCategoryModal(); } });},
         bindFilters(){
             // Evento que conecta una acción del usuario con la lógica del módulo.
             document.getElementById('menuSearch')?.addEventListener('input',e=>{this.term=e.target.value.toLowerCase().trim();this.renderCategoryModal();});
@@ -289,10 +431,10 @@ const ESFERestaurante = (() => {
         quickAdd(id){this.openModal(id);},
         closeModal(){document.getElementById('productModal')?.classList.add('hidden');}
     };
-    // Estado compartido del módulo: cart.
+    // Funciones del carrito de compras.
     const cart={
         init(){this.render();this.toggleDeliveryFields();const phone=document.getElementById('deliveryPhone'),address=document.getElementById('deliveryAddress');if(phone&&!phone.value)phone.value=document.body.dataset.phone||'';if(address&&!address.value)address.value=document.body.dataset.address||'';},
-        render(){const box=document.getElementById('cartItems');if(!box)return;let c=cartGet().filter(i=>Number.isInteger(Number(i.qty))&&Number(i.qty)>0).map(i=>({...i,qty:Math.min(20,Number(i.qty))}));cartSave(c);document.getElementById('cartItemSummary').textContent=`${c.reduce((s,i)=>s+i.qty,0)} unidades · ${c.length} productos`;if(!c.length){box.innerHTML=`<div class="empty-state"><span class="ui-icon cart-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M3 4h2l1.7 10.1a2 2 0 0 0 2 1.9h7.8a2 2 0 0 0 1.9-1.5L20 8H7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="19" r="1.4" fill="currentColor"/><circle cx="17" cy="19" r="1.4" fill="currentColor"/></svg></span><strong>Tu carrito está vacío</strong><p>Agrega productos desde el menú.</p><a class="primary-btn" href="/GestionDeMenu1/Index">Ir al menú <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></div>`;this.updateTotals();return;}box.innerHTML=c.map(i=>`<div class="cart-line"><img src="${i.image}" alt="${i.name}" onerror="this.src='/images/productos/piz-pep.jpg' /><!-- IMAGEN DEL PRODUCTO: fotografía del producto, JPG/PNG --><div class="cart-main"><strong>${i.name}</strong><small>${(i.ingredients||[]).slice(0,4).join(' · ')}</small><div class="qty-control"><button type="button" onclick="ESFERestaurante.cart.adjust('${i.productId}',-1)">−</button><input value="${i.qty}" min="1" type="number" onchange="ESFERestaurante.cart.setQty('${i.productId}',this.value)" /><button type="button" onclick="ESFERestaurante.cart.adjust('${i.productId}',1)">+</button><button type="button" class="cart-remove-small" title="Eliminar producto" aria-label="Eliminar ${i.name} del carrito" onclick="ESFERestaurante.cart.remove('${i.productId}')">🗑</button></div></div><strong class="line-total">${money(i.price*i.qty)}</strong></div>`).join('');this.updateTotals();},
+        render(){const box=document.getElementById('cartItems');if(!box)return;let c=cartGet().filter(i=>Number.isInteger(Number(i.qty))&&Number(i.qty)>0).map(i=>({...i,qty:Math.min(20,Number(i.qty))}));cartSave(c);document.getElementById('cartItemSummary').textContent=`${c.reduce((s,i)=>s+i.qty,0)} unidades · ${c.length} productos`;if(!c.length){box.innerHTML=`<div class="empty-state"><span class="ui-icon cart-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M3 4h2l1.7 10.1a2 2 0 0 0 2 1.9h7.8a2 2 0 0 0 1.9-1.5L20 8H7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="19" r="1.4" fill="currentColor"/><circle cx="17" cy="19" r="1.4" fill="currentColor"/></svg></span><strong>Tu carrito está vacío</strong><p>Agrega productos desde el menú.</p><a class="primary-btn" href="/GestionDeMenu1/Index">Ir al menú <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></div>`;this.updateTotals();return;}box.innerHTML=c.map(i=>`<div class="cart-line"><img src="${i.image}" alt="${i.name}" onerror="this.src='/images/productos/piz-pep.jpg' /><!-- IMAGEN DEL PRODUCTO: fotografía del producto, JPG/PNG --><div class="cart-main"><strong>${i.name}</strong><small>${(i.ingredients||[]).slice(0,4).join(' · ')}</small><div class="cart-actions"><div class="qty-control"><button type="button" aria-label="Disminuir cantidad" onclick="ESFERestaurante.cart.adjust('${i.productId}',-1)">−</button><input value="${i.qty}" min="1" type="number" onchange="ESFERestaurante.cart.setQty('${i.productId}',this.value)" aria-label="Cantidad" /><button type="button" aria-label="Aumentar cantidad" onclick="ESFERestaurante.cart.adjust('${i.productId}',1)">+</button></div><button type="button" class="cart-remove-small" title="Eliminar producto" aria-label="Eliminar ${i.name} del carrito" onclick="ESFERestaurante.cart.remove('${i.productId}')"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 7h14M9 7V4h6v3M8 7v13h8V7M10 11v5M14 11v5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span></button></div></div><strong class="line-total">${money(i.price*i.qty)}</strong></div>`).join('');this.updateTotals();},
         updateTotals(){const c=cartGet();const sub=c.reduce((s,i)=>s+i.price*i.qty,0);const tax=sub*taxRate();document.getElementById('cartSubtotal').textContent=money(sub);document.getElementById('cartTax').textContent=money(tax);document.getElementById('cartTotal').textContent=money(sub+tax);const b=document.getElementById('goPay');if(b)b.disabled=!c.length;},
         adjust(id,d){let c=cartGet();const i=c.find(x=>x.productId===id);if(!i)return;i.qty=Math.max(1,i.qty+d);cartSave(c);this.render();},
         setQty(id,q){let c=cartGet();const i=c.find(x=>x.productId===id);if(!i)return;const value=Number(q);if(!Number.isInteger(value)||value<1||value>20){toast('La cantidad debe ser un número entero entre 1 y 20.','error');this.render();return;}i.qty=value;cartSave(c);this.render();},
@@ -319,7 +461,7 @@ const ESFERestaurante = (() => {
         }
     };
 
-    // Estado compartido del módulo: reservas.
+    // Funciones para reservar mesas.
     const reservas={
         selected:null,
         // Evento que conecta una acción del usuario con la lógica del módulo.
@@ -352,12 +494,12 @@ const ESFERestaurante = (() => {
         finish(id){if(!this.canManage()){toast('No tienes permiso para finalizar reservas','error');return;}const all=read(KEY.reservations,[]),r=all.find(x=>x.id===id);if(!r)return;if(!r.arrived){toast('Primero registra la llegada o la inasistencia.','error');return;}if(!confirm(`¿Registrar la salida de ${r.name}? La reserva se eliminará y la mesa quedará disponible.`))return;write(KEY.reservations,all.filter(x=>x.id!==id));this.selected=null;this.render();this.renderList();toast(`Salida registrada para ${r.name}`,'success');},
         renderList(){const date=this.localDate(new Date()),worker=this.canManage(),user=currentUser(),list=read(KEY.reservations,[]).filter(r=>worker||r.date===date&&r.customer===user).sort((a,b)=>`${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));const box=document.getElementById('reservationList'),counter=document.getElementById('reservationCount');if(counter)counter.textContent=`${list.length} reservas`;if(!box)return;if(!list.length){box.innerHTML='<div class="empty-state compact"><span>▦</span><strong>No hay reservas para hoy</strong><p>Las nuevas reservas aparecerán aquí.</p></div>';return;}box.innerHTML=list.map(r=>{const valid=r.status==='Confirmada'||r.status==='Atendida',arrival=r.arrived?'Llegó':'Pendiente de llegada',reservationDate=new Date(`${r.date}T00:00:00`).toLocaleDateString('es-SV',{day:'2-digit',month:'2-digit',year:'numeric'});const actions=worker?(!r.arrived?`<button class="secondary-btn small" onclick="ESFERestaurante.reservas.markArrived('${r.id}')">Registrar llegada</button><button class="danger-btn small" onclick="ESFERestaurante.reservas.markNoShow('${r.id}')">No llegó</button>`:`<button class="secondary-btn small" onclick="ESFERestaurante.reservas.finish('${r.id}')">Registrar salida</button>`):'';return `<div class="reservation-item"><div><span class="reservation-time">${r.time}</span><strong>${r.table}</strong><small>${reservationDate} · ${r.name} · ${r.people} persona(s) · ${r.zone}</small><small>${r.status==='Fuera de horario'?`Fuera del horario ${restaurantHours()} · la mesa no se bloquea`:r.arrived?'Reserva activa · la mesa permanece ocupada hasta la salida':'Reserva válida'} · ${arrival}</small></div><div class="reservation-actions"><span class="status-pill ${valid?'success':'warning'}">${r.status}</span>${actions}</div></div>`;}).join('');}
     };
-    // Procesa la información de invoice key.
+    // Crea la clave usada para localizar la factura.
     const invoiceKey = id => `esfe_factura_${id}`;
     // Genera los datos de la factura para mostrarlos o imprimirlos.
     const createInvoice = order => {
         if (!order?.id || order.paymentStatus !== 'Pagado') return null;
-        // Estado compartido del módulo: invoice.
+        // Funciones para crear y mostrar facturas.
         const invoice = {
             id: invoiceKey(order.id), invoiceNumber:`FAC-${new Date().getFullYear()}-${String(Date.now()).slice(-8)}`,
             orderId:order.id, customer:order.customerName||order.customer||'Cliente', email:order.customer||'', date:order.paidAt||order.date,
@@ -372,7 +514,7 @@ const ESFERestaurante = (() => {
     // Documento HTML autocontenido, pensado para pantalla, impresión y PDF desde el navegador.
     // ===== FACTURA DIGITAL PREMIUM =====
     // Comprobante autocontenido para pantalla, impresión y guardado como PDF.
-    // Procesa la información de invoice html.
+    // Construye el contenido visual de la factura.
     const invoiceHtml = invoice => {
         if(!invoice) return '';
         // Escapa caracteres especiales para insertar texto de forma segura en HTML.
@@ -449,7 +591,7 @@ const ESFERestaurante = (() => {
         },
         bindCardPreview(){
             const name=document.getElementById('cardName'),number=document.getElementById('cardNumber'),expiry=document.getElementById('cardExpiry');if(!name||!number||!expiry)return;
-            // Procesa la información de update.
+            // Actualiza el dato que acaba de cambiar.
             const update=()=>{const digits=number.value.replace(/\D/g,'').slice(0,19);number.value=digits.replace(/(.{4})/g,'$1 ').trim();const n=document.getElementById('cardPreviewName');const num=document.getElementById('cardPreviewNumber');const exp=document.getElementById('cardPreviewExpiry');const brand=document.getElementById('cardBrand');if(n)n.textContent=(name.value.trim()||'NOMBRE DEL TITULAR').toUpperCase();if(num){const groups=digits.match(/.{1,4}/g)||[];num.textContent=groups.length?groups.join(' '):'•••• •••• •••• ••••';}if(exp)exp.textContent=expiry.value||'MM/AA';if(brand)brand.innerHTML=cardBrand(digits);};
             // Evento que conecta una acción del usuario con la lógica del módulo.
             number.addEventListener('input',update);name.addEventListener('input',update);document.getElementById('cardCvv')?.addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,4);});expiry.addEventListener('input',e=>{let v=e.target.value.replace(/\D/g,'').slice(0,4);if(v.length>2)v=`${v.slice(0,2)}/${v.slice(2)}`;if(v.length===2&&Number(v)>12)v='12';e.target.value=v;update();});update();
@@ -482,16 +624,16 @@ const ESFERestaurante = (() => {
             addNotification(`Nuevo pedido ${id}.`,null,{type:'pedido',orderId:id,title:'Nuevo pedido recibido',detail:`${order.items.length} productos · ${money(order.total)} · ${order.orderType||'Pedido'}.`,roles:['Dueno','Administrador','Cocina','Barra'].concat(order.orderType==='Domicilio'?['Delivery']:[])});toast(paymentStatus==='Pagado'?`Pedido ${id} creado y pagado`:`Pedido ${id} creado. Pago en efectivo al recoger.`);setTimeout(()=>location.href='/GestionDePedidos1/Index',500);
         }
     };
-    // Procesa la información de card brand.
+    // Identifica la marca de la tarjeta.
     const cardBrand=digits=>/^4/.test(digits)||/^(5[1-5]|2[2-7])/.test(digits)||/^3[47]/.test(digits)?'<svg viewBox=\"0 0 24 24\" fill=\"none\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\" stroke=\"currentColor\" stroke-width=\"1.7\"/><path d=\"M3 10h18M7 15h4\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\"/></svg>':'';
 
     // ===== GESTIÓN DE PEDIDOS =====
-    const orders={filter:'Todos',init(){this.render();setInterval(()=>this.render(),5000);},setFilter(f){this.filter=f;document.querySelectorAll('[data-status]').forEach(b=>b.classList.toggle('active',b.dataset.status===f));this.render();},render(){const all=read(KEY.orders,[]);const owner=['Dueno','Administrador'].includes(currentRole());const role=currentRole();const operational=owner||role==='Barra';const visible=operational?all:all.filter(o=>(o.customer||'')===currentUser());const search=(document.getElementById('ordersSearch')?.value||'').toLowerCase().trim();const filtered=visible.filter(o=>(this.filter==='Todos'||o.status===this.filter)&&(!search||[o.id,o.customer,o.customerName,o.customerPhone,o.customerDui,o.deliveryPhone,o.deliveryAddress].filter(Boolean).some(v=>String(v).toLowerCase().includes(search))));const totalEl=document.getElementById('ordersTotal'),pendingEl=document.getElementById('ordersPending'),preparingEl=document.getElementById('ordersPreparing'),readyEl=document.getElementById('ordersReady');if(totalEl)totalEl.textContent=visible.length;if(pendingEl)pendingEl.textContent=visible.filter(o=>o.status==='Pendiente').length;if(preparingEl)preparingEl.textContent=visible.filter(o=>o.status==='Preparando').length;if(readyEl)readyEl.textContent=visible.filter(o=>o.status==='Listo').length;const box=document.getElementById('ordersGrid');if(!box)return;if(!filtered.length){box.innerHTML='<div class="empty-state compact"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M8 9h8M8 13h8M8 17h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span><strong>No hay pedidos con ese filtro</strong><p>Los pedidos nuevos aparecerán aquí.</p></div>';return;}box.innerHTML=filtered.map(o=>{const paid=o.paymentStatus ? o.paymentStatus==='Pagado' : o.payment!=='Efectivo';const paymentLabel=paid?'Pagado':'Pendiente de pago';const paymentClass=paid?'success':'warning';const sendButton=(owner||role==='Barra')&&o.status==='Pendiente'?`<button class="primary-btn small" onclick="ESFERestaurante.orders.advance('${o.id}')">Enviar a cocina</button>`:'';const readyNote=o.status==='Listo'?`<span class="status-pill success">Listo en cocina · pasar a Entregas</span>`:'';return `<article class="order-card"><div class="order-card-head"><div><span class="order-id">${o.id}</span><small>${new Date(o.date).toLocaleString('es-SV')}</small></div><span class="status-pill ${o.status==='Listo'?'success':o.status==='Preparando'?'warning':'neutral'}">${o.status}</span></div><div class="order-payment-line"><span class="status-pill ${paymentClass}"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3 10h18" stroke="currentColor" stroke-width="1.7"/></svg></span>${paymentLabel}</span><strong>${o.payment}</strong></div><div class="order-products">${o.items.map(i=>`<div><span>${i.qty}× ${i.name}</span><strong>${money(i.price*i.qty)}</strong></div>`).join('')}</div><div class="order-card-foot"><span>${o.orderType}</span><strong>${money(o.total)}</strong></div>${o.payment==='Efectivo'?'<div class="cash-note"><strong>Pago en efectivo:</strong> El cliente pagará en persona al recoger o recibir el pedido.</div>':''}${paid&&o.paymentRef?`<div class="paid-note"><strong>Pago confirmado</strong><span>Referencia: ${o.paymentRef}</span></div>`:''}${(owner||role==='Barra')?`<div class="order-actions">${!paid&&o.payment==='Efectivo'?`<button class="secondary-btn small" onclick="ESFERestaurante.orders.markCashPaid('${o.id}')">Confirmar pago en efectivo</button>`:''}${sendButton}${readyNote}${role==='Barra'&&o.status==='Preparando'?'<span class="status-pill warning">En cocina · preparando</span>':''}</div>`:'<div class="order-actions"><span class="order-status-note">El restaurante actualizará el estado del pedido.</span></div>'}</article>`;}).join('');},markCashPaid(id){if(!['Dueno','Administrador'].includes(currentRole())&&currentRole()!=='Barra'){toast('Solo el dueño o Barra puede confirmar pagos','error');return;}let all=read(KEY.orders,[]);const o=all.find(x=>x.id===id);if(!o||o.payment!=='Efectivo')return;o.paymentStatus='Pagado';o.paidAt=new Date().toISOString();o.paymentDetail='Pago en efectivo recibido personalmente al recoger o recibir el pedido';o.paymentRef='EF-'+new Date().getTime().toString().slice(-12);const invoice=createInvoice(o);write(KEY.orders,all);let sales=read(KEY.sales,[]);if(!sales.some(x=>x.id===id)){sales.unshift({...o,saleStatus:'Cobrado'});write(KEY.sales,sales);}if(o.customer)addNotification(`Pago recibido · pedido ${o.id}. Tu factura digital ${invoice?.invoiceNumber||''} ya está disponible.`,o.customer,{type:'factura',orderId:o.id,title:'Pago en efectivo confirmado',detail:`Factura ${invoice?.invoiceNumber||''} · ${money(o.total)}`,action:'invoice'});addNotification(`Pago recibido para ${o.id}.`,null,{type:'pago',orderId:o.id,title:'Pago confirmado',detail:`Pago en efectivo registrado por ${money(o.total)}. Factura ${invoice?.invoiceNumber||'digital'}.`,roles:['Dueno','Administrador','Barra']});toast(`${id}: pago en efectivo confirmado`);this.render();},advance(id){const role=currentRole();if(!['Dueno','Administrador','Cocina','Barra'].includes(role)){toast('No tienes permiso para actualizar el estado del pedido','error');return;}let all=read(KEY.orders,[]);const o=all.find(x=>x.id===id);if(!o)return;if(role==='Barra'&&o.status!=='Pendiente'){toast('Barra solo envía pedidos pendientes a cocina.','info');return;}if(role==='Cocina'&&o.status==='Listo'){return;}const old=o.status;o.status=o.status==='Pendiente'?'Preparando':o.status==='Preparando'?'Listo':'Entregado';if(old===o.status)return;if(o.customer)addNotification(`Tu pedido ${o.id} cambió de estado: ${o.status}.`,o.customer,{type:'pedido',orderId:o.id,title:`Pedido ${o.status.toLowerCase()}`,detail:`El restaurante actualizó el pedido ${o.id}.`,action:null});addNotification(`El pedido ${o.id} pasó a ${o.status}.`,null,{type:'pedido',orderId:o.id,title:`Pedido ${o.status.toLowerCase()}`,detail:`Actualización operativa del pedido ${o.id}. Cliente: ${o.customerName||o.customer||'Cliente'}.`,roles:['Dueno','Administrador','Cocina','Barra'].concat(o.status==='Listo'?['Delivery']:[])});write(KEY.orders,all);toast(`${id}: ${o.status}`);this.render();}};
+    const orders={filter:'Todos',init(){this.render();setInterval(()=>{ if (!document.hidden) this.render(); },8000);},setFilter(f){this.filter=f;document.querySelectorAll('[data-status]').forEach(b=>b.classList.toggle('active',b.dataset.status===f));this.render();},render(){const all=read(KEY.orders,[]);const owner=['Dueno','Administrador'].includes(currentRole());const role=currentRole();const operational=owner||role==='Barra';const visible=operational?all:all.filter(o=>(o.customer||'')===currentUser());const search=(document.getElementById('ordersSearch')?.value||'').toLowerCase().trim();const filtered=visible.filter(o=>(this.filter==='Todos'||o.status===this.filter)&&(!search||[o.id,o.customer,o.customerName,o.customerPhone,o.customerDui,o.deliveryPhone,o.deliveryAddress].filter(Boolean).some(v=>String(v).toLowerCase().includes(search))));const totalEl=document.getElementById('ordersTotal'),pendingEl=document.getElementById('ordersPending'),preparingEl=document.getElementById('ordersPreparing'),readyEl=document.getElementById('ordersReady');if(totalEl)totalEl.textContent=visible.length;if(pendingEl)pendingEl.textContent=visible.filter(o=>o.status==='Pendiente').length;if(preparingEl)preparingEl.textContent=visible.filter(o=>o.status==='Preparando').length;if(readyEl)readyEl.textContent=visible.filter(o=>o.status==='Listo').length;const box=document.getElementById('ordersGrid');if(!box)return;if(!filtered.length){box.innerHTML='<div class="empty-state compact"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M8 9h8M8 13h8M8 17h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span><strong>No hay pedidos con ese filtro</strong><p>Los pedidos nuevos aparecerán aquí.</p></div>';return;}box.innerHTML=filtered.map(o=>{const paid=o.paymentStatus ? o.paymentStatus==='Pagado' : o.payment!=='Efectivo';const paymentLabel=paid?'Pagado':'Pendiente de pago';const paymentClass=paid?'success':'warning';const sendButton=(owner||role==='Barra')&&o.status==='Pendiente'?`<button class="primary-btn small" onclick="ESFERestaurante.orders.advance('${o.id}')">Enviar a cocina</button>`:'';const readyNote=o.status==='Listo'?`<span class="status-pill success">Listo en cocina · pasar a Entregas</span>`:'';return `<article class="order-card"><div class="order-card-head"><div><span class="order-id">${o.id}</span><small>${new Date(o.date).toLocaleString('es-SV')}</small></div><span class="status-pill ${o.status==='Listo'?'success':o.status==='Preparando'?'warning':'neutral'}">${o.status}</span></div><div class="order-payment-line"><span class="status-pill ${paymentClass}"><span class="ui-icon"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3 10h18" stroke="currentColor" stroke-width="1.7"/></svg></span>${paymentLabel}</span><strong>${o.payment}</strong></div><div class="order-products">${o.items.map(i=>`<div><span>${i.qty}× ${i.name}</span><strong>${money(i.price*i.qty)}</strong></div>`).join('')}</div><div class="order-card-foot"><span>${o.orderType}</span><strong>${money(o.total)}</strong></div>${o.payment==='Efectivo'?'<div class="cash-note"><strong>Pago en efectivo:</strong> El cliente pagará en persona al recoger o recibir el pedido.</div>':''}${paid&&o.paymentRef?`<div class="paid-note"><strong>Pago confirmado</strong><span>Referencia: ${o.paymentRef}</span></div>`:''}${(owner||role==='Barra')?`<div class="order-actions">${!paid&&o.payment==='Efectivo'?`<button class="secondary-btn small" onclick="ESFERestaurante.orders.markCashPaid('${o.id}')">Confirmar pago en efectivo</button>`:''}${sendButton}${readyNote}${role==='Barra'&&o.status==='Preparando'?'<span class="status-pill warning">En cocina · preparando</span>':''}</div>`:'<div class="order-actions"><span class="order-status-note">El restaurante actualizará el estado del pedido.</span></div>'}</article>`;}).join('');},markCashPaid(id){if(!['Dueno','Administrador'].includes(currentRole())&&currentRole()!=='Barra'){toast('Solo el dueño o Barra puede confirmar pagos','error');return;}let all=read(KEY.orders,[]);const o=all.find(x=>x.id===id);if(!o||o.payment!=='Efectivo')return;o.paymentStatus='Pagado';o.paidAt=new Date().toISOString();o.paymentDetail='Pago en efectivo recibido personalmente al recoger o recibir el pedido';o.paymentRef='EF-'+new Date().getTime().toString().slice(-12);const invoice=createInvoice(o);write(KEY.orders,all);let sales=read(KEY.sales,[]);if(!sales.some(x=>x.id===id)){sales.unshift({...o,saleStatus:'Cobrado'});write(KEY.sales,sales);}if(o.customer)addNotification(`Pago recibido · pedido ${o.id}. Tu factura digital ${invoice?.invoiceNumber||''} ya está disponible.`,o.customer,{type:'factura',orderId:o.id,title:'Pago en efectivo confirmado',detail:`Factura ${invoice?.invoiceNumber||''} · ${money(o.total)}`,action:'invoice'});addNotification(`Pago recibido para ${o.id}.`,null,{type:'pago',orderId:o.id,title:'Pago confirmado',detail:`Pago en efectivo registrado por ${money(o.total)}. Factura ${invoice?.invoiceNumber||'digital'}.`,roles:['Dueno','Administrador','Barra']});toast(`${id}: pago en efectivo confirmado`);this.render();},advance(id){const role=currentRole();if(!['Dueno','Administrador','Cocina','Barra'].includes(role)){toast('No tienes permiso para actualizar el estado del pedido','error');return;}let all=read(KEY.orders,[]);const o=all.find(x=>x.id===id);if(!o)return;if(role==='Barra'&&o.status!=='Pendiente'){toast('Barra solo envía pedidos pendientes a cocina.','info');return;}if(role==='Cocina'&&o.status==='Listo'){return;}const old=o.status;o.status=o.status==='Pendiente'?'Preparando':o.status==='Preparando'?'Listo':'Entregado';if(old===o.status)return;if(o.customer)addNotification(`Tu pedido ${o.id} cambió de estado: ${o.status}.`,o.customer,{type:'pedido',orderId:o.id,title:`Pedido ${o.status.toLowerCase()}`,detail:`El restaurante actualizó el pedido ${o.id}.`,action:null});addNotification(`El pedido ${o.id} pasó a ${o.status}.`,null,{type:'pedido',orderId:o.id,title:`Pedido ${o.status.toLowerCase()}`,detail:`Actualización operativa del pedido ${o.id}. Cliente: ${o.customerName||o.customer||'Cliente'}.`,roles:['Dueno','Administrador','Cocina','Barra'].concat(o.status==='Listo'?['Delivery']:[])});write(KEY.orders,all);toast(`${id}: ${o.status}`);this.render();}};
 
     // ===== PANTALLA DE COCINA =====
-    // Estado compartido del módulo: kitchen.
+    // Funciones de la pantalla de cocina.
     const kitchen={
-        init(){this.render();setInterval(()=>this.render(),1000);},
+        init(){this.render();setInterval(()=>{ if (!document.hidden) this.render(); },4000);},
         render(){
             const all=read(KEY.orders,[]),board=document.getElementById('kitchenBoard');if(!board)return;
             const groups=[['Pendiente','Por preparar'],['Preparando','Preparando'],['Listo','Listos']];
@@ -519,7 +661,7 @@ const ESFERestaurante = (() => {
         }
     };
     // ===== PEDIDOS LISTOS / ENTREGAS =====
-    // Estado compartido del módulo: ready.
+    // Funciones de los pedidos listos y entregas.
     const ready={
         search:'',
         // Evento que conecta una acción del usuario con la lógica del módulo.
@@ -556,7 +698,7 @@ const ESFERestaurante = (() => {
     // ===== REPORTES =====
     // Genera el comprobante PDF con los datos del pedido.
     const makeSimplePdf=lines=>{
-        // Procesa la información de safe.
+        // Comprueba que el valor sea seguro antes de usarlo.
         const safe=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/·/g,'-').replace(/→/g,'-').replace(/[^\x20-\x7E]/g,'?').replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');
         const wrapped=[];const max=92;
         (lines||[]).forEach(line=>{const raw=String(line??'');if(!raw){wrapped.push('');return;}for(let i=0;i<raw.length;i+=max)wrapped.push(raw.slice(i,i+max));});
@@ -575,7 +717,7 @@ const ESFERestaurante = (() => {
         const xrefOffset=pdf.length;pdf+=`xref\n0 ${objects.length+1}\n0000000000 65535 f \n`;for(let i=1;i<offsets.length;i++)pdf+=`${String(offsets[i]).padStart(10,'0')} 00000 n \n`;pdf+=`trailer\n<< /Size ${objects.length+1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
         return new TextEncoder().encode(pdf);
     };
-    // Estado compartido del módulo: reports.
+    // Funciones para generar y guardar reportes.
     const reports={
         init(){this.ensureWeeklyCutoff();this.render();},
         periodStart(){const stored=localStorage.getItem(KEY.reportPeriod);if(stored&&/^\d{4}-\d{2}-\d{2}$/.test(stored))return stored;const today=localDate();localStorage.setItem(KEY.reportPeriod,today);return today;},
@@ -598,34 +740,34 @@ const ESFERestaurante = (() => {
         iconPdf(){return '<svg viewBox="0 0 24 24" fill="none"><path d="M6 3h9l3 3v15H6z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M14 3v4h4M8.5 12h2.4a1.6 1.6 0 0 1 0 3.2H8.5zM13.5 15.2v-3.2h1.5a1.6 1.6 0 0 1 0 3.2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'}
     };
 
-    // Estado compartido del módulo: adminProducts.
+    // Funciones para administrar productos y categorías.
     const adminProducts={
         editing:null,
-        init(){this.refreshCategorySelect();this.render();this.renderCategories();},
+        init(){this.refreshCategorySelect();this.render();this.renderCategories();const file=document.getElementById('adminImageFile');const drop=document.getElementById('adminImageDropzone');if(file&&!file.dataset.bound){file.dataset.bound='true';const showFile=picked=>{const name=document.getElementById('adminImageFileName'),preview=document.getElementById('adminImagePreview'),previewImg=document.getElementById('adminImagePreviewImg');if(!picked)return;if(!picked.type.startsWith('image/')){toast('Selecciona una imagen JPG, PNG o WEBP','error');return;}if(name)name.textContent=picked.name;if(preview&&previewImg){const url=URL.createObjectURL(picked);previewImg.onload=()=>URL.revokeObjectURL(url);previewImg.src=url;preview.classList.remove('hidden');}};file.addEventListener('change',()=>showFile(file.files?.[0]));if(drop){['dragenter','dragover'].forEach(type=>drop.addEventListener(type,e=>{e.preventDefault();drop.classList.add('drag-active');}));['dragleave','drop'].forEach(type=>drop.addEventListener(type,e=>{e.preventDefault();drop.classList.remove('drag-active');}));drop.addEventListener('drop',e=>{const picked=e.dataTransfer?.files?.[0];if(!picked)return;showFile(picked);try{file.files=e.dataTransfer.files;}catch{}});}}loadCatalogFromDatabase().then(ok=>{ if(ok){ this.refreshCategorySelect(); this.render(); this.renderCategories(); } });},
         refreshCategorySelect(){const sel=document.getElementById('adminCategory');if(!sel)return;const cats=allCategories();sel.innerHTML=cats.map(c=>`<option value="${c.id}">${c.id}</option>`).join('');},
         render(){const box=document.getElementById('adminProductList');if(!box)return;const list=catalogProducts();box.innerHTML=list.map(p=>`<article class="admin-product-row"><img src="${p.image}" onerror="this.classList.add('image-missing')"><div><strong>${p.name}</strong><small>${p.cat} · ${money(p.price)}</small><p>${p.desc}</p><em>${p.ingredients.join(' · ')}</em></div><div class="admin-actions"><button class="secondary-btn small" onclick="ESFERestaurante.adminProducts.edit('${p.id}')">Editar</button><button class="danger-btn small" onclick="ESFERestaurante.adminProducts.remove('${p.id}')">Eliminar</button></div></article>`).join('')||'<div class="empty-state"><strong>No hay productos</strong></div>';document.getElementById('adminProductCount')&&(document.getElementById('adminProductCount').textContent=list.length);},
         renderCategories(){const box=document.getElementById('adminCategoryList');if(!box)return;box.innerHTML=customCategories().map(c=>`<div class="admin-category-row"><div><strong>${c.id}</strong><small>${c.desc}</small></div><span>Personalizada</span></div>`).join('')||'<div class="empty-state compact"><p>Las categorías base ya están listas. Aquí aparecerán las nuevas que agregues.</p></div>';document.getElementById('adminCategoryCount')&&(document.getElementById('adminCategoryCount').textContent=allCategories().length);},
         open(){if(!['Dueno','Administrador'].includes(currentRole())){toast('Solo el dueño puede administrar productos','error');return;}this.editing=null;this.fill(null);document.getElementById('productAdminModal')?.classList.remove('hidden');},
         edit(id){if(!['Dueno','Administrador'].includes(currentRole())){toast('Solo el dueño puede administrar productos','error');return;}const p=catalogProducts().find(x=>x.id===id);if(!p)return;this.editing=id;this.fill(p);document.getElementById('productAdminModal')?.classList.remove('hidden');},
-        fill(p){this.refreshCategorySelect();document.getElementById('adminImageFile').value='';document.getElementById('adminName').value=p?.name||'';document.getElementById('adminCategory').value=p?.cat||allCategories()[0]?.id||'';document.getElementById('adminPrice').value=p?.price||'';document.getElementById('adminImage').value=p?.image||'';document.getElementById('adminDesc').value=p?.desc||'';document.getElementById('adminIngredients').value=p?.ingredients?.join(', ')||'';},
+        fill(p){this.refreshCategorySelect();const file=document.getElementById('adminImageFile'),name=document.getElementById('adminImageFileName'),preview=document.getElementById('adminImagePreview'),previewImg=document.getElementById('adminImagePreviewImg');if(file)file.value='';if(name)name.textContent=p?.image?'Imagen actual · puedes reemplazarla':'Selecciona una imagen';if(preview&&previewImg){if(p?.image){previewImg.src=p.image;preview.classList.remove('hidden');}else{preview.classList.add('hidden');previewImg.removeAttribute('src');}}document.getElementById('adminName').value=p?.name||'';document.getElementById('adminCategory').value=p?.cat||allCategories()[0]?.id||'';document.getElementById('adminPrice').value=p?.price||'';document.getElementById('adminImage').value=p?.image||'';document.getElementById('adminDesc').value=p?.desc||'';document.getElementById('adminIngredients').value=p?.ingredients?.join(', ')||'';},
         save(){
             if(!['Dueno','Administrador'].includes(currentRole())){toast('Solo el dueño puede guardar productos','error');return;}
             const name=document.getElementById('adminName').value.trim(),cat=document.getElementById('adminCategory').value,price=Number(document.getElementById('adminPrice').value),imageInput=document.getElementById('adminImageFile'),typedImage=document.getElementById('adminImage').value.trim(),desc=document.getElementById('adminDesc').value.trim(),ingredients=document.getElementById('adminIngredients').value.split(',').map(x=>x.trim()).filter(Boolean);
             if(!name||!cat||!price||!desc||!ingredients.length){toast('Completa nombre, categoría, precio, descripción e ingredientes','error');return;}
             const newId=this.editing||'prod-'+Date.now();
-            // Procesa la información de finish.
+            // Termina el guardado del producto y actualiza la pantalla.
             const finish=image=>{const finalImage=image||typedImage||`/images/productos/${newId}.jpg`;saveProductOverride({id:newId,cat,name,price,image:finalImage,desc,ingredients,tags:['Administrado']});this.close();this.render();toast(this.editing?'Producto actualizado':'Producto agregado');};
             if(imageInput?.files?.length){const file=imageInput.files[0];if(!file.type.startsWith('image/')){toast('Selecciona una imagen válida','error');return;}const reader=new FileReader();reader.onload=()=>finish(reader.result);reader.readAsDataURL(file);}else finish('');
         },
-        addCategory(){if(!['Dueno','Administrador'].includes(currentRole())){toast('Solo el dueño puede agregar categorías','error');return;}const name=document.getElementById('adminNewCategoryName')?.value.trim(),desc=document.getElementById('adminNewCategoryDesc')?.value.trim(),image=document.getElementById('adminNewCategoryImage')?.value.trim();if(!name||!desc){toast('Escribe el nombre y la descripción de la categoría','error');return false;}if(allCategories().some(c=>c.id.toLowerCase()===name.toLowerCase())){toast('Esa categoría ya existe','error');return false;}const id=name.replace(/\s+/g,' ').trim();const list=customCategories();list.push({id,image:image||`/images/categorias/${name.toLowerCase().replace(/[^a-z0-9]+/g,'-')}.jpg`,desc});write(KEY.customCategories,list);['adminNewCategoryName','adminNewCategoryDesc','adminNewCategoryImage'].forEach(x=>{const e=document.getElementById(x);if(e)e.value='';});this.refreshCategorySelect();this.renderCategories();toast('Categoría agregada correctamente');return true;},
+        addCategory(){if(!['Dueno','Administrador'].includes(currentRole())){toast('Solo el dueño puede agregar categorías','error');return;}const name=document.getElementById('adminNewCategoryName')?.value.trim(),desc=document.getElementById('adminNewCategoryDesc')?.value.trim(),image=document.getElementById('adminNewCategoryImage')?.value.trim();if(!name||!desc){toast('Escribe el nombre y la descripción de la categoría','error');return false;}if(allCategories().some(c=>c.id.toLowerCase()===name.toLowerCase())){toast('Esa categoría ya existe','error');return false;}const id=name.replace(/\s+/g,' ').trim();const list=customCategories();list.push({id,image:image||`/images/categorias/${name.toLowerCase().replace(/[^a-z0-9]+/g,'-')}.jpg`,desc});write(KEY.customCategories,list);syncGlobalStateNow(KEY.customCategories,list);['adminNewCategoryName','adminNewCategoryDesc','adminNewCategoryImage'].forEach(x=>{const e=document.getElementById(x);if(e)e.value='';});this.refreshCategorySelect();this.renderCategories();toast('Categoría agregada correctamente');return true;},
         remove(id){if(!['Dueno','Administrador'].includes(currentRole())){toast('Solo el dueño puede eliminar productos','error');return;}if(!confirm('¿Eliminar este producto del menú?'))return;deleteCatalogProduct(id);this.render();toast('Producto eliminado','info');},
         close(){document.getElementById('productAdminModal')?.classList.add('hidden');}
     };
 
     // ===== PANEL / DASHBOARD =====
-    const dashboard={init(){this.render();setInterval(()=>this.render(),5000);},render(){const allOrders=read(KEY.orders,[]),allSales=read(KEY.sales,[]),res=read(KEY.reservations,[]),today=localDate(),owner=['Dueno','Administrador'].includes(currentRole()),user=currentUser();const orders=owner?allOrders:allOrders.filter(o=>(o.customer||'cliente@restaurante.com')===user);const sales=owner?allSales:allSales.filter(s=>(s.customer||'cliente@restaurante.com')===user);const todays=sales.filter(s=>s.date.startsWith(today));document.getElementById('cardPedidosHoy').textContent=orders.filter(o=>o.date.startsWith(today)).length;document.getElementById('cardEnPreparacion').textContent=orders.filter(o=>o.status==='Preparando').length;document.getElementById('cardVentasHoy').textContent=money(todays.reduce((s,x)=>s+x.total,0));document.getElementById('cardMesas').textContent=owner?tables.length-res.filter(r=>r.date===today&&(r.status==='Confirmada'||r.status==='Atendida')).length:res.filter(r=>r.date===today&&r.customer===user&&r.status==='Confirmada').length;document.getElementById('cardProductos').textContent=catalogProducts().length;document.getElementById('ultimaActualizacion').textContent=new Date().toLocaleTimeString('es-SV',{hour:'2-digit',minute:'2-digit',second:'2-digit'});const box=document.getElementById('recentOrders');const list=orders.slice(0,5);box.innerHTML=list.map(o=>`<div class="recent-row"><div><strong>${o.id}</strong><small>${o.items.map(i=>`${i.qty}× ${i.name}`).join(', ')}</small></div><span class="status-pill ${o.status==='Listo'?'success':o.status==='Preparando'?'warning':'neutral'}">${o.status}</span></div>`).join('')||'<div class="empty-state compact"><p>No hay pedidos todavía.</p></div>';}};
+    const dashboard={init(){this.render();setInterval(()=>{ if (!document.hidden) this.render(); },8000);},render(){const allOrders=read(KEY.orders,[]),allSales=read(KEY.sales,[]),res=read(KEY.reservations,[]),today=localDate(),owner=['Dueno','Administrador'].includes(currentRole()),user=currentUser();const orders=owner?allOrders:allOrders.filter(o=>(o.customer||'cliente@restaurante.com')===user);const sales=owner?allSales:allSales.filter(s=>(s.customer||'cliente@restaurante.com')===user);const todays=sales.filter(s=>s.date.startsWith(today));document.getElementById('cardPedidosHoy').textContent=orders.filter(o=>o.date.startsWith(today)).length;document.getElementById('cardEnPreparacion').textContent=orders.filter(o=>o.status==='Preparando').length;document.getElementById('cardVentasHoy').textContent=money(todays.reduce((s,x)=>s+x.total,0));document.getElementById('cardMesas').textContent=owner?tables.length-res.filter(r=>r.date===today&&(r.status==='Confirmada'||r.status==='Atendida')).length:res.filter(r=>r.date===today&&r.customer===user&&r.status==='Confirmada').length;document.getElementById('cardProductos').textContent=catalogProducts().length;document.getElementById('ultimaActualizacion').textContent=new Date().toLocaleTimeString('es-SV',{hour:'2-digit',minute:'2-digit',second:'2-digit'});const box=document.getElementById('recentOrders');const list=orders.slice(0,5);box.innerHTML=list.map(o=>`<div class="recent-row"><div><strong>${o.id}</strong><small>${o.items.map(i=>`${i.qty}× ${i.name}`).join(', ')}</small></div><span class="status-pill ${o.status==='Listo'?'success':o.status==='Preparando'?'warning':'neutral'}">${o.status}</span></div>`).join('')||'<div class="empty-state compact"><p>No hay pedidos todavía.</p></div>';}};
 
-    // Estado compartido del módulo: notifications.
+    // Funciones del centro de notificaciones y correo.
     const notifications={
         filter:'all',
         search:'',
@@ -643,7 +785,7 @@ const ESFERestaurante = (() => {
             if(fromName)fromName.textContent=document.body?.dataset.userName||'Cuenta activa';
             if(fromEmail)fromEmail.textContent=currentUser()||'cuenta@restaurantebd.local';
             this.attachments=[];this.renderAttachments();
-            this.render();updateNotificationBadges();this.updateComposeState();this.restoreDraft();
+            this.refreshServerMessages().then(()=>{this.render();updateNotificationBadges();});this.updateComposeState();this.restoreDraft();
             // Evento que conecta una acción del usuario con la lógica del módulo.
             document.getElementById('composeAttachmentInput')?.addEventListener('change',e=>this.addAttachments(e.target.files));
             // Evento que conecta una acción del usuario con la lógica del módulo.
@@ -717,9 +859,41 @@ const ESFERestaurante = (() => {
         toggleSelectionMode(force){this.selectionMode=typeof force==='boolean'?force:!this.selectionMode;if(!this.selectionMode)this.selectedIds.clear();const btn=document.getElementById('notificationSelectMode');if(btn){btn.classList.toggle('active',this.selectionMode);btn.textContent=this.selectionMode?'Cancelar selección':'Seleccionar';}this.render();},
         toggleSelection(id,checked){const key=String(id);if(checked)this.selectedIds.add(key);else this.selectedIds.delete(key);this.render();},
         toggleSelectAll(checked){const list=notificationsGet().filter(notificationVisible).filter(n=>{if(this.filter==='all')return !n.sent&&!n.archived;if(this.filter==='unread')return !n.read&&!n.sent&&!n.archived;if(this.filter==='invoice')return n.type==='factura'&&!n.sent&&!n.archived;if(this.filter==='starred')return n.starred&&!n.archived;if(this.filter==='sent')return n.sent&&!n.archived;if(this.filter==='archive')return n.archived;return true;}).filter(n=>{const q=this.search;return !q||[n.title,n.message,n.detail,n.orderId,n.fromName,n.fromEmail,n.toName,n.toEmail].filter(Boolean).join(' ').toLowerCase().includes(q);});list.forEach(n=>{const id=String(n.id);if(checked)this.selectedIds.add(id);else this.selectedIds.delete(id);});this.render();},
-        deleteSelected(){const selected=[...this.selectedIds];if(!selected.length)return;if(!confirm(`¿Eliminar ${selected.length} mensaje${selected.length===1?'':'s'} seleccionados?`))return;notificationsSave(notificationsGet().filter(n=>!selected.includes(String(n.id))));this.selectedIds.clear();this.render();updateNotificationBadges();toast(`${selected.length} mensaje${selected.length===1?'':'s'} eliminado${selected.length===1?'':'s'}`,'info');},
-        archiveSelected(){const selected=[...this.selectedIds];if(!selected.length)return;if(!confirm(`¿Archivar ${selected.length} mensaje${selected.length===1?'':'s'} seleccionados?`))return;const ids=new Set(selected);const list=notificationsGet();list.forEach(n=>{if(ids.has(String(n.id)))n.archived=true;});notificationsSave(list);this.selectedIds.clear();this.render();updateNotificationBadges();toast(`${selected.length} mensaje${selected.length===1?'':'s'} archivado${selected.length===1?'':'s'}`,'info');},
-        markRead(id){const list=notificationsGet();const n=list.find(x=>x.id===id&&notificationVisible(x));if(n)n.read=true;notificationsSave(list);this.render();updateNotificationBadges();this.open(id);},
+        async deleteSelected(){
+            const selected=[...this.selectedIds];if(!selected.length)return;
+            if(!confirm(`¿Eliminar ${selected.length} mensaje${selected.length===1?'':'s'} seleccionados?`))return;
+            const token=document.querySelector('meta[name="request-verification-token"]')?.content||'';
+            for(const id of selected){
+                if(String(id).startsWith('MAIL-'))
+                    await fetch('/api/mail/delete',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json',...(token?{'RequestVerificationToken':token}:{})},body:JSON.stringify({id:String(id)})});
+            }
+            window.__esfeMailMessages=(window.__esfeMailMessages||[]).filter(x=>!selected.includes(String(x.id)));
+            notificationsSave(notificationsGet().filter(n=>!selected.includes(String(n.id))));
+            this.selectedIds.clear();this.render();updateNotificationBadges();
+            toast(`${selected.length} mensaje${selected.length===1?'':'s'} eliminado${selected.length===1?'':'s'}`,'info');
+        },
+        async archiveSelected(){
+            const selected=[...this.selectedIds];if(!selected.length)return;
+            if(!confirm(`¿Archivar ${selected.length} mensaje${selected.length===1?'':'s'} seleccionados?`))return;
+            const token=document.querySelector('meta[name="request-verification-token"]')?.content||'';
+            for(const id of selected){
+                if(String(id).startsWith('MAIL-'))
+                    await fetch('/api/mail/flags',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json',...(token?{'RequestVerificationToken':token}:{})},body:JSON.stringify({id:String(id),archived:true})});
+            }
+            window.__esfeMailMessages=(window.__esfeMailMessages||[]).map(x=>selected.includes(String(x.id))?({...x,archived:true}):x);
+            const list=notificationsGet();list.forEach(n=>{if(selected.includes(String(n.id)))n.archived=true;});
+            notificationsSave(list);this.selectedIds.clear();this.render();updateNotificationBadges();
+            toast(`${selected.length} mensaje${selected.length===1?'':'s'} archivado${selected.length===1?'':'s'}`,'info');
+        },
+        async markRead(id){
+            const list=notificationsGet();const n=list.find(x=>x.id===id&&notificationVisible(x));if(!n)return;
+            if(String(id).startsWith('MAIL-')){
+                const token=document.querySelector('meta[name="request-verification-token"]')?.content||'';
+                await fetch('/api/mail/read',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json',...(token?{'RequestVerificationToken':token}:{})},body:JSON.stringify({id:String(id),read:true})});
+                n.read=true;
+            }else{n.read=true;notificationsSave(list);}
+            this.render();updateNotificationBadges();this.open(id);
+        },
         detailIcon(type){return this.icon(type);},
         open(id){
             const n=notificationsGet().find(x=>x.id===id&&notificationVisible(x));if(!n)return;
@@ -757,15 +931,50 @@ const ESFERestaurante = (() => {
         },
         renderReaderAttachments(attachments){
             if(!Array.isArray(attachments)||!attachments.length)return '';
-            // Procesa la información de kind.
+            // Determina el tipo de contenido que se está procesando.
             const kind=a=>{const name=String(a.name||'').toLowerCase();if(name.endsWith('.pdf'))return ['PDF','pdf'];if(/\.(doc|docx)$/.test(name))return ['WORD','word'];if(/\.(xls|xlsx|csv)$/.test(name))return ['XLS','sheet'];if(/\.(ppt|pptx)$/.test(name))return ['PPT','slide'];if(/\.(png|jpg|jpeg|webp|gif)$/.test(name))return ['IMG','image'];return ['FILE','file'];};
             return `<section class="reader-attachments"><div class="reader-section-head"><div><span class="reader-section-icon">${this.icon('adjunto')}</span><strong>Archivos adjuntos</strong><small>${attachments.length} archivo${attachments.length===1?'':'s'}</small></div></div><div class="reader-attachment-list">${attachments.map(a=>{const [label,cls]=kind(a);return `<a class="reader-attachment reader-attachment-pro ${cls}" href="${a.data}" download="${this.escape(a.name)}"><span class="reader-attachment-filemark"><span>${label}</span></span><span class="reader-attachment-copy"><strong>${this.escape(a.name)}</strong><small>${(Number(a.size||0)/1024/1024).toFixed(2)} MB · ${label==='IMG'?'Imagen':'Documento'}</small></span><span class="action-icon">${this.icon('download')}</span></a>`;}).join('')}</div></section>`;
         },
         close(){document.getElementById('notificationDetailModal')?.classList.remove('show');},
-        remove(id){const list=notificationsGet();const n=list.find(x=>x.id===id&&notificationVisible(x));if(!n)return;if(!confirm('¿Eliminar este mensaje o notificación?'))return;notificationsSave(list.filter(x=>x.id!==id));this.close();this.render();updateNotificationBadges();toast('Mensaje eliminado','info');},
-        toggleRead(id){const list=notificationsGet();const n=list.find(x=>x.id===id&&notificationVisible(x));if(n)n.read=!n.read;notificationsSave(list);this.render();updateNotificationBadges();},
-        toggleStar(id){const list=notificationsGet();const n=list.find(x=>x.id===id&&notificationVisible(x));if(n)n.starred=!n.starred;notificationsSave(list);this.render();updateNotificationBadges();if(document.getElementById('notificationDetailModal')?.classList.contains('show'))this.open(id);},
-        markAllRead(){const list=notificationsGet();list.forEach(n=>{if(notificationVisible(n)&&!n.sent&&!n.archived)n.read=true});notificationsSave(list);this.render();updateNotificationBadges();},
+        async remove(id){
+            const list=notificationsGet();const n=list.find(x=>x.id===id&&notificationVisible(x));if(!n)return;
+            if(!confirm('¿Eliminar este mensaje o notificación?'))return;
+            if(String(id).startsWith('MAIL-')){
+                const token=document.querySelector('meta[name="request-verification-token"]')?.content||'';
+                await fetch('/api/mail/delete',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json',...(token?{'RequestVerificationToken':token}:{})},body:JSON.stringify({id:String(id)})});
+                window.__esfeMailMessages=(window.__esfeMailMessages||[]).filter(x=>x.id!==id);
+            }else{notificationsSave(list.filter(x=>x.id!==id));}
+            this.close();this.render();updateNotificationBadges();toast('Mensaje eliminado','info');
+        },
+        async toggleRead(id){
+            const list=notificationsGet();const n=list.find(x=>x.id===id&&notificationVisible(x));if(!n)return;
+            n.read=!n.read;
+            if(String(id).startsWith('MAIL-')){
+                const token=document.querySelector('meta[name="request-verification-token"]')?.content||'';
+                await fetch('/api/mail/read',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json',...(token?{'RequestVerificationToken':token}:{})},body:JSON.stringify({id:String(id),read:n.read})});
+            }else{notificationsSave(list);}
+            this.render();updateNotificationBadges();
+        },
+        async toggleStar(id){
+            const list=notificationsGet();const n=list.find(x=>x.id===id&&notificationVisible(x));if(!n)return;
+            n.starred=!n.starred;
+            if(String(id).startsWith('MAIL-')){
+                const token=document.querySelector('meta[name="request-verification-token"]')?.content||'';
+                await fetch('/api/mail/flags',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json',...(token?{'RequestVerificationToken':token}:{})},body:JSON.stringify({id:String(id),starred:n.starred})});
+            }else{notificationsSave(list);}
+            this.render();updateNotificationBadges();if(document.getElementById('notificationDetailModal')?.classList.contains('show'))this.open(id);
+        },
+        async markAllRead(){
+            const list=notificationsGet();
+            const token=document.querySelector('meta[name="request-verification-token"]')?.content||'';
+            for(const n of list){
+                if(!notificationVisible(n)||n.sent||n.archived)continue;
+                n.read=true;
+                if(String(n.id).startsWith('MAIL-'))
+                    await fetch('/api/mail/read',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json',...(token?{'RequestVerificationToken':token}:{})},body:JSON.stringify({id:String(n.id),read:true})});
+            }
+            notificationsSave(list);this.render();updateNotificationBadges();
+        },
         setFilter(filter){this.filter=filter;this.selectedIds.clear();document.querySelectorAll('[data-notification-filter]').forEach(b=>b.classList.toggle('active',b.dataset.notificationFilter===filter));this.render();},
         searchFor(value){this.search=String(value||'').trim().toLowerCase();this.render();},
         openCompose(prefill={}){
@@ -792,14 +1001,14 @@ const ESFERestaurante = (() => {
         isValidEmail(email){return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);},
         addAttachments(fileList){
             const files=Array.from(fileList||[]);if(!files.length)return;
-            const MAX_FILE=200*1024*1024,MAX_TOTAL=200*1024*1024,MAX_FILES=5;
+            const MAX_FILE=10*1024*1024,MAX_TOTAL=10*1024*1024,MAX_FILES=5;
             if(this.attachments.length>=MAX_FILES){toast('Máximo 5 archivos por mensaje','error');return;}
             let total=this.attachments.reduce((n,f)=>n+Number(f.size||0),0);
             let pending=files.slice(0,MAX_FILES-this.attachments.length);
             let chain=Promise.resolve();
             pending.forEach(file=>{chain=chain.then(()=>{
-                if(file.size>MAX_FILE){toast(`${file.name}: máximo 200 MB`,'error');return;}
-                if(total+file.size>MAX_TOTAL){toast('Los adjuntos no pueden superar 200 MB en total','error');return;}
+                if(file.size>MAX_FILE){toast(`${file.name}: máximo 10 MB`,'error');return;}
+                if(total+file.size>MAX_TOTAL){toast('Los adjuntos no pueden superar 10 MB en total','error');return;}
                 return new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>{this.attachments.push({name:file.name,size:file.size,type:file.type||'application/octet-stream',data:reader.result});total+=file.size;this.renderAttachments();this.scheduleDraft();resolve();};reader.onerror=()=>{toast(`No se pudo leer ${file.name}`,'error');resolve();};reader.readAsDataURL(file);});
             });});
             chain.then(()=>{const input=document.getElementById('composeAttachmentInput');if(input)input.value='';});
@@ -812,7 +1021,7 @@ const ESFERestaurante = (() => {
         },
         toggleFormatTools(){document.getElementById('composeFormatPanel')?.classList.toggle('show');},
         insertFormat(token){const ta=document.getElementById('composeMessage');if(!ta)return;const a=ta.selectionStart,b=ta.selectionEnd,selected=ta.value.slice(a,b)||'texto';const wrapped=token==='bold'?`**${selected}**`:token==='italic'?`_${selected}_`:token==='quote'?`> ${selected}`:`• ${selected}`;ta.setRangeText(wrapped,a,b,'end');ta.focus();this.scheduleDraft();},
-        sendCompose(){
+        async sendCompose(){
             const recipientInput=document.getElementById('composeRecipient'),subject=document.getElementById('composeSubject'),message=document.getElementById('composeMessage');
             const ccInput=document.getElementById('composeCc'),bccInput=document.getElementById('composeBcc');
             const toList=this.parseEmailList(recipientInput?.value),title=subject?.value.trim()||'',body=message?.value.trim()||'',cc=this.parseEmailList(ccInput?.value),bcc=this.parseEmailList(bccInput?.value);
@@ -823,27 +1032,44 @@ const ESFERestaurante = (() => {
             if(toList.includes(me)){toast('No puedes enviarte el mensaje a tu propia cuenta.','error');return;}
             if(!title){toast('Escribe un asunto','error');return;}
             if(body.length<2){toast('Escribe el contenido del mensaje','error');return;}
-            const allCc=cc.filter(this.isValidEmail).filter(x=>x!==me),allBcc=bcc.filter(this.isValidEmail).filter(x=>x!==me);
-            if(cc.length!==allCc.length||bcc.length!==allBcc.length){toast('Hay un correo inválido en Cc o Cco','error');return;}
-            const duplicateSet=new Set(toList);
-            if(allCc.some(x=>duplicateSet.has(x))||allBcc.some(x=>duplicateSet.has(x))){toast('No repitas al destinatario en Para, Cc o Cco','error');return;}
-            const now=new Date().toISOString(),id=uid('MAIL'),attachments=this.attachments.map(a=>({name:a.name,size:a.size,type:a.type,data:a.data}));
-            const allRecipients=[...toList,...allCc,...allBcc].filter((v,i,a)=>a.indexOf(v)===i);
-            const list=notificationsGet();
-            allRecipients.forEach((email,index)=>{
-                const contact=this.contacts.find(c=>String(c.Email||c.email||'').toLowerCase()===email);
-                const recipientType=toList.includes(email)?'Para':allCc.includes(email)?'Cc':'Cco';
-                list.unshift({id:uid('MAIL'),date:now,title,message:body,detail:body,type:'mensaje',read:false,starred:false,action:null,fromName:(document.body.dataset.userName||'Usuario RestauranteBD'),fromEmail:currentUser(),toName:contact?.Nombre||contact?.nombre||email,toEmail:email,user:email,roles:[],cc:allCc.filter(x=>x!==email),bcc:[],toList:[email],recipientType,orderId:'',attachments,sent:false});
-            });
-            list.unshift({id,user:currentUser(),roles:[],date:now,title,message:body,detail:body,type:'mensaje',read:true,starred:false,action:null,fromName:(document.body.dataset.userName||'Usuario RestauranteBD'),fromEmail:currentUser(),toName:toList.length===1?(this.contacts.find(c=>String(c.Email||c.email||'').toLowerCase()===toList[0])?.Nombre||toList[0]):`${toList.length} destinatarios`,toEmail:toList.join(', '),cc:allCc,bcc:allBcc,toList,recipientType:'Enviado',orderId:'',attachments,sent:true});
-            notificationsSave(list);this.clearDraft();this.closeCompose();this.filter='sent';this.render();updateNotificationBadges();toast(`Mensaje enviado a ${allRecipients.length} destinatario${allRecipients.length===1?'':'s'}`);setTimeout(()=>this.setFilter('all'),900);
+            if(cc.some(x=>!this.isValidEmail(x))||bcc.some(x=>!this.isValidEmail(x))){toast('Hay un correo inválido en Cc o Cco','error');return;}
+
+            const token=document.querySelector('meta[name="request-verification-token"]')?.content||'';
+            const button=document.querySelector('#composeMailModal .gmail-compose-footer .primary-btn');
+            if(button){button.disabled=true;button.dataset.oldText=button.textContent;button.textContent='Enviando...';}
+
+            try{
+                const response=await fetch('/api/mail/send',{
+                    method:'POST',
+                    credentials:'same-origin',
+                    headers:{'Content-Type':'application/json',...(token?{'RequestVerificationToken':token}:{})},
+                    body:JSON.stringify({to:toList,cc,bcc,subject:title,body,attachments:this.attachments.map(a=>({name:a.name,contentType:a.type||'application/octet-stream',data:a.data}))})
+                });
+                const data=await response.json().catch(()=>({}));
+                if(!response.ok||!data.ok)throw new Error(data.error||'No se pudo enviar el correo.');
+
+                this.clearDraft();this.closeCompose();this.filter='sent';
+                await this.refreshServerMessages();
+                this.render();updateNotificationBadges();
+                toast(`Mensaje enviado a ${toList.length} destinatario${toList.length===1?'':'s'}`);
+            }catch(error){
+                toast(error?.message||'No se pudo enviar el correo.','error');
+            }finally{
+                if(button){button.disabled=false;button.textContent=button.dataset.oldText||'Enviar';}
+            }
+        },
+        async refreshServerMessages(){
+            try{
+                const response=await fetch('/api/mail/inbox',{credentials:'same-origin',cache:'no-store'});
+                if(response.ok)window.__esfeMailMessages=await response.json();
+            }catch{}
         },
         scheduleDraft(){clearTimeout(this.draftSaveTimer);this.draftSaveTimer=setTimeout(()=>this.saveDraft(),350);},
         saveDraft(){const draft={to:document.getElementById('composeRecipient')?.value||'',cc:document.getElementById('composeCc')?.value||'',bcc:document.getElementById('composeBcc')?.value||'',subject:document.getElementById('composeSubject')?.value||'',body:document.getElementById('composeMessage')?.value||'',attachments:this.attachments,savedAt:new Date().toISOString()};localStorage.setItem('restaurantebd_mail_draft',JSON.stringify(draft));document.getElementById('composeDraftStatus')?.replaceChildren(document.createTextNode('Borrador guardado automáticamente'));},
         restoreDraft(){try{const d=JSON.parse(localStorage.getItem('restaurantebd_mail_draft')||'null');if(d?.subject||d?.body||d?.to){const recipient=document.getElementById('composeRecipient');const cc=document.getElementById('composeCc');const bcc=document.getElementById('composeBcc');const subject=document.getElementById('composeSubject');const message=document.getElementById('composeMessage');if(recipient)recipient.value=d.to||'';if(cc)cc.value=d.cc||'';if(bcc)bcc.value=d.bcc||'';if(subject)subject.value=d.subject||'';if(message)message.value=d.body||'';this.attachments=Array.isArray(d.attachments)?d.attachments.slice(0,5):[];this.renderAttachments();this.updateComposeState();document.getElementById('composeDraftStatus')?.replaceChildren(document.createTextNode('Borrador recuperado'));}}catch{}},
         clearDraft(){localStorage.removeItem('restaurantebd_mail_draft');document.getElementById('composeDraftStatus')?.replaceChildren(document.createTextNode(''));},
     };
-    setInterval(()=>{updateNotificationBadges();reports.ensureWeeklyCutoff();const box=document.getElementById('notificationList');if(box)notifications.render();},3000);
+    setInterval(()=>{ if (document.hidden) return; updateNotificationBadges(); reports.ensureWeeklyCutoff(); const box=document.getElementById('notificationList'); if(box) notifications.render(); },10000);
     // Configura las reglas de validación de los campos.
     function setupInputRules(scope=document){
         const root=scope||document;
@@ -859,23 +1085,33 @@ const ESFERestaurante = (() => {
     }
     // Evento que conecta una acción del usuario con la lógica del módulo.
     document.addEventListener('DOMContentLoaded',()=>{
+        applyLocalPreferences();
         setupInputRules();
         updateNotificationBadges();
         const box=document.getElementById('notificationList');
         if(box && window.ESFERestaurante?.notifications) window.ESFERestaurante.notifications.render();
     });
     // Evento que conecta una acción del usuario con la lógica del módulo.
+    document.addEventListener('esfe:mail-ready',()=>{
+        const box=document.getElementById('notificationList');
+        if(box && window.ESFERestaurante?.notifications) window.ESFERestaurante.notifications.render();
+        updateNotificationBadges();
+    });
+
     document.addEventListener('esfe:database-ready',()=>{
         updateNotificationBadges();
         const box=document.getElementById('notificationList');
         if(box && window.ESFERestaurante?.notifications) window.ESFERestaurante.notifications.render();
     });
 
-    return {products,catalogProducts,categories,allCategories,tables,money,KEY,localDate,formatDateTime,layout,welcome,chat,menu,cart,reservas,payment,orders,kitchen,ready,reports,dashboard,adminProducts,notifications,addNotification,ui:{mostrarToast:toast},invoices:{show:showInvoice,get:getInvoice,create:createInvoice}};
+    function refreshCurrency(){ try{ menu?.render?.(); cart?.render?.(); reservas?.render?.(); orders?.render?.(); dashboard?.render?.(); reports?.render?.(); adminProducts?.render?.(); payment?.render?.(); }catch{} }
+    return {products,catalogProducts,categories,allCategories,tables,money,KEY,localDate,formatDateTime,layout,welcome,chat,menu,cart,reservas,payment,orders,kitchen,ready,reports,dashboard,adminProducts,notifications,addNotification,refreshCurrency,ui:{mostrarToast:toast},invoices:{show:showInvoice,get:getInvoice,create:createInvoice}};
 
 })();
 // Exponer el centro de la aplicación al ámbito global para que los módulos cargados después
 // (pedidos locales, pagos, carrito, chatbot, etc.) puedan integrarse correctamente.
+document.addEventListener('restaurantebd:currency-changed', () => { window.ESFERestaurante?.refreshCurrency?.(); });
+document.addEventListener('restaurantebd:language-changed', () => { window.ESFERestaurante?.refreshCurrency?.(); });
 window.ESFERestaurante = ESFERestaurante;
 // Evento que conecta una acción del usuario con la lógica del módulo.
 document.addEventListener('DOMContentLoaded', () => { ESFERestaurante.layout.init(); ESFERestaurante.welcome.init(); });

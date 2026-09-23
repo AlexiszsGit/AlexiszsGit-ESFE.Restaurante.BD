@@ -804,3 +804,327 @@ body.welcome-active #loginWelcomeHero { visibility:visible !important; }
         flex-wrap: wrap;
     }
 }
+
+
+/* Menú lateral normal en computadora y menú desplegable en pantallas pequeñas. */
+@media (min-width: 1024px) {
+    .app-sidebar {
+        transform: translateX(0) !important;
+        width: 270px !important;
+        position: fixed !important;
+    }
+
+    .app-shell {
+        margin-left: 270px !important;
+    }
+
+    .mobile-menu {
+        display: none !important;
+    }
+
+    .mobile-overlay {
+        display: none !important;
+    }
+}
+
+@media (min-width: 1181px) {
+    .app-sidebar {
+        width: 270px !important;
+    }
+
+    .app-shell {
+        margin-left: 270px !important;
+    }
+}
+
+/* En tablet y teléfono el menú se abre desde las tres rayitas. */
+@media (max-width: 1023px) {
+    .app-sidebar {
+        transform: translateX(-105%) !important;
+        width: min(88vw, 310px) !important;
+        transition: transform .25s ease !important;
+        box-shadow: 24px 0 60px rgba(15, 23, 42, .16);
+    }
+
+    .app-sidebar.open {
+        transform: translateX(0) !important;
+    }
+
+    .app-shell {
+        margin-left: 0 !important;
+    }
+
+    .mobile-menu {
+        display: grid !important;
+        place-items: center;
+        width: 40px;
+        height: 40px;
+        flex: 0 0 40px;
+    }
+
+    .mobile-overlay {
+        display: none;
+    }
+
+    body.sidebar-open .mobile-overlay,
+    .mobile-overlay.show {
+        display: block !important;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, .34);
+        z-index: 60;
+    }
+
+    .page-content {
+        padding: 20px 18px 32px !important;
+    }
+}
+
+/* Ajustes del centro de correo para que siempre se pueda usar en teléfono. */
+@media (max-width: 720px) {
+    .mail-app-header {
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+
+    .mail-brand-block {
+        align-items: flex-start;
+    }
+
+    .mail-brand-block h2 {
+        font-size: 19px;
+    }
+
+    .mail-header-stats {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+    }
+
+    .mail-header-stats > div {
+        min-width: 0;
+    }
+
+    .mail-header-stats .secondary-btn {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+
+    .mail-app-shell {
+        grid-template-columns: 1fr !important;
+        min-height: calc(100vh - 180px);
+        border-radius: 15px;
+    }
+
+    .mail-sidebar {
+        border-right: 0 !important;
+        border-bottom: 1px solid #e8edf3;
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .compose-btn {
+        min-height: 44px;
+        font-size: 13px;
+    }
+
+    .mail-nav {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 0;
+    }
+
+    .mail-nav-item {
+        min-width: 0;
+        min-height: 40px;
+    }
+
+    .mail-sidebar-foot {
+        display: none;
+    }
+
+    .mail-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .mail-toolbar-tabs {
+        overflow-x: auto;
+        padding-bottom: 2px;
+    }
+
+    .mail-search {
+        max-width: none;
+        margin-left: 0;
+        min-height: 42px;
+    }
+
+    .mail-list-head {
+        padding: 12px;
+    }
+
+    .mail-row {
+        grid-template-columns: 28px 34px minmax(0, 1fr) 30px;
+        gap: 6px;
+        padding: 10px 8px;
+    }
+
+    .mail-main-top {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 4px;
+    }
+
+    .mail-main-top span {
+        display: none;
+    }
+
+    .mail-main-top time {
+        font-size: 8px;
+    }
+
+    .compose-dialog {
+        width: calc(100vw - 18px) !important;
+        max-height: calc(100vh - 18px);
+        border-radius: 14px !important;
+    }
+
+    .compose-head,
+    .compose-footer {
+        padding: 12px !important;
+    }
+
+    .compose-body {
+        overflow-y: auto;
+    }
+
+    .compose-tools span {
+        display: none;
+    }
+
+    .compose-footer {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 8px;
+    }
+
+    .compose-footer > div {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+}
+
+/* Evita que botones, iconos y campos se deformen en pantallas pequeñas. */
+@media (max-width: 650px) {
+    .topbar {
+        padding: 0 12px !important;
+        gap: 8px;
+    }
+
+    .topbar-left {
+        min-width: 0;
+        gap: 8px;
+    }
+
+    .topbar-left > div {
+        min-width: 0;
+    }
+
+    .topbar h1 {
+        max-width: 48vw;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .topbar-actions {
+        gap: 5px;
+        flex: 0 0 auto;
+    }
+
+    .topbar-actions .top-user-copy,
+    .topbar-actions .cart-pill span:not(.ui-icon) {
+        display: none;
+    }
+
+    .primary-btn,
+    .secondary-btn,
+    .danger-btn,
+    .icon-btn {
+        min-height: 40px;
+    }
+
+    .ui-icon,
+    .ui-icon svg {
+        flex: 0 0 auto;
+    }
+
+    .page-head,
+    .panel-head,
+    .toolbar-row {
+        gap: 10px;
+    }
+
+    .chatbot {
+        width: calc(100vw - 16px) !important;
+        right: 8px !important;
+        bottom: 8px !important;
+        max-height: calc(100vh - 90px);
+    }
+
+    .chat-header-actions {
+        gap: 4px;
+    }
+
+    .chat-voice-mode-label {
+        display: none;
+    }
+}
+
+/* Mantiene cómodos los formularios de acceso en teléfono y tablet. */
+@media (max-width: 760px) {
+    .login-page-shell {
+        width: min(94vw, 520px);
+        grid-template-columns: 1fr !important;
+        padding: 18px 0 20px;
+    }
+
+    .login-welcome {
+        padding: 0 6px;
+        text-align: center;
+    }
+
+    .login-welcome-copy {
+        max-width: 520px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .login-card {
+        width: 100%;
+        padding: 18px;
+        border-radius: 18px;
+    }
+
+    .login-tabs {
+        width: 100%;
+    }
+
+    .login-tab {
+        min-height: 44px;
+    }
+
+    .login-form label,
+    .phone-country-field {
+        min-width: 0;
+    }
+
+    .phone-country-field {
+        grid-template-columns: 1fr !important;
+    }
+
+    .verification-code-input {
+        text-align: center;
+        letter-spacing: .35em;
+        font-size: 22px !important;
+    }
+}

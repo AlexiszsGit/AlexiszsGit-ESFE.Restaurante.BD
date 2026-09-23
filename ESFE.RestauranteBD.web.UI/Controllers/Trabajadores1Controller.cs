@@ -62,7 +62,7 @@ public class Trabajadores1Controller : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    // Procesa la información de eliminar rol.
+    // Elimina el rol seleccionado.
     public IActionResult EliminarRol(string rol)
     {
         if (!IsOwner()) return Forbid();
@@ -114,7 +114,7 @@ public class Trabajadores1Controller : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    // Procesa la información de cambiar acliente.
+    // Cambia el usuario seleccionado al rol Cliente.
     public IActionResult CambiarACliente(string email)
     {
         if (!IsOwner()) return Forbid();

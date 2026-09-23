@@ -1,0 +1,110 @@
+/* Ajustes finales para que toda la aplicación mantenga el mismo acabado. */
+:root{
+    --ui-radius:16px;
+    --ui-shadow:0 16px 42px rgba(24,25,27,.08);
+    --ui-shadow-soft:0 8px 24px rgba(24,25,27,.06);
+}
+html{scroll-behavior:smooth;}
+body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+
+/* Barra lateral y contenido principal. */
+.app-sidebar{z-index:100!important;}
+.app-shell{min-width:0!important;}
+.topbar{z-index:90!important;backdrop-filter:blur(14px)!important;}
+.topbar-context{display:flex!important;align-items:center!important;gap:9px!important;flex-wrap:wrap!important;}
+.db-status-pill{display:inline-flex!important;align-items:center!important;gap:6px!important;border:1px solid #dedbd5!important;background:#faf9f6!important;border-radius:999px!important;padding:6px 9px!important;font-size:9px!important;font-weight:800!important;color:#697078!important;line-height:1!important;}
+.db-status-dot{width:7px!important;height:7px!important;border-radius:50%!important;background:#c4c7ca!important;box-shadow:0 0 0 3px rgba(196,199,202,.18)!important;}
+.db-status-pill[data-state="connected"]{border-color:#cfe4d7!important;background:#f3faf5!important;color:#356747!important;}
+.db-status-pill[data-state="connected"] .db-status-dot{background:#41935f!important;box-shadow:0 0 0 3px rgba(65,147,95,.14)!important;}
+.db-status-pill[data-state="offline"]{border-color:#ead0ce!important;background:#fff7f6!important;color:#8b4d49!important;}
+.db-status-pill[data-state="offline"] .db-status-dot{background:#bd5c52!important;box-shadow:0 0 0 3px rgba(189,92,82,.13)!important;}
+
+/* Botones e iconos. */
+.primary-btn,.secondary-btn,.danger-btn,.cart-head-link,.icon-btn{transition:transform .16s ease,box-shadow .16s ease,background .16s ease,border-color .16s ease;}
+.primary-btn:hover,.secondary-btn:hover,.danger-btn:hover,.cart-head-link:hover{transform:translateY(-1px);}
+.primary-btn:active,.secondary-btn:active,.danger-btn:active,.cart-head-link:active{transform:translateY(0);}
+.ui-icon svg,.action-icon svg,.nav-icon svg{display:block!important;width:18px!important;height:18px!important;}
+
+/* Paneles, tarjetas y formularios. */
+.panel,.hero-panel,.menu-search-panel,.catalog-command-center,.stat-card,.login-card-professional{box-shadow:var(--ui-shadow-soft)!important;}
+.panel,.menu-search-panel,.catalog-command-center{border-radius:var(--ui-radius)!important;}
+.field-label input,.field-label select,.field-label textarea,.filter-field input,.filter-field select,.login-form input,.login-form select,.login-form textarea{border:1px solid #d9d6d0!important;background:#fff!important;color:#26292d!important;border-radius:12px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.9)!important;transition:border-color .16s ease,box-shadow .16s ease,background .16s ease!important;}
+.field-label input:focus,.field-label select:focus,.field-label textarea:focus,.filter-field input:focus,.filter-field select:focus,.login-form input:focus,.login-form select:focus,.login-form textarea:focus{outline:none!important;border-color:#b89452!important;box-shadow:0 0 0 4px rgba(184,148,82,.12)!important;}
+
+/* Menú: tarjetas más limpias y visuales. */
+.category-grid{gap:16px!important;}
+.category-card,.product-card,.admin-product-row{border:1px solid #e5e1da!important;background:rgba(255,255,255,.97)!important;box-shadow:0 10px 26px rgba(24,25,27,.045)!important;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease!important;}
+.category-card:hover,.product-card:hover,.admin-product-row:hover{transform:translateY(-3px);border-color:#d2c2a3!important;box-shadow:0 16px 34px rgba(24,25,27,.09)!important;}
+.category-card .category-image,.product-card .product-image,.admin-product-row>img{background:#f1ede6!important;}
+.product-card h4,.admin-product-row strong{color:#22262a!important;}
+.product-category,.category-count{color:#8c713e!important;}
+
+/* Ventanas y formularios largos. */
+.modal-backdrop{backdrop-filter:blur(7px)!important;background:rgba(19,20,22,.42)!important;}
+.category-modal,.product-modal,.admin-modal,.compose-dialog{border:1px solid #dfd9cf!important;box-shadow:0 30px 90px rgba(10,10,11,.20)!important;}
+.modal-close{transition:background .15s ease,color .15s ease,transform .15s ease!important;}
+.modal-close:hover{transform:rotate(2deg) scale(1.03);}
+
+/* Acceso, recuperación y verificación. */
+.login-body{background:radial-gradient(circle at 10% 12%,rgba(199,163,96,.13),transparent 25rem),radial-gradient(circle at 92% 84%,rgba(31,34,37,.055),transparent 24rem),linear-gradient(145deg,#fcfbf8 0%,#f5f2ec 55%,#eeeae2 100%)!important;}
+.login-card-professional{position:relative!important;}
+.login-heading h2{font-size:clamp(28px,3vw,36px)!important;letter-spacing:-.045em!important;}
+.login-heading p{color:#737a81!important;line-height:1.65!important;}
+.login-form label{font-size:12px!important;}
+.login-form input,.login-form select,.login-form textarea{font-size:14px!important;}
+.verification-code-input{text-align:center!important;letter-spacing:.34em!important;font-weight:850!important;font-size:22px!important;padding-left:calc(.34em + 8px)!important;background:linear-gradient(180deg,#fff,#fbfaf7)!important;}
+.password-policy{border:1px solid #ebe4d8!important;border-radius:14px!important;background:#faf8f4!important;padding:13px 15px!important;}
+.password-policy>span{color:#6e747b!important;display:block!important;margin-bottom:8px!important;}
+.login-switch-note button{color:#8f713c!important;font-weight:800!important;}
+.alert-error,.alert-success{border-radius:12px!important;padding:11px 13px!important;line-height:1.45!important;}
+
+/* Correo y redacción. */
+.mail-app-shell{box-shadow:var(--ui-shadow)!important;border:1px solid #e5e1db!important;}
+.mail-sidebar,.mail-list,.mail-detail{background:#fff!important;}
+.compose-dialog{max-width:760px!important;border-radius:18px!important;}
+.compose-body input,.compose-body textarea{border:0!important;box-shadow:none!important;outline:none!important;}
+.compose-body textarea{min-height:260px!important;line-height:1.65!important;}
+
+/* Tablet y teléfono. */
+@media (max-width:1023px){
+    .topbar-context{display:none!important;}
+    .page-content{padding:22px 16px 34px!important;}
+    .page-head{align-items:flex-start!important;flex-direction:column!important;}
+    .page-head-actions,.catalog-command-actions{width:100%!important;}
+    .page-head-actions>* ,.catalog-command-actions>*{flex:1 1 180px!important;}
+}
+
+@media (max-width:760px){
+    .topbar{height:72px!important;min-height:72px!important;padding:0 12px!important;}
+    .topbar h1{font-size:20px!important;}
+    .topbar-actions{gap:5px!important;}
+    .page-content{padding:18px 12px 28px!important;}
+    .page-head h2{font-size:30px!important;}
+    .panel,.menu-search-panel,.catalog-command-center{padding:16px!important;}
+    .menu-filter-grid,.admin-form-grid{grid-template-columns:1fr!important;}
+    .category-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;}
+    .product-detail{grid-template-columns:1fr!important;}
+    .detail-image{min-height:220px!important;}
+    .login-page-shell{width:min(94vw,520px)!important;grid-template-columns:1fr!important;gap:16px!important;min-height:auto!important;padding:22px 0 30px!important;}
+    .login-welcome{padding:8px 6px 0!important;}
+    .login-welcome h1{font-size:39px!important;}
+    .login-card-professional{border-radius:20px!important;padding:15px!important;}
+    .login-tabs-professional{margin-bottom:12px!important;}
+    .login-options{align-items:flex-start!important;flex-direction:column!important;}
+    .login-form-centered{width:100%!important;}
+    .verification-code-input{font-size:19px!important;letter-spacing:.26em!important;}
+    .login-phone-country{grid-template-columns:1fr!important;gap:12px!important;}
+}
+
+@media (max-width:520px){
+    .category-grid{grid-template-columns:1fr!important;}
+    .category-card{display:grid!important;grid-template-columns:88px minmax(0,1fr)!important;grid-template-rows:auto auto auto!important;column-gap:12px!important;text-align:left!important;align-items:center!important;}
+    .category-card .category-image{grid-row:1/4!important;width:88px!important;height:88px!important;}
+    .category-card strong,.category-card small,.category-card .category-count{grid-column:2!important;}
+    .compose-dialog{width:calc(100vw - 12px)!important;}
+    .compose-body textarea{min-height:210px!important;}
+}
+
+@media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important;}
+}

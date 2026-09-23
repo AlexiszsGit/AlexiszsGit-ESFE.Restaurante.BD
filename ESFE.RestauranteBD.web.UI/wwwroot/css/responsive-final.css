@@ -1,0 +1,620 @@
+/* Ajustes finales para que el sistema mantenga el mismo orden en cualquier pantalla. */
+
+:root {
+    --final-radius: 16px;
+    --final-shadow: 0 18px 48px rgba(15, 23, 42, .10);
+    --final-gold: #b9904b;
+    --final-gold-dark: #8e6a2f;
+    --final-ink: #172033;
+    --final-muted: #6d7788;
+    --final-line: #e6e1d8;
+}
+
+/* Los iconos siempre quedan centrados dentro de su espacio. */
+.ui-icon,
+.action-icon,
+.btn-icon,
+.password-toggle,
+.auth-security-head-icon,
+.login-info-icon,
+.compose-row-icon,
+.payment-tab-icon,
+.mail-brand-icon,
+.notification-detail-icon,
+.icon-btn,
+.chat-header-actions > button,
+.chat-input > button {
+    display: inline-grid !important;
+    place-items: center !important;
+    flex: 0 0 auto;
+}
+
+.ui-icon svg,
+.action-icon svg,
+.btn-icon svg,
+.password-toggle svg,
+.auth-security-head-icon svg,
+.login-info-icon svg,
+.compose-row-icon svg,
+.payment-tab-icon svg,
+.mail-brand-icon svg,
+.notification-detail-icon svg,
+.icon-btn svg,
+.chat-header-actions svg,
+.chat-input svg {
+    display: block !important;
+    width: 1.15em !important;
+    height: 1.15em !important;
+}
+
+/* En escritorio el menú lateral permanece visible. */
+@media (min-width: 901px) {
+    body.app-body .app-sidebar {
+        transform: translateX(0) !important;
+    }
+
+    body.app-body .app-shell {
+        margin-left: 250px !important;
+    }
+
+    body.app-body .mobile-menu-toggle,
+    body.app-body .sidebar-close {
+        display: none !important;
+    }
+}
+
+/* Voz del chatbot: el icono utiliza el color del botón y nunca vuelve a quedar blanco sobre blanco. */
+.chat-voice-mode-btn {
+    min-width: 48px !important;
+    width: 48px !important;
+    height: 48px !important;
+    padding: 0 !important;
+    border: 1px solid rgba(148, 163, 184, .35) !important;
+    background: #fff !important;
+    color: #172033 !important;
+    border-radius: 14px !important;
+}
+
+.chat-voice-mode-btn .ui-icon {
+    color: currentColor !important;
+}
+
+.chat-voice-mode-btn .chat-voice-mode-label {
+    display: none !important;
+}
+
+.chat-voice-mode-btn:hover {
+    color: #8e6a2f !important;
+    border-color: #cdb57e !important;
+    background: #fffdf8 !important;
+}
+
+.chat-header-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+}
+
+.chat-header-actions > button {
+    margin: 0 !important;
+}
+
+/* Formularios de acceso: siempre centrados y con jerarquía clara. */
+.auth-page .login-card-professional {
+    width: min(520px, 100%);
+    margin-inline: auto;
+}
+
+.auth-page .login-tabs-professional {
+    width: 100%;
+    margin: 0 0 22px;
+}
+
+.auth-page .login-heading-centered,
+.auth-page .login-switch-note,
+.auth-page .auth-step-actions,
+.auth-page .code-entry,
+.auth-page .auth-security-head {
+    text-align: center;
+}
+
+.auth-page .login-heading-centered {
+    display: grid !important;
+    justify-items: center !important;
+    align-items: center !important;
+}
+
+.auth-page .login-heading-centered p {
+    max-width: 410px;
+}
+
+.auth-page .auth-security-head {
+    justify-content: center !important;
+}
+
+.auth-page .auth-security-head > div {
+    text-align: left;
+}
+
+.auth-page .auth-step-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    flex-wrap: wrap !important;
+}
+
+.auth-page .text-action {
+    min-height: 42px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.auth-page .alert-error,
+.auth-page .alert-success {
+    transition: opacity .25s ease, transform .25s ease;
+}
+
+.auth-page [hidden] {
+    display: none !important;
+}
+
+/* Código de seguridad: seis casillas uniformes, centradas y fáciles de tocar. */
+.auth-page .code-boxes {
+    width: min(390px, 100%);
+    margin-inline: auto !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+}
+
+.auth-page .code-boxes input {
+    aspect-ratio: 1 / 1;
+    height: auto !important;
+    min-height: 62px !important;
+    padding: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+    text-align: center !important;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Correo en móvil: las acciones principales siguen visibles sin abrir el menú lateral. */
+.mail-mobile-actions {
+    display: none;
+}
+
+.mail-mobile-actions .mail-mobile-compose,
+.mail-mobile-actions .mail-mobile-link {
+    min-height: 52px;
+    border-radius: 14px;
+    border: 1px solid #e6e1d8;
+    background: #fff;
+    color: #273142;
+    font-size: 10px;
+    font-weight: 900;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 13px;
+    cursor: pointer;
+}
+
+.mail-mobile-actions .mail-mobile-compose {
+    background: #172033;
+    color: #fff;
+    border-color: #172033;
+    box-shadow: 0 10px 24px rgba(23, 32, 51, .16);
+}
+
+.mail-mobile-actions .mail-mobile-link.active {
+    background: #fff8ea;
+    color: #8e6a2f;
+    border-color: #d8bd84;
+}
+
+.mail-mobile-actions .ui-icon {
+    width: 18px;
+    height: 18px;
+}
+
+/* Centro de correo: botones y filas legibles en teléfonos pequeños. */
+.mail-row,
+.mail-nav-item,
+.compose-btn,
+.filter-chip {
+    min-height: 44px !important;
+}
+
+.mail-list-tools {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+}
+
+.compose-dialog,
+.notification-detail-dialog {
+    overflow: hidden !important;
+}
+
+.compose-body {
+    min-height: 0;
+}
+
+/* Pedido presencial: el resumen y el cobro siguen la misma jerarquía visual. */
+.local-order-modal-pro {
+    width: min(1180px, 96vw) !important;
+    max-height: 92dvh !important;
+    border-radius: 24px !important;
+    overflow: hidden !important;
+}
+
+.local-order-modal-pro .panel-head {
+    padding: 22px 24px 18px;
+    border-bottom: 1px solid #eee9e1;
+}
+
+.local-order-grid-pro {
+    padding: 20px 24px 24px !important;
+    max-height: calc(92dvh - 98px);
+    overflow: auto;
+}
+
+.local-order-summary-pro {
+    border: 1px solid #e4ded4 !important;
+    background: linear-gradient(180deg, #fffdf9, #faf7f1) !important;
+    box-shadow: 0 16px 38px rgba(44, 36, 24, .08) !important;
+}
+
+.local-order-summary-pro .field-label {
+    margin-top: 10px;
+}
+
+.local-order-summary-pro select {
+    min-height: 48px !important;
+}
+
+.local-immediate-payment {
+    margin: 14px 0 15px;
+    padding: 14px;
+    border: 1px solid #dfd5c3;
+    border-radius: 16px;
+    background: rgba(255, 251, 242, .9);
+}
+
+.local-immediate-payment.hidden {
+    display: none !important;
+}
+
+.local-immediate-payment-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 13px;
+}
+
+.local-immediate-payment-head strong,
+.local-immediate-payment-head small {
+    display: block;
+}
+
+.local-immediate-payment-head strong {
+    margin-top: 3px;
+    color: #20242b;
+    font-size: 12px;
+}
+
+.local-immediate-payment-head small {
+    margin-top: 4px;
+    color: #7a7f86;
+    font-size: 9px;
+    line-height: 1.5;
+}
+
+.local-payment-status-badge {
+    flex: 0 0 auto;
+    padding: 7px 9px;
+    border: 1px solid #ead9ae;
+    border-radius: 999px;
+    background: #fff7e7;
+    color: #8e6a2f;
+    font-size: 8px;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.local-payment-method-card.compact {
+    padding: 14px !important;
+    border-radius: 14px !important;
+}
+
+.money-input {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    align-items: center;
+    margin-top: 6px;
+    overflow: hidden;
+    border: 1px solid #ddd6ca;
+    border-radius: 13px;
+    background: #fff;
+}
+
+.money-input > span {
+    display: grid;
+    place-items: center;
+    min-height: 48px;
+    border-right: 1px solid #eee8df;
+    color: #8e6a2f;
+    font-weight: 900;
+}
+
+.money-input input {
+    min-height: 48px;
+    padding: 0 12px;
+    border: 0 !important;
+    margin: 0 !important;
+}
+
+.local-payment-change {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 9px;
+    padding: 10px 11px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid #e7dfd2;
+}
+
+.local-payment-change span {
+    color: #77808b;
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.local-payment-change strong {
+    color: #1e293b;
+    font-size: 15px;
+}
+
+.local-card-security-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 11px;
+    padding: 9px 10px;
+    border-radius: 11px;
+    background: #f6f8fb;
+    color: #667085;
+    font-size: 8px;
+    line-height: 1.5;
+}
+
+.local-card-security-note .ui-icon {
+    color: #8e6a2f;
+}
+
+.local-payment-field-grid.transfer-fields {
+    grid-template-columns: 1fr !important;
+}
+
+.local-payment-method-card .field-label input,
+.local-payment-method-card .field-label select {
+    min-height: 46px;
+}
+
+.local-menu-item {
+    min-width: 0;
+}
+
+.local-menu-item-bottom button {
+    min-height: 38px !important;
+}
+
+/* Formularios generales: cada campo respira y los iconos no quedan pegados arriba. */
+.field-label,
+.login-form > label,
+.compose-field {
+    position: relative;
+}
+
+.field-label > input,
+.field-label > select,
+.field-label > textarea,
+.login-form > label > input,
+.password-field {
+    min-height: 48px;
+}
+
+.password-toggle {
+    min-width: 42px !important;
+    min-height: 42px !important;
+    padding: 0 !important;
+    align-self: center !important;
+}
+
+/* Móvil: se simplifica la distribución, no la función. */
+@media (max-width: 900px) {
+    body.app-body .app-sidebar {
+        transform: translateX(-105%) !important;
+    }
+
+    body.app-body .app-sidebar.open {
+        transform: translateX(0) !important;
+    }
+
+    body.app-body .app-shell {
+        margin-left: 0 !important;
+    }
+
+    .mail-mobile-actions {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 0 2px 10px;
+        scrollbar-width: none;
+    }
+
+    .mail-mobile-actions::-webkit-scrollbar {
+        display: none;
+    }
+
+    .mail-mobile-actions > * {
+        flex: 0 0 auto;
+    }
+
+    .mail-app-shell {
+        min-width: 0 !important;
+    }
+
+    .mail-list-head {
+        align-items: flex-start !important;
+        gap: 10px !important;
+        flex-wrap: wrap;
+    }
+
+    .mail-list-tools {
+        width: 100%;
+        justify-content: space-between !important;
+    }
+
+    .mail-row {
+        grid-template-columns: 28px minmax(0,1fr) 36px !important;
+        gap: 8px !important;
+        padding: 10px !important;
+    }
+
+    .mail-row .mail-avatar {
+        display: none !important;
+    }
+
+    .mail-row-actions {
+        justify-content: flex-end;
+    }
+
+    .compose-dialog,
+    .notification-detail-dialog {
+        width: calc(100vw - 18px) !important;
+        max-width: none !important;
+        max-height: calc(100dvh - 18px) !important;
+        border-radius: 20px !important;
+    }
+
+    .compose-footer,
+    .gmail-reader-footer {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+    }
+
+    .compose-footer > div,
+    .gmail-reader-footer > * {
+        min-width: 0 !important;
+    }
+
+    .compose-footer > div {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+        grid-column: 1 / -1;
+    }
+
+    .compose-footer .secondary-btn,
+    .compose-footer .primary-btn,
+    .gmail-reader-footer > * {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .local-order-modal-pro {
+        width: calc(100vw - 14px) !important;
+        max-height: calc(100dvh - 14px) !important;
+        border-radius: 20px !important;
+    }
+
+    .local-order-modal-pro .panel-head {
+        padding: 18px 17px 15px;
+    }
+
+    .local-order-grid-pro {
+        padding: 16px 15px 22px !important;
+        max-height: calc(100dvh - 86px);
+    }
+
+    .local-order-grid-pro,
+    .local-payment-field-grid,
+    .form-grid-two {
+        grid-template-columns: 1fr !important;
+    }
+
+    .local-order-summary-pro {
+        margin-top: 3px;
+    }
+
+    .local-immediate-payment-head {
+        flex-direction: column;
+    }
+
+    .local-payment-status-badge {
+        align-self: flex-start;
+    }
+}
+
+@media (max-width: 560px) {
+    .auth-page .login-card-professional {
+        border-radius: 20px !important;
+    }
+
+    .auth-page .login-tabs-professional {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    .auth-page .code-boxes {
+        width: min(360px, 100%);
+        gap: 6px !important;
+    }
+
+    .auth-page .code-boxes input {
+        min-height: 54px !important;
+        border-radius: 13px !important;
+        font-size: 21px !important;
+    }
+
+    .mail-mobile-actions .mail-mobile-compose,
+    .mail-mobile-actions .mail-mobile-link {
+        min-height: 48px;
+        padding-inline: 11px;
+        font-size: 9px;
+    }
+
+    .local-order-modal-pro .panel-head p {
+        font-size: 9px !important;
+    }
+
+    .local-order-summary-pro {
+        padding: 14px !important;
+    }
+
+    .local-order-summary-pro .panel-head {
+        align-items: center !important;
+    }
+}
+
+@media (max-width: 380px) {
+    .auth-page .code-boxes {
+        gap: 5px !important;
+    }
+
+    .auth-page .code-boxes input {
+        min-height: 49px !important;
+        font-size: 18px !important;
+    }
+}

@@ -1,44 +1,94 @@
-
 (() => {
-    // Cambia la pestaña activa del formulario.
-    const setTab = (tab) => {
-        document.getElementById("loginPanel")?.classList.toggle("hidden", tab !== "login");
-        document.getElementById("registerPanel")?.classList.toggle("hidden", tab !== "register");
-        document.querySelectorAll("[data-login-tab]").forEach(button => {
-            button.classList.toggle("active", button.dataset.loginTab === tab);
+    // Cambia entre las pantallas de acceso, registro y recuperación.
+    const hideAuthMessages = () => {
+        document.querySelectorAll(".auth-page .alert-error, .auth-page .alert-success").forEach(message => {
+            message.hidden = true;
         });
     };
 
-    // Evento que conecta una acción del usuario con la lógica del módulo.
+    const setTab = (tab) => {
+        document.querySelectorAll("[data-auth-panel]").forEach(panel => {
+            panel.classList.toggle("hidden", panel.dataset.authPanel !== tab);
+        });
+
+        document.querySelectorAll("[data-login-tab]").forEach(button => {
+            button.classList.toggle("active", button.dataset.loginTab === tab);
+        });
+
+        // Al cambiar de pantalla se limpia cualquier aviso de la etapa anterior.
+        hideAuthMessages();
+
+        const isAccountPage = tab === "login" || tab === "register";
+        const securityChrome = document.querySelector("[data-auth-chrome]");
+        securityChrome?.classList.toggle("hidden", isAccountPage);
+
+        // Cambia también el diseño de la página según la etapa en la que esté el usuario.
+        if (document.body) {
+            document.body.dataset.authStep = tab;
+            document.body.classList.remove("auth-step-login", "auth-step-register", "auth-step-verify", "auth-step-forgot", "auth-step-resetCode", "auth-step-resetPassword");
+            document.body.classList.add(`auth-step-${tab}`);
+        }
+
+        // Cuando se vuelve al acceso, la dirección vuelve a la pantalla inicial.
+        if (tab === "login" && document.body?.dataset.loginUrl) {
+            window.history.replaceState({}, document.title, document.body.dataset.loginUrl);
+            window.scrollTo({ top: 0, behavior: "auto" });
+        }
+
+        document.querySelectorAll('.code-boxes').forEach(boxes => {
+            boxes.querySelectorAll('[data-code-box]').forEach(box => box.value = '');
+            const hidden = boxes.parentElement?.querySelector('.code-hidden-input');
+            if (hidden) hidden.value = '';
+        });
+    };
+
+    // Conecta los botones y valida los formularios de acceso.
     document.addEventListener("DOMContentLoaded", () => {
+        const initialMessages = document.querySelectorAll(".auth-page .alert-error, .auth-page .alert-success");
+        initialMessages.forEach(message => {
+            window.setTimeout(() => { message.hidden = true; }, 5500);
+        });
+
+        window.addEventListener("pageshow", event => {
+            const navigationType = performance.getEntriesByType("navigation")[0]?.type;
+            if (event.persisted || navigationType === "back_forward") {
+                hideAuthMessages();
+                setTab("login");
+            }
+        });
+
         document.querySelectorAll("[data-login-tab], [data-switch-tab]").forEach(button => {
-            // Evento que conecta una acción del usuario con la lógica del módulo.
-            button.addEventListener("click", () => setTab(button.dataset.loginTab || button.dataset.switchTab));
+            button.addEventListener("click", () => { hideAuthMessages(); setTab(button.dataset.loginTab || button.dataset.switchTab); });
         });
 
         document.querySelectorAll("[data-toggle-password]").forEach(button => {
-            // Evento que conecta una acción del usuario con la lógica del módulo.
             button.addEventListener("click", () => {
                 const input = document.getElementById(button.dataset.togglePassword);
                 if (!input) return;
+
                 const visible = input.type === "password";
                 input.type = visible ? "text" : "password";
+
                 const label = visible ? "Ocultar contraseña" : "Mostrar contraseña";
                 button.setAttribute("aria-label", label);
                 button.setAttribute("title", label);
                 button.innerHTML = visible
-                    ? '<span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M3 3l18 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M6.2 6.2C3.9 7.8 2.8 10.2 2.8 12c0 0 3.3 5.5 9.2 5.5 1.2 0 2.3-.2 3.2-.6M9.4 9.4a3.6 3.6 0 0 0 5.2 5.2M17.8 17.8c2.3-1.6 3.4-4 3.4-5.8 0 0-3.3-5.5-9.2-5.5-1.1 0-2.1.2-3 .5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'
-                    : '<span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M2.8 12s3.3-5.5 9.2-5.5 9.2 5.5 9.2 5.5-3.3 5.5-9.2 5.5S2.8 12 2.8 12Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.7"/></svg></span>';
+                    ? '<span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M3 3l18 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M10.6 6.2A10.7 10.7 0 0 1 12 6c6 0 9.3 6 9.3 6a15.4 15.4 0 0 1-2.3 3.1M6.2 6.9C3.6 8.7 2.7 12 2.7 12s3.2 6 9.3 6a9.8 9.8 0 0 0 2.8-.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>'
+                    : '<span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M2.7 12s3.2-6 9.3-6 9.3 6 9.3 6-3.2 6-9.3 6-9.3-6-9.3-6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.7"/></svg></span>';
             });
         });
 
         const registerForm = document.getElementById("registerForm");
         const password = document.getElementById("registerPassword");
         const confirmation = document.getElementById("confirmPassword");
+        const resetForm = document.querySelector('[data-auth-panel="resetPassword"] form');
+        const resetPassword = document.getElementById('resetPassword');
+        const resetConfirmation = document.getElementById('confirmResetPassword');
 
-        // Actualiza las reglas visibles para la contraseña.
+        // Muestra en pantalla qué reglas de contraseña ya se cumplen.
         const updatePasswordRules = () => {
             if (!password) return;
+
             const value = password.value;
             document.querySelector('[data-password-rule="length"]')?.classList.toggle("valid", value.length >= 8);
             document.querySelector('[data-password-rule="upper"]')?.classList.toggle("valid", /[A-ZÁÉÍÓÚÜÑ]/.test(value));
@@ -47,22 +97,18 @@
         };
 
         document.querySelectorAll("[data-international-phone]").forEach(phoneInput => {
-            // Evento que conecta una acción del usuario con la lógica del módulo.
             phoneInput.addEventListener("paste", () => setTimeout(() => phoneInput.dispatchEvent(new Event("input", { bubbles: true })), 0));
-            // Evento que conecta una acción del usuario con la lógica del módulo.
             phoneInput.addEventListener("blur", () => phoneInput.dispatchEvent(new Event("input", { bubbles: true })));
         });
 
-        // Evento que conecta una acción del usuario con la lógica del módulo.
         password?.addEventListener("input", updatePasswordRules);
-        // Evento que conecta una acción del usuario con la lógica del módulo.
         confirmation?.addEventListener("input", () => {
             confirmation.setCustomValidity(password?.value === confirmation.value ? "" : "Las contraseñas no coinciden.");
         });
 
-        // Evento que conecta una acción del usuario con la lógica del módulo.
         registerForm?.addEventListener("submit", event => {
-            confirmation?.setCustomValidity(password?.value === confirmation?.value ? "" : "Las contraseñas no coinciden.");
+            confirmation?.setCustomValidity(password?.value === confirmation?.value ? "" : "Las contraseñas no coinciden");
+
             if (!registerForm.checkValidity()) {
                 event.preventDefault();
                 registerForm.classList.add("was-validated");
@@ -70,6 +116,96 @@
             }
         });
 
+        resetConfirmation?.addEventListener('input', () => {
+            resetConfirmation.setCustomValidity(resetPassword?.value === resetConfirmation.value ? '' : 'Las contraseñas no coinciden.');
+        });
+
+        resetForm?.addEventListener('submit', event => {
+            resetConfirmation?.setCustomValidity(resetPassword?.value === resetConfirmation?.value ? '' : 'Las contraseñas no coinciden.');
+            if (!resetForm.checkValidity()) {
+                event.preventDefault();
+                resetForm.classList.add('was-validated');
+                resetForm.querySelector(':invalid')?.focus();
+            }
+        });
+
         updatePasswordRules();
+
+        // Da una respuesta visual clara cuando el servidor termina de revisar el código.
+        const resultOverlay = document.querySelector("[data-auth-result]");
+        const resultState = document.body?.dataset.codeResult;
+        if (resultOverlay && resultState) {
+            const title = resultOverlay.querySelector("[data-auth-result-title]");
+            const text = resultOverlay.querySelector("[data-auth-result-text]");
+            resultOverlay.hidden = false;
+            resultOverlay.dataset.state = "loading";
+            if (title) title.textContent = "Comprobando";
+            if (text) text.textContent = "Validando tu código de seguridad.";
+
+            window.setTimeout(() => {
+                resultOverlay.dataset.state = resultState === "success" ? "success" : "error";
+                if (title) title.textContent = resultState === "success" ? "Código correcto" : "Código no válido";
+                if (text) text.textContent = resultState === "success" ? "La verificación terminó correctamente." : "Revisa los seis dígitos e inténtalo nuevamente.";
+            }, 520);
+
+            window.setTimeout(() => {
+                resultOverlay.hidden = true;
+                resultOverlay.dataset.state = "";
+            }, 1450);
+        }
     });
+
+    // Maneja los códigos de seguridad como seis casillas sencillas.
+    document.querySelectorAll('[data-code-entry]').forEach(entry => {
+        const boxes = [...entry.querySelectorAll('[data-code-box]')];
+        const hidden = entry.querySelector('.code-hidden-input');
+        if (!boxes.length || !hidden) return;
+
+        const sync = () => {
+            hidden.value = boxes.map(box => box.value.replace(/\D/g, '').slice(0, 1)).join('');
+            hidden.setCustomValidity(hidden.value.length === 6 ? '' : 'Completa los 6 dígitos.');
+        };
+
+        boxes.forEach((box, index) => {
+            box.addEventListener('input', () => {
+                box.value = box.value.replace(/\D/g, '').slice(0, 1);
+                if (box.value && boxes[index + 1]) boxes[index + 1].focus();
+                sync();
+            });
+
+            box.addEventListener('keydown', event => {
+                if (event.key === 'Backspace' && !box.value && boxes[index - 1]) {
+                    boxes[index - 1].focus();
+                    boxes[index - 1].value = '';
+                    sync();
+                }
+                if (event.key === 'ArrowLeft' && boxes[index - 1]) boxes[index - 1].focus();
+                if (event.key === 'ArrowRight' && boxes[index + 1]) boxes[index + 1].focus();
+            });
+
+            box.addEventListener('paste', event => {
+                const pasted = (event.clipboardData?.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+                if (!pasted) return;
+                event.preventDefault();
+                pasted.split('').forEach((digit, i) => { if (boxes[i]) boxes[i].value = digit; });
+                const next = boxes[Math.min(pasted.length, boxes.length - 1)];
+                next?.focus();
+                sync();
+            });
+        });
+
+        entry.closest('form')?.addEventListener('submit', event => {
+            sync();
+            if (hidden.value.length !== 6) {
+                event.preventDefault();
+                boxes.find(box => !box.value)?.focus();
+                return;
+            }
+            entry.classList.add("is-checking");
+        });
+
+        boxes[0].focus();
+        sync();
+    });
+
 })();

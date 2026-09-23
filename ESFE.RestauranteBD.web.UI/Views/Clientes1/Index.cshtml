@@ -9,7 +9,6 @@
     var esAdmin = RoleStore.IsAdministrator(rol);
 }
 
-@* Contenido principal de la página. *@
 <section class="page-shell">
     <div class="page-head">
         <div>
@@ -20,8 +19,7 @@
         <span class="result-count">@Model.Count clientes</span>
     </div>
 
-    @* Contenido principal de la página. *@
-    <section class="panel customer-search-panel">
+        <section class="panel customer-search-panel">
         <div class="panel-head">
             <div>
                 <span class="eyebrow">Búsqueda</span>
@@ -40,8 +38,7 @@
         </form>
     </section>
 
-    @* Contenido principal de la página. *@
-    <section class="customer-grid">
+        <section class="customer-grid">
         @foreach (var customer in Model)
         {
             <article class="customer-card">

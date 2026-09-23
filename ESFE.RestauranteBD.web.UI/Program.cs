@@ -3,12 +3,37 @@ using ESFE.RestauranteBD.web.UI.Data;
 using ESFE.RestauranteBD.web.UI.Models;
 using ESFE.RestauranteBD.web.UI.Services;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 // Configuración de servicios.
 var builder = WebApplication.CreateBuilder(args);
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddUserSecrets<Program>(optional: true);
+}
 builder.Services.AddControllersWithViews();
-builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("AI", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(12);
+    client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json");
+});
 builder.Services.AddSingleton<GeminiAssistantService>();
+builder.Services.AddSingleton<EmailService>();
+
+// Mantiene la cuenta abierta solo cuando el usuario lo pidió.
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.Cookie.Name = "RestauranteBD.Auth";
+        options.LoginPath = "/IniciarSesion1/Index";
+        options.AccessDeniedPath = "/IniciarSesion1/Index";
+        options.ExpireTimeSpan = TimeSpan.FromDays(30);
+        options.SlidingExpiration = true;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.IsEssential = true;
+    });
 RestaurantDb.Configure(builder.Configuration);
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -25,9 +50,10 @@ try
 {
     RestaurantDb.EnsureBridgeSchema();
 }
-catch
+catch (Exception ex)
 {
-    // Permite iniciar la aplicación mientras SQL Server no esté configurado.
+    // La aplicación puede iniciar aunque SQL todavía no esté listo.
+    app.Logger.LogWarning(ex, "No se pudo preparar el puente auxiliar de SQL Server al iniciar.");
 }
 
 if (!app.Environment.IsDevelopment())
@@ -40,6 +66,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseSession();
+app.UseAuthentication();
 
 // Protección de rutas.
 app.Use(async (context, next) =>
@@ -55,9 +82,31 @@ app.Use(async (context, next) =>
                    || path.StartsWith("/images", StringComparison.OrdinalIgnoreCase)
                    || path.Equals("/api/chat/ask", StringComparison.OrdinalIgnoreCase)
                    || path.Equals("/api/chat/status", StringComparison.OrdinalIgnoreCase)
-                   || path.Equals("/api/database/health", StringComparison.OrdinalIgnoreCase);
+                   || path.Equals("/api/database/health", StringComparison.OrdinalIgnoreCase)
+                   || path.Equals("/api/connections/status", StringComparison.OrdinalIgnoreCase)
+                   || path.Equals("/api/menu/catalog", StringComparison.OrdinalIgnoreCase);
 
     var loggedEmail = context.Session.GetString("UsuarioLogueado");
+
+    // Recupera la sesión de la cookie cuando el usuario eligió mantenerla activa.
+    if (string.IsNullOrWhiteSpace(loggedEmail) && context.User.Identity?.IsAuthenticated == true)
+    {
+        loggedEmail = context.User.Identity.Name;
+        if (!string.IsNullOrWhiteSpace(loggedEmail)
+            && UserStore.TryGet(loggedEmail, out var cookieUser)
+            && cookieUser is not null
+            && cookieUser.Activo
+            && cookieUser.EmailVerified)
+        {
+            context.Session.SetString("UsuarioLogueado", cookieUser.Email);
+            context.Session.SetString("RolUsuario", cookieUser.Rol);
+            context.Session.SetString("NombreUsuario", cookieUser.Nombre);
+            context.Session.SetString("TelefonoUsuario", cookieUser.Telefono ?? string.Empty);
+            context.Session.SetString("DuiUsuario", cookieUser.Dui ?? string.Empty);
+            context.Session.SetString("DireccionUsuario", cookieUser.Direccion ?? string.Empty);
+        }
+    }
+
     if (!isPublic && string.IsNullOrWhiteSpace(loggedEmail))
     {
         context.Response.Redirect("/IniciarSesion1/Index");
@@ -66,9 +115,10 @@ app.Use(async (context, next) =>
 
     if (!isPublic && !string.IsNullOrWhiteSpace(loggedEmail))
     {
-        if (!UserStore.TryGet(loggedEmail, out var loggedUser) || loggedUser is null || !loggedUser.Activo)
+        if (!UserStore.TryGet(loggedEmail, out var loggedUser) || loggedUser is null || !loggedUser.Activo || !loggedUser.EmailVerified)
         {
             context.Session.Clear();
+            await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             context.Response.Redirect("/IniciarSesion1/Index");
             return;
         }
@@ -87,8 +137,9 @@ app.Use(async (context, next) =>
 
 app.Use(async (context, next) =>
 {
-    if (context.Request.Path.Equals("/api/chat/ask", StringComparison.OrdinalIgnoreCase)
-        || context.Request.Path.Equals("/api/chat/status", StringComparison.OrdinalIgnoreCase))
+    // Las APIs manejan su propia autenticación y permisos.
+    
+    if (context.Request.Path.StartsWithSegments("/api"))
     {
         await next();
         return;
@@ -98,7 +149,8 @@ app.Use(async (context, next) =>
 
     if (controller.Equals("IniciarSesion1", StringComparison.OrdinalIgnoreCase)
         || controller.Equals("GestionDeMenu1", StringComparison.OrdinalIgnoreCase)
-        || controller.Equals("MenuDigital1", StringComparison.OrdinalIgnoreCase))
+        || controller.Equals("MenuDigital1", StringComparison.OrdinalIgnoreCase)
+        || controller.Equals("Configuracion1", StringComparison.OrdinalIgnoreCase))
     {
         await next();
         return;
@@ -128,6 +180,8 @@ app.Use(async (context, next) =>
     await next();
 });
 
+// Activa las rutas definidas directamente en los controladores de la API.
+app.MapControllers();
 app.MapControllerRoute(name: "default", pattern: "{controller=GestionDeMenu1}/{action=Index}/{id?}");
 app.Run();
 

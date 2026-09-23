@@ -101,7 +101,7 @@ public class Perfil1Controller : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    // Procesa la información de eliminar foto.
+    // Elimina la foto de perfil actual.
     public IActionResult EliminarFoto()
     {
         var email = HttpContext.Session.GetString("UsuarioLogueado");

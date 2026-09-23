@@ -7,7 +7,6 @@
     var esBarra = string.Equals(rol, "Barra", StringComparison.OrdinalIgnoreCase);
 }
 
-@* Contenido principal de la página. *@
 <section class="page-shell">
     <div class="page-head">
         <div>
@@ -18,8 +17,7 @@
         <span id="readyCounter" class="result-count">0 disponibles</span>
     </div>
 
-    @* Contenido principal de la página. *@
-    <section class="panel">
+        <section class="panel">
         <div class="toolbar-row ready-toolbar">
             <div class="search-box small ready-search">
                 <span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
@@ -34,7 +32,6 @@
 
 @* Scripts necesarios para el funcionamiento de esta vista. *@
 @section Scripts {
-    @* Datos que la vista expone al JavaScript. *@
     <script>
         document.addEventListener('DOMContentLoaded', () => ESFERestaurante.ready.init());
     </script>

@@ -1,0 +1,485 @@
+/* En oscuro no se usan superficies blancas: todo queda en tonos profundos con acentos cálidos. */
+html[data-theme="dark"] {
+    --dw-bg: #0a0f15;
+    --dw-surface: #111923;
+    --dw-surface-2: #17212c;
+    --dw-surface-3: #1d2935;
+    --dw-surface-4: #23313f;
+    --dw-input: #0d141c;
+    --dw-line: #2a3745;
+    --dw-line-strong: #3a4a5b;
+    --dw-text: #eef2f6;
+    --dw-muted: #97a5b5;
+    --dw-gold: #d6ad62;
+    --dw-gold-strong: #e5c47d;
+    --dw-success: #7fd1a0;
+    --dw-danger: #f09aa5;
+    --dw-warning: #e5c27a;
+    --dw-info: #86bfe7;
+}
+
+/* Base: el modo oscuro nunca parte de un fondo blanco. */
+html[data-theme="dark"],
+html[data-theme="dark"] body,
+html[data-theme="dark"] .app-body,
+html[data-theme="dark"] .app-shell,
+html[data-theme="dark"] .page-content,
+html[data-theme="dark"] main {
+    background: var(--dw-bg) !important;
+    color: var(--dw-text) !important;
+}
+
+/* Superficies que deben verse como paneles, no como bloques blancos. */
+html[data-theme="dark"] :is(
+    .page-shell,
+    .page-panel,
+    .panel,
+    .card,
+    .card-body,
+    .card-header,
+    .card-footer,
+    .stat-card,
+    .quick-card,
+    .hero-panel,
+    .category-card,
+    .product-card,
+    .order-card,
+    .customer-card,
+    .worker-card,
+    .reservation-card,
+    .kitchen-card,
+    .delivery-card,
+    .notification-panel,
+    .notification-item,
+    .notification-row,
+    .mail-app-shell,
+    .mail-sidebar,
+    .mail-list,
+    .mail-detail,
+    .mail-compose,
+    .mail-row,
+    .compose-dialog,
+    .compose-window,
+    .modal-card,
+    .modal-panel,
+    .modal-content,
+    .dialog-card,
+    .form-modal,
+    .product-modal,
+    .category-modal,
+    .order-modal,
+    .payment-modal,
+    .notification-detail-dialog,
+    .dropdown-menu,
+    .profile-context-menu,
+    .profile-card,
+    .profile-section,
+    .profile-showcase,
+    .profile-contact-card,
+    .settings-signature,
+    .settings-signature-nav,
+    .settings-signature-section,
+    .settings-signature-content,
+    .settings-section-card,
+    .settings-theme-option,
+    .settings-language-tile,
+    .currency-tile,
+    .empty-state,
+    .local-order-grid-pro,
+    .local-order-modal-pro,
+    .local-order-summary-pro,
+    .local-product-add-pro,
+    .local-menu-browser,
+    .local-menu-browser-head,
+    .local-menu-search,
+    .local-menu-categories,
+    .local-menu-grid,
+    .local-menu-item,
+    .local-payment-method-card,
+    .local-payment-confirm,
+    .local-payment-fields,
+    .payment-layout-premium,
+    .payment-main-panel,
+    .payment-items,
+    .premium-order-summary,
+    .manual-payment-modal,
+    .manual-payment-summary,
+    .manual-payment-list,
+    .card-stage,
+    .staff-flow,
+    .payment-staff-grid,
+    .payment-staff-guide,
+    .table-responsive,
+    .data-table-wrap,
+    .table-container,
+    .floor-panel,
+    .restaurant-table
+) {
+    background: var(--dw-surface) !important;
+    color: var(--dw-text) !important;
+    border-color: var(--dw-line) !important;
+}
+
+/* Cajas internas y zonas elevadas. */
+html[data-theme="dark"] :is(
+    .toolbar-row,
+    .toolbar-actions,
+    .search-box,
+    .filter-field,
+    .settings-inline-search,
+    .mail-search,
+    .menu-toolbar,
+    .mail-toolbar,
+    .mail-header,
+    .notification-header,
+    .notification-footer,
+    .notification-selection-toolbar,
+    .notification-detail-toolbar,
+    .compose-head,
+    .compose-footer,
+    .compose-tools,
+    .chatbot,
+    .chat-window,
+    .chat-panel,
+    .chat-messages,
+    .chat-suggestions,
+    .chat-input,
+    .chat-voice-mode,
+    .gmail-reader-toolbar,
+    .gmail-reader-body,
+    .gmail-compose-body
+) {
+    background: var(--dw-surface-2) !important;
+    color: var(--dw-text) !important;
+    border-color: var(--dw-line) !important;
+}
+
+/* Controles: una sola superficie oscura y sin cajas blancas anidadas. */
+html[data-theme="dark"] :is(
+    input,
+    select,
+    textarea,
+    .form-control,
+    .form-select,
+    .search-box input,
+    .mail-search input,
+    .settings-inline-search input,
+    .customer-search-input,
+    .filter-field input,
+    .filter-field select,
+    .field-label input,
+    .field-label select,
+    .field-label textarea,
+    .payment-fields input,
+    .payment-fields select,
+    .manual-payment-fields input,
+    .manual-payment-fields select,
+    .compose-field input,
+    .compose-field select,
+    .compose-field textarea,
+    .chat-input input,
+    .chat-input textarea,
+    .login-form input,
+    .login-form select,
+    .login-form textarea
+) {
+    background: var(--dw-input) !important;
+    color: var(--dw-text) !important;
+    border-color: var(--dw-line-strong) !important;
+}
+
+html[data-theme="dark"] :is(input, select, textarea)::placeholder {
+    color: #738194 !important;
+    opacity: 1 !important;
+}
+
+html[data-theme="dark"] :is(input, select, textarea):focus {
+    background: #0f1821 !important;
+    color: var(--dw-text) !important;
+    border-color: var(--dw-gold) !important;
+    box-shadow: 0 0 0 3px rgba(214,173,98,.14) !important;
+}
+
+html[data-theme="dark"] option {
+    background: var(--dw-input) !important;
+    color: var(--dw-text) !important;
+}
+
+/* Botones e iconos. Nada blanco: los iconos usan oro, crema o el color de acción. */
+html[data-theme="dark"] :is(
+    .secondary-btn,
+    .ghost-btn,
+    .outline-btn,
+    .icon-btn,
+    .cart-pill,
+    .cart-head-link,
+    .mail-nav-item,
+    .mail-mobile-link,
+    .mail-mobile-actions button,
+    .notification-action,
+    .filter-chip,
+    .payment-method,
+    .payment-tab,
+    .local-payment-method-btn,
+    .local-payment-timing-btn,
+    .settings-button,
+    .login-tab:not(.active)
+) {
+    background: var(--dw-surface-2) !important;
+    color: var(--dw-text) !important;
+    border-color: var(--dw-line) !important;
+}
+
+html[data-theme="dark"] :is(.secondary-btn:hover, .ghost-btn:hover, .outline-btn:hover, .icon-btn:hover, .mail-nav-item:hover, .mail-mobile-link:hover, .filter-chip:hover) {
+    background: var(--dw-surface-3) !important;
+    color: var(--dw-gold-strong) !important;
+    border-color: var(--dw-line-strong) !important;
+}
+
+html[data-theme="dark"] :is(.primary-btn, .btn-primary) {
+    background: linear-gradient(145deg, #d9b36b, #b98e45) !important;
+    color: #15120d !important;
+    border-color: #a67d36 !important;
+}
+
+html[data-theme="dark"] :is(.primary-btn:hover, .btn-primary:hover) {
+    background: linear-gradient(145deg, #e5c47d, #c39a50) !important;
+    color: #15120d !important;
+}
+
+html[data-theme="dark"] :is(svg, .ui-icon, .action-icon, .nav-icon, .btn-icon, .payment-tab-icon, .profile-card-icon) {
+    color: var(--dw-gold) !important;
+}
+
+html[data-theme="dark"] :is(svg [stroke="#fff"], svg [stroke="#FFF"], svg [stroke="#ffffff"], svg [stroke="#FFFFFF"], svg [stroke="white"], svg [style*="stroke:#fff"], svg [style*="stroke:white"]) {
+    stroke: var(--dw-gold) !important;
+}
+
+html[data-theme="dark"] :is(svg [fill="#fff"], svg [fill="#FFF"], svg [fill="#ffffff"], svg [fill="#FFFFFF"], svg [fill="white"], svg [style*="fill:#fff"], svg [style*="fill:white"]) {
+    fill: var(--dw-gold) !important;
+}
+
+html[data-theme="dark"] :is(.primary-btn svg, .primary-btn .ui-icon, .primary-btn .action-icon, .btn-primary svg, .btn-primary .ui-icon, .btn-primary .action-icon) {
+    color: #17130d !important;
+}
+
+/* Tablas y listas. */
+html[data-theme="dark"] :is(table, .table, thead, tbody, tr, th, td, .table-light, .list-group-item) {
+    background: var(--dw-surface) !important;
+    color: var(--dw-text) !important;
+    border-color: var(--dw-line) !important;
+}
+
+html[data-theme="dark"] th {
+    background: var(--dw-surface-3) !important;
+    color: #e3c782 !important;
+}
+
+html[data-theme="dark"] tbody tr:hover {
+    background: var(--dw-surface-2) !important;
+}
+
+/* Estados. */
+html[data-theme="dark"] :is(.alert-info, .badge-info, .bg-info-subtle, .status-info, .info-box) { background: #152638 !important; color: #9fd0f1 !important; border-color: #2d4b66 !important; }
+html[data-theme="dark"] :is(.alert-success, .badge-success, .bg-success-subtle, .status-success, .success-box) { background: #14291f !important; color: #9de0b6 !important; border-color: #28583f !important; }
+html[data-theme="dark"] :is(.alert-warning, .badge-warning, .bg-warning-subtle, .status-warning, .warning-box) { background: #2c2519 !important; color: #edcf8d !important; border-color: #66522e !important; }
+html[data-theme="dark"] :is(.alert-danger, .badge-danger, .bg-danger-subtle, .status-danger, .danger-box, .error-box) { background: #2b1b21 !important; color: #f0adb7 !important; border-color: #63313c !important; }
+
+/* Clases utilitarias claras que puedan aparecer desde vistas o componentes. */
+html[data-theme="dark"] :is(
+    .bg-white,
+    .bg-light,
+    .bg-slate-50,
+    .bg-slate-100,
+    .bg-slate-200,
+    .bg-gray-50,
+    .bg-gray-100,
+    .bg-gray-200,
+    .bg-neutral-50,
+    .bg-neutral-100,
+    .bg-zinc-50,
+    .bg-zinc-100,
+    .bg-stone-50,
+    .bg-stone-100,
+    .bg-white\/50,
+    .bg-white\/60,
+    .bg-white\/70,
+    .bg-white\/80,
+    .bg-white\/90,
+    .bg-white\/95
+) {
+    background: var(--dw-surface) !important;
+}
+
+/* Reglas de estilo directo: un fondo blanco escrito en la vista no puede sobrevivir en oscuro. */
+html[data-theme="dark"] :is(
+    [style*="background:#fff"],
+    [style*="background:#FFF"],
+    [style*="background:#ffffff"],
+    [style*="background:#FFFFFF"],
+    [style*="background: #fff"],
+    [style*="background: #FFF"],
+    [style*="background: #ffffff"],
+    [style*="background: #FFFFFF"],
+    [style*="background:white"],
+    [style*="background: white"],
+    [style*="background-color:#fff"],
+    [style*="background-color:#FFF"],
+    [style*="background-color:#ffffff"],
+    [style*="background-color:#FFFFFF"],
+    [style*="background-color: white"],
+    [style*="background-color:white"]
+) {
+    background: var(--dw-surface) !important;
+}
+
+/* Transparencias blancas que daban el efecto de cristal demasiado claro. */
+html[data-theme="dark"] :is(
+    .topbar,
+    .public-menu-header,
+    .mail-app-shell,
+    .profile-context-menu,
+    .notification-panel,
+    .chatbot,
+    .settings-signature,
+    .compose-dialog,
+    .modal-card,
+    .modal-content
+) {
+    background: var(--dw-surface) !important;
+    border-color: var(--dw-line) !important;
+}
+
+/* Texto: blanco/crema está permitido solo como texto, nunca como fondo. */
+html[data-theme="dark"] :is(body, h1, h2, h3, h4, h5, h6, p, span, strong, label, small, li, td, th) {
+    text-shadow: none !important;
+}
+
+html[data-theme="dark"] :is(.eyebrow, .section-kicker, .text-accent, .accent-text, .text-link) {
+    color: var(--dw-gold-strong) !important;
+}
+
+html[data-theme="dark"] :is(a:not(.primary-btn):not(.side-nav a)) {
+    color: #d9b66b !important;
+}
+
+html[data-theme="dark"] :is(a:not(.primary-btn):not(.side-nav a)):hover {
+    color: #efd18a !important;
+}
+
+
+/* Navegación y zona superior: tampoco aquí se deja entrar el blanco. */
+html[data-theme="dark"] .app-sidebar,
+html[data-theme="dark"] .sidebar-bottom {
+    background: #0f161e !important;
+    color: var(--dw-text) !important;
+}
+
+html[data-theme="dark"] .app-sidebar .brand-mark,
+html[data-theme="dark"] .login-logo,
+html[data-theme="dark"] .public-brand .brand-mark {
+    background: linear-gradient(145deg, #182330, #0d141b) !important;
+    border: 1px solid rgba(214,173,98,.34) !important;
+}
+
+html[data-theme="dark"] .side-status,
+html[data-theme="dark"] .user-mini,
+html[data-theme="dark"] .top-user,
+html[data-theme="dark"] .cart-pill,
+html[data-theme="dark"] .notification-btn,
+html[data-theme="dark"] .top-notification-link,
+html[data-theme="dark"] .profile-trigger {
+    background: var(--dw-surface-2) !important;
+    color: var(--dw-text) !important;
+    border-color: var(--dw-line) !important;
+}
+
+html[data-theme="dark"] .side-nav a {
+    background: transparent !important;
+    color: var(--dw-muted) !important;
+}
+
+html[data-theme="dark"] .side-nav a:hover,
+html[data-theme="dark"] .side-nav a.active {
+    background: linear-gradient(90deg, rgba(214,173,98,.14), rgba(214,173,98,.05)) !important;
+    color: var(--dw-gold-strong) !important;
+}
+
+html[data-theme="dark"] .side-nav a b {
+    background: #2b2317 !important;
+    color: var(--dw-gold-strong) !important;
+}
+
+html[data-theme="dark"] .avatar,
+html[data-theme="dark"] .profile-avatar,
+html[data-theme="dark"] .user-avatar {
+    background: #1b2733 !important;
+    color: var(--dw-gold-strong) !important;
+    border-color: var(--dw-line) !important;
+}
+
+html[data-theme="dark"] .logout-link {
+    background: #291b20 !important;
+    color: #f0a1ac !important;
+    border-color: #5d3139 !important;
+}
+
+html[data-theme="dark"] .topbar {
+    background: rgba(17,25,35,.98) !important;
+    color: var(--dw-text) !important;
+}
+
+/* Indicadores de estado sin fondos claros. */
+html[data-theme="dark"] .live-badge,
+html[data-theme="dark"] .status-pill.neutral {
+    background: var(--dw-surface-2) !important;
+    color: var(--dw-text) !important;
+    border-color: var(--dw-line) !important;
+}
+
+html[data-theme="dark"] .status-pill.success {
+    background: #14291f !important;
+    color: var(--dw-success) !important;
+}
+
+html[data-theme="dark"] .status-pill.warning {
+    background: #2c2519 !important;
+    color: var(--dw-warning) !important;
+}
+
+/* Elementos flotantes que antes heredaban blanco del tema claro. */
+html[data-theme="dark"] .chat-launcher,
+html[data-theme="dark"] .floating-cart {
+    background: linear-gradient(145deg, #d6ad62, #b88d46) !important;
+    color: #18130b !important;
+    border-color: #9e7637 !important;
+}
+
+html[data-theme="dark"] .chat-header {
+    background: #0f1821 !important;
+    color: var(--dw-text) !important;
+    border-color: var(--dw-line) !important;
+}
+
+html[data-theme="dark"] .chat-bubble.bot {
+    background: var(--dw-surface-3) !important;
+    color: var(--dw-text) !important;
+}
+
+html[data-theme="dark"] .chat-bubble.user {
+    background: #c69d56 !important;
+    color: #17130d !important;
+}
+
+html[data-theme="dark"] .chat-suggestions button {
+    background: var(--dw-surface-2) !important;
+    color: var(--dw-text) !important;
+    border-color: var(--dw-line) !important;
+}
+
+/* Si algún componente usa un borde o fondo blanco desde JavaScript, lo pasamos a la paleta oscura. */
+html[data-theme="dark"] [data-dark-surface] {
+    background: var(--dw-surface) !important;
+    color: var(--dw-text) !important;
+    border-color: var(--dw-line) !important;
+}

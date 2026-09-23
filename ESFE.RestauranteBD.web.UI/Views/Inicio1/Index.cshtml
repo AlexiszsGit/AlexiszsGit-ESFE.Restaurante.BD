@@ -9,12 +9,10 @@
     var loginWelcome = TempData["LoginWelcome"] as string;
     var nombre = Context.Session.GetString("NombreUsuario") ?? (esDueno ? "Administrador" : "Cliente");
 }
-@* Contenido principal de la página. *@
 <section class="page-shell">
     @if (!string.IsNullOrWhiteSpace(loginWelcome))
     {
-        @* Contenido principal de la página. *@
-        <section id="loginWelcomeHero" class="login-welcome-hero" role="status" aria-live="polite">
+                <section id="loginWelcomeHero" class="login-welcome-hero" role="status" aria-live="polite">
             <div class="login-welcome-hero-content">
                 <div class="login-welcome-hero-copy">
                     <span class="login-welcome-brand">@AppSettingsStore.Current.RestaurantName</span>
@@ -43,14 +41,13 @@
         <div class="stats-grid">
             <div class="stat-card"><span>Pedidos de hoy</span><strong id="cardPedidosHoy">0</strong><small>Pedidos registrados</small></div>
             <div class="stat-card"><span>En preparación</span><strong id="cardEnPreparacion">0</strong><small>En cocina ahora</small></div>
-            <div class="stat-card"><span>@(esDueno ? "Ventas de hoy" : "Mis pagos hoy")</span><strong id="cardVentasHoy">$0.00</strong><small>@(esDueno ? "Total cobrado" : "Total de mis pedidos pagados")</small></div>
+            <div class="stat-card"><span>@(esDueno ? "Ventas de hoy" : "Mis pagos hoy")</span><strong id="cardVentasHoy" data-usd-amount="0">$0.00</strong><small>@(esDueno ? "Total cobrado" : "Total de mis pedidos pagados")</small></div>
             <div class="stat-card"><span>@(esDueno ? "Mesas disponibles" : "Mis reservas hoy")</span><strong id="cardMesas">@(esDueno ? "12" : "0")</strong><small>@(esDueno ? "Según reservas" : "Reservas confirmadas")</small></div>
         </div>
         <div class="dashboard-grid">
             @if (AppSettingsStore.Current.ShowQuickActions)
             {
-            @* Contenido principal de la página. *@
-            <section class="panel"><div class="panel-head"><div><span class="eyebrow">Centro operativo</span><h3>Accesos rápidos</h3><p>Las áreas críticas del restaurante, a una acción de distancia.</p></div></div><div class="quick-grid">
+                        <section class="panel"><div class="panel-head"><div><span class="eyebrow">Centro operativo</span><h3>Accesos rápidos</h3><p>Las áreas críticas del restaurante, a una acción de distancia.</p></div></div><div class="quick-grid">
                 @if (esDueno)
                 {
                     <a asp-controller="GestionDePedidos1" asp-action="Index" class="quick-card"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="3.5" width="16" height="17" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><div><strong>Pedidos</strong><small>Administra las órdenes recibidas.</small></div><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
@@ -65,11 +62,10 @@
                 }
             </div></section>
             }
-            @* Resumen y acciones secundarias de la vista. *@
+            @* Acciones y resumen de esta pantalla. *@
             <aside class="panel side-summary"><span class="eyebrow">Resumen</span><h3>Estado operativo</h3><div class="summary-row"><span>Sistema</span><strong class="text-success">Operativo</strong></div><div class="summary-row"><span>Productos</span><strong id="cardProductos">32</strong></div><div class="summary-row"><span>Última actualización</span><strong id="ultimaActualizacion">Ahora</strong></div><a asp-controller="Informacion1" asp-action="Index" class="text-link">Ver información del sistema <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></aside>
         </div>
-        @* Contenido principal de la página. *@
-        <section class="panel"><div class="panel-head"><div><span class="eyebrow">Actividad</span><h3>Pedidos recientes</h3></div><a asp-controller="GestionDePedidos1" asp-action="Index" class="text-link">Ver todos <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></div><div id="recentOrders" class="recent-list"></div></section>
+                <section class="panel"><div class="panel-head"><div><span class="eyebrow">Actividad</span><h3>Pedidos recientes</h3></div><a asp-controller="GestionDePedidos1" asp-action="Index" class="text-link">Ver todos <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></div><div id="recentOrders" class="recent-list"></div></section>
     }
 </section>
 @* Scripts necesarios para el funcionamiento de esta vista. *@

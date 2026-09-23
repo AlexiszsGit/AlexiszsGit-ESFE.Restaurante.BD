@@ -2,7 +2,7 @@
 (() => {
     if (!window.ESFERestaurante) return;
     const app = ESFERestaurante;
-    // Lee los datos guardados del módulo.
+    // Lee los datos guardados del navegador.
     const read = key => { try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch { return []; } };
     // Guarda los datos actuales del módulo.
     const write = (key, value) => localStorage.setItem(key, JSON.stringify(value));
@@ -23,7 +23,7 @@
     // Obtiene los datos del pedido seleccionado.
     const getOrder = id => read(app.KEY.orders).find(o => o.id === id);
 
-    // Estado compartido del módulo: manager.
+    // Funciones para administrar pagos manuales.
     const manager = {
         selectedId: null,
         filter: "",

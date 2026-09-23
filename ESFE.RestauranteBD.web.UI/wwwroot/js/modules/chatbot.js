@@ -17,7 +17,7 @@
             }[char])
         );
 
-    // Procesa la información de add.
+    // Agrega el nuevo dato a la conversación.
     const add = (html, kind = 'bot') => {
         const box = document.getElementById('chatMessages');
         if (!box) return null;
@@ -99,7 +99,13 @@
     // Comprueba si el navegador permite síntesis de voz.
     const canUseSpeechSynthesis = () =>
         !!window.speechSynthesis;
-    // Reproducción por voz de las respuestas del asistente
+    // Obtiene el idioma que eligió el usuario para el chat y la voz.
+    const currentChatLocale = () => {
+        const code = String(localStorage.getItem('restaurantebd.language') || document.documentElement.lang || 'es').toLowerCase();
+        const map = { es:'es-SV', en:'en-US', pt:'pt-BR', fr:'fr-FR', de:'de-DE', it:'it-IT', nl:'nl-NL', tr:'tr-TR', ru:'ru-RU', pl:'pl-PL', zh:'zh-CN', ja:'ja-JP', ko:'ko-KR', ar:'ar-SA', hi:'hi-IN', id:'id-ID', vi:'vi-VN', th:'th-TH', he:'he-IL', sv:'sv-SE' };
+        return map[code] || 'es-SV';
+    };
+
     // Reproduce en voz alta la respuesta del asistente.
     const speak = text => {
         if (!canUseSpeechSynthesis() || !text) return Promise.resolve();
@@ -111,7 +117,7 @@
                 const utterance =
                     new SpeechSynthesisUtterance(String(text));
 
-                utterance.lang = 'es-SV';
+                utterance.lang = currentChatLocale();
                 utterance.rate = 1;
                 utterance.pitch = 1;
 
@@ -126,7 +132,7 @@
         });
     };
     // Estado y controles del modo de voz
-    // Estado compartido del módulo: voiceState.
+    // Guarda el estado de la conversación por voz.
     const voiceState = {
         active: false,
         listening: false,
@@ -202,7 +208,7 @@
 
         const recognition = new SpeechRecognition();
 
-        recognition.lang = 'es-SV';
+        recognition.lang = currentChatLocale();
         recognition.interimResults = false;
         recognition.continuous = false;
         recognition.maxAlternatives = 1;
@@ -302,7 +308,7 @@
                     'meta[name="request-verification-token"]'
                 )?.content || '';
 
-            // Estado compartido del módulo: headers.
+            // Prepara los encabezados que necesita la petición.
             const headers = {
                 'Content-Type': 'application/json'
             };
@@ -318,7 +324,8 @@
                     credentials: 'same-origin',
                     headers,
                     body: JSON.stringify({
-                        message: text
+                        message: text,
+                        language: currentChatLocale().split('-')[0]
                     })
                 }
             );
@@ -456,7 +463,7 @@
             const recognition =
                 new SpeechRecognition();
 
-            recognition.lang = 'es-SV';
+            recognition.lang = currentChatLocale();
             recognition.interimResults = false;
             recognition.continuous = false;
             recognition.maxAlternatives = 1;
@@ -605,6 +612,24 @@
                 'click',
                 toggleVoiceMode
             );
+
+            // Mensaje inicial para que el chat no se vea vacío al abrirlo.
+            const messages = document.getElementById('chatMessages');
+            if (messages && !messages.children.length) {
+                messages.innerHTML = `
+                    <div class="chat-empty-state">
+                        <div>
+                            <span class="chat-empty-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M7 10.5a5 5 0 0 1 10 0v3.1a3.9 3.9 0 0 1-3.9 3.9H11l-2.8 2v-2.8A4 4 0 0 1 5 12.8v-1.4a5 5 0 0 1 2-0.9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M9 12h.01M15 12h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                            <strong>Hola, estoy listo para ayudarte</strong>
+                            <p>Puedo orientarte con el menú, pedidos, reservas y pagos. Escribe una pregunta o usa tu voz.</p>
+                        </div>
+                    </div>`;
+            }
 
             // Evento que conecta una acción del usuario con la lógica del módulo.
             document.getElementById('chatVoiceModeClose')?.addEventListener(

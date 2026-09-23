@@ -4,7 +4,6 @@
     ViewData["Title"] = "Carrito";
 }
 
-@* Contenido principal de la página. *@
 <section class="page-shell narrow-page">
     <div class="page-head">
         <div>
@@ -16,8 +15,7 @@
     </div>
 
     <div class="checkout-grid">
-        @* Contenido principal de la página. *@
-        <section class="panel">
+                <section class="panel">
             <div class="panel-head">
                 <div>
                     <h3>Productos seleccionados</h3>
@@ -29,22 +27,22 @@
             <div id="cartItems" class="cart-items"></div>
         </section>
 
-        @* Resumen y acciones secundarias de la vista. *@
+        @* Acciones y resumen de esta pantalla. *@
         <aside class="panel order-summary">
             <span class="eyebrow">Resumen</span>
             <h3>Total del pedido</h3>
 
             <div class="summary-row">
                 <span>Subtotal</span>
-                <strong id="cartSubtotal">$0.00</strong>
+                <strong id="cartSubtotal" data-usd-amount="0">$0.00</strong>
             </div>
             <div class="summary-row">
                 <span>IVA @AppSettingsStore.Current.TaxPercent%</span>
-                <strong id="cartTax">$0.00</strong>
+                <strong id="cartTax" data-usd-amount="0">$0.00</strong>
             </div>
             <div class="summary-row total-row">
                 <span>Total</span>
-                <strong id="cartTotal">$0.00</strong>
+                <strong id="cartTotal" data-usd-amount="0">$0.00</strong>
             </div>
 
             <label class="field-label">
@@ -86,7 +84,6 @@
 
 @* Scripts necesarios para el funcionamiento de esta vista. *@
 @section Scripts {
-    @* Datos que la vista expone al JavaScript. *@
     <script>
         document.addEventListener('DOMContentLoaded', () => ESFERestaurante.cart.init());
     </script>

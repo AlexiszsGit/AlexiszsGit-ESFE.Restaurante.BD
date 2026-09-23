@@ -1,10 +1,18 @@
-
 @{
     var appSettings = AppSettingsStore.Current;
     ViewData["Title"] = "Iniciar sesión";
     Layout = null;
+
     var activeTab = ViewBag.ActiveTab as string ?? "login";
     var selectedCountry = (ViewBag.RegisterCountryCode as string ?? "sv").Trim().TrimStart('+');
+    var verificationEmail = ViewBag.VerificationEmail as string ?? "";
+    var recoveryEmail = ViewBag.RecoveryEmail as string ?? "";
+
+    var flowEmailDone = activeTab is "verify" or "resetCode" or "resetPassword";
+    var flowCodeActive = activeTab is "verify" or "resetCode";
+    var flowCodeDone = activeTab == "resetPassword";
+    var flowPasswordActive = activeTab == "resetPassword";
+
     var countries = new[]
     {
         (Id:"sv",Name:"El Salvador",Code:"503"),(Id:"gt",Name:"Guatemala",Code:"502"),(Id:"hn",Name:"Honduras",Code:"504"),(Id:"ni",Name:"Nicaragua",Code:"505"),(Id:"cr",Name:"Costa Rica",Code:"506"),(Id:"pa",Name:"Panamá",Code:"507"),
@@ -26,8 +34,12 @@
     <link rel="stylesheet" href="~/css/tailwind.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/premium.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/ultra-professional.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/final-signature.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/professional-refinement.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/responsive-final.css" asp-append-version="true" />
 </head>
-<body class="login-body" style="--accent:@appSettings.PrimaryColor;--accent2:@appSettings.PrimaryDarkColor;--accent-soft:@appSettings.PrimarySoftColor;--bg:@appSettings.BackgroundColor;--white:@appSettings.SurfaceColor;--ink:@appSettings.TextColor;--muted:@appSettings.MutedColor;--line:@appSettings.LineColor;">
+<body class="login-body auth-page auth-step-@(activeTab)" data-auth-step="@(activeTab)" data-login-url="@Url.Action("Index", "IniciarSesion1")" data-code-result="@((ViewBag.CodeVerificationState as string) ?? "")" style="--accent:@appSettings.PrimaryColor;--accent2:@appSettings.PrimaryDarkColor;--accent-soft:@appSettings.PrimarySoftColor;--bg:@appSettings.BackgroundColor;--white:@appSettings.SurfaceColor;--ink:@appSettings.TextColor;--muted:@appSettings.MutedColor;--line:@appSettings.LineColor;">
     <div class="login-bg-glow glow-one"></div>
     <div class="login-bg-glow glow-two"></div>
 
@@ -41,9 +53,7 @@
         <p>Es un placer recibirte en RestauranteBD.</p>
     </div>
 
-    @* Contenido principal de la página. *@
     <main class="login-page-shell">
-        @* Contenido principal de la página. *@
         <section class="login-welcome">
             <div class="login-logo login-logo-large">
                 <img src="@appSettings.LogoPath" alt="Logo del restaurante" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" />
@@ -52,9 +62,15 @@
             <span class="eyebrow">@appSettings.RestaurantName</span>
             <h1>Le damos una cordial bienvenida</h1>
             <p class="login-welcome-copy">Es un placer recibirte en RestauranteBD. Inicia sesión para continuar con una experiencia clara, cómoda y pensada para ti.</p>
+
             <div class="login-info-grid login-info-grid-single">
                 <article>
-                    <span class="login-info-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.7"/><path d="M12 7v5l3.2 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    <span class="login-info-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.7"/>
+                            <path d="M12 7v5l3.2 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
                     <div>
                         <strong>Horario de atención</strong>
                         <span>Todos los días · @appSettings.OpeningTime a @appSettings.ClosingTime</span>
@@ -63,8 +79,17 @@
             </div>
         </section>
 
-        @* Contenido principal de la página. *@
         <section class="login-card login-card-professional">
+            <div class="auth-result-overlay" data-auth-result hidden aria-live="polite">
+                <div class="auth-result-orb" data-auth-result-orb>
+                    <span class="auth-result-spinner"></span>
+                    <svg class="auth-result-icon auth-result-success" viewBox="0 0 64 64" fill="none" aria-hidden="true"><circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="4"/><path d="m19 33 8 8 18-19" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <svg class="auth-result-icon auth-result-error" viewBox="0 0 64 64" fill="none" aria-hidden="true"><circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="4"/><path d="m22 22 20 20M42 22 22 42" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg>
+                </div>
+                <strong data-auth-result-title>Comprobando</strong>
+                <span data-auth-result-text>Validando tu código de seguridad.</span>
+            </div>
+
             <div class="login-tabs login-tabs-professional" role="tablist" aria-label="Acceso a RestauranteBD">
                 <button type="button" class="login-tab @(activeTab == "login" ? "active" : "")" data-login-tab="login">Iniciar sesión</button>
                 <button type="button" class="login-tab @(activeTab == "register" ? "active" : "")" data-login-tab="register">Crear cuenta</button>
@@ -72,23 +97,42 @@
 
             @if (ViewBag.Error != null)
             {
-                <div class="alert-error">@ViewBag.Error</div>
+                <div class="alert-error" role="status">@ViewBag.Error</div>
             }
             @if (ViewBag.Success != null)
             {
-                <div class="alert-success">@ViewBag.Success</div>
+                <div class="alert-success" role="status">@ViewBag.Success</div>
             }
 
-            <div id="loginPanel" class="login-panel @(activeTab == "login" ? "" : "hidden")">
+            <div class="auth-flow-chrome @(activeTab is "verify" or "forgot" or "resetCode" or "resetPassword" ? "" : "hidden")" data-auth-chrome>
+                <div class="auth-security-head">
+                    <span class="auth-security-head-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none"><rect x="6" y="10" width="12" height="10" rx="2.3" stroke="currentColor" stroke-width="1.6"/><path d="M8.5 10V7.7a3.5 3.5 0 0 1 7 0V10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                    </span>
+                    <div>
+                        <strong>Protección de tu cuenta</strong>
+                        <span>Proceso seguro · los códigos duran 10 minutos</span>
+                    </div>
+                </div>
+                <div class="auth-flow-progress" aria-label="Pasos de seguridad">
+                    <div class="auth-flow-step @(flowEmailDone ? "done" : "active")"><span>1</span><strong>Correo</strong></div>
+                    <i></i>
+                    <div class="auth-flow-step @(flowCodeDone ? "done" : flowCodeActive ? "active" : "")"><span>2</span><strong>Código</strong></div>
+                    <i></i>
+                    <div class="auth-flow-step @(flowPasswordActive ? "active" : "")"><span>3</span><strong>Contraseña</strong></div>
+                </div>
+            </div>
+
+            <div id="loginPanel" class="login-panel @(activeTab == "login" ? "" : "hidden")" data-auth-panel="login">
                 <div class="login-heading login-heading-centered">
                     <span class="eyebrow">Acceso seguro</span>
                     <h2>Iniciar sesión</h2>
                     <p>Usa las credenciales de tu cuenta para continuar.</p>
                 </div>
 
-                @* Campos y controles para capturar información. *@
                 <form asp-controller="IniciarSesion1" asp-action="Login" method="post" class="login-form login-form-centered" novalidate>
                     @Html.AntiForgeryToken()
+
                     <label>
                         Correo electrónico
                         <input name="email" type="email" value="@(ViewBag.Email ?? "")" autocomplete="username" placeholder="correo@ejemplo.com" maxlength="120" required />
@@ -97,15 +141,17 @@
                     <label>
                         Contraseña
                         <div class="password-field">
-                            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Tu contraseña" minlength="1" required />
-                            <button type="button" class="password-toggle" data-toggle-password="password" aria-label="Mostrar contraseña" title="Mostrar contraseña"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M2.8 12s3.3-5.5 9.2-5.5 9.2 5.5 9.2 5.5-3.3 5.5-9.2 5.5S2.8 12 2.8 12Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.7"/></svg></span></button>
+                            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Tu contraseña" required />
+                            <button type="button" class="password-toggle" data-toggle-password="password" aria-label="Mostrar contraseña" title="Mostrar contraseña">
+                                <span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M2.7 12s3.2-6 9.3-6 9.3 6 9.3 6-3.2 6-9.3 6-9.3-6-9.3-6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.7"/></svg></span>
+                            </button>
                         </div>
                     </label>
 
                     <div class="login-options">
                         <label class="check-row">
                             <input type="checkbox" name="remember" value="true" />
-                            Recordarme
+                            Mantener mi sesión activa
                         </label>
                         <span>Sesión protegida</span>
                     </div>
@@ -114,19 +160,22 @@
                 </form>
 
                 <div class="login-switch-note">
+                    <button type="button" data-switch-tab="forgot">¿Olvidaste tu contraseña?</button>
+                </div>
+
+                <div class="login-switch-note">
                     <span>¿Todavía no tienes una cuenta?</span>
                     <button type="button" data-switch-tab="register">Crear cuenta</button>
                 </div>
             </div>
 
-            <div id="registerPanel" class="login-panel @(activeTab == "register" ? "" : "hidden")">
+            <div id="registerPanel" class="login-panel @(activeTab == "register" ? "" : "hidden")" data-auth-panel="register">
                 <div class="login-heading login-heading-centered">
                     <span class="eyebrow">Registro de cliente</span>
                     <h2>Crear cuenta</h2>
-                    <p>Completa todos los datos. Luego podrás pedir, reservar y consultar tus pedidos.</p>
+                    <p>Completa todos los datos. Al terminar confirmaremos tu correo.</p>
                 </div>
 
-                @* Campos y controles para capturar información. *@
                 <form asp-controller="IniciarSesion1" asp-action="Registrar" method="post" class="login-form login-form-centered" id="registerForm" novalidate>
                     @Html.AntiForgeryToken()
 
@@ -157,6 +206,7 @@
                                 }
                             </select>
                         </label>
+
                         <label class="field-label phone-number-label">
                             Teléfono
                             <input name="telefono" value="@(ViewBag.RegisterPhone ?? "")" data-international-phone inputmode="tel" autocomplete="tel" aria-describedby="phoneHelp" required />
@@ -166,7 +216,7 @@
 
                     <label>
                         DUI
-                        <input name="dui" type="text" data-dui inputmode="numeric" value="@(ViewBag.RegisterDui ?? "")" placeholder="00000000-0" maxlength="10" pattern="[0-9]{8}-[0-9]" required />
+                        <input name="dui" type="text" data-dui inputmode="numeric" value="@(ViewBag.RegisterDui ?? "")" placeholder="00000000-0" maxlength="10" required />
                     </label>
 
                     <label>
@@ -178,7 +228,7 @@
                         Contraseña
                         <div class="password-field">
                             <input id="registerPassword" name="password" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres" minlength="8" required />
-                            <button type="button" class="password-toggle" data-toggle-password="registerPassword" aria-label="Mostrar contraseña" title="Mostrar contraseña"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M2.8 12s3.3-5.5 9.2-5.5 9.2 5.5 9.2 5.5-3.3 5.5-9.2 5.5S2.8 12 2.8 12Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.7"/></svg></span></button>
+                            <button type="button" class="password-toggle" data-toggle-password="registerPassword" aria-label="Mostrar contraseña" title="Mostrar contraseña"><span class="ui-icon">◉</span></button>
                         </div>
                     </label>
 
@@ -186,7 +236,7 @@
                         Confirmar contraseña
                         <div class="password-field">
                             <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Repite tu contraseña" minlength="8" required />
-                            <button type="button" class="password-toggle" data-toggle-password="confirmPassword" aria-label="Mostrar contraseña" title="Mostrar contraseña"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M2.8 12s3.3-5.5 9.2-5.5 9.2 5.5 9.2 5.5-3.3 5.5-9.2 5.5S2.8 12 2.8 12Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.7"/></svg></span></button>
+                            <button type="button" class="password-toggle" data-toggle-password="confirmPassword" aria-label="Mostrar contraseña" title="Mostrar contraseña"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M2.7 12s3.2-6 9.3-6 9.3 6 9.3 6-3.2 6-9.3 6-9.3-6-9.3-6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.7"/></svg></span></button>
                         </div>
                     </label>
 
@@ -206,14 +256,132 @@
                     <button type="button" data-switch-tab="login">Iniciar sesión</button>
                 </div>
             </div>
+
+            <div class="login-panel @(activeTab == "verify" ? "" : "hidden")" data-auth-panel="verify">
+                <div class="login-heading login-heading-centered">
+                    <span class="eyebrow">Verificación de correo</span>
+                    <h2>Confirma tu correo</h2>
+                    <p>Enviamos un código de 6 dígitos a <strong>@verificationEmail</strong>.</p>
+                </div>
+
+                <form asp-controller="IniciarSesion1" asp-action="VerificarCorreo" method="post" class="login-form login-form-centered">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="email" value="@verificationEmail" />
+
+                    <div class="code-entry" data-code-entry>
+                        <div class="code-boxes" aria-label="Código de verificación">
+                            @for (var i = 0; i < 6; i++)
+                            {
+                                <input type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code" data-code-box aria-label="Dígito @(i + 1)" />
+                            }
+                        </div>
+                        <input class="verification-code-input code-hidden-input" name="code" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code" aria-hidden="true" tabindex="-1" required />
+                        <small>El código tiene 6 dígitos y vence en 10 minutos.</small>
+                    </div>
+
+                    <button class="primary-btn large full login-submit" type="submit"><span class="btn-icon">✓</span>Confirmar correo</button>
+                </form>
+
+                <div class="auth-step-actions">
+                    <form asp-controller="IniciarSesion1" asp-action="ReenviarCodigo" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="email" value="@verificationEmail" />
+                        <button type="submit" class="text-action">↻ Reenviar código</button>
+                    </form>
+                    <button type="button" class="text-action" data-switch-tab="login">Volver a iniciar sesión</button>
+                </div>
+            </div>
+
+            <div class="login-panel @(activeTab == "forgot" ? "" : "hidden")" data-auth-panel="forgot">
+                <div class="login-heading login-heading-centered">
+                    <span class="eyebrow">Recuperación segura</span>
+                    <h2>Recuperar contraseña</h2>
+                    <p>Escribe el correo de tu cuenta. Te enviaremos un código de seguridad para continuar.</p>
+                </div>
+
+                <form asp-controller="IniciarSesion1" asp-action="SolicitarRecuperacion" method="post" class="login-form login-form-centered">
+                    @Html.AntiForgeryToken()
+                    <label>
+                        Correo electrónico
+                        <input name="email" type="email" value="@recoveryEmail" autocomplete="email" placeholder="correo@ejemplo.com" maxlength="120" required />
+                    </label>
+                    <button class="primary-btn large full login-submit" type="submit">Enviar código</button>
+                </form>
+
+                <div class="auth-step-actions">
+                    <button type="button" class="text-action" data-switch-tab="login">← Volver a iniciar sesión</button>
+                </div>
+            </div>
+
+            <div class="login-panel @(activeTab == "resetCode" ? "" : "hidden")" data-auth-panel="resetCode">
+                <div class="login-heading login-heading-centered">
+                    <span class="eyebrow">Código de recuperación</span>
+                    <h2>Ingresa el código</h2>
+                    <p>Revisa tu correo e introduce el código de 6 dígitos que acabamos de enviarte.</p>
+                </div>
+
+                <form asp-controller="IniciarSesion1" asp-action="VerificarRecuperacion" method="post" class="login-form login-form-centered">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="email" value="@recoveryEmail" />
+                    <div class="code-entry" data-code-entry>
+                        <div class="code-boxes" aria-label="Código de recuperación">
+                            @for (var i = 0; i < 6; i++)
+                            {
+                                <input type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code" data-code-box aria-label="Dígito @(i + 1)" />
+                            }
+                        </div>
+                        <input class="verification-code-input code-hidden-input" name="code" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code" aria-hidden="true" tabindex="-1" required />
+                        <small>Por seguridad, solo podrás continuar con el código correcto.</small>
+                    </div>
+                    <button class="primary-btn large full login-submit" type="submit"><span class="btn-icon">✓</span>Comprobar código</button>
+                </form>
+
+                <div class="auth-step-actions">
+                    <button type="button" class="text-action" data-switch-tab="forgot">← Cambiar correo</button>
+                    <button type="button" class="text-action" data-switch-tab="login">Volver a iniciar sesión</button>
+                </div>
+            </div>
+
+            <div class="login-panel @(activeTab == "resetPassword" ? "" : "hidden")" data-auth-panel="resetPassword">
+                <div class="login-heading login-heading-centered">
+                    <span class="eyebrow">Nueva contraseña</span>
+                    <h2>Cambia tu contraseña</h2>
+                    <p>Tu identidad ya fue confirmada. Define una contraseña nueva para volver a entrar a tu cuenta.</p>
+                </div>
+
+                <form asp-controller="IniciarSesion1" asp-action="RestablecerPassword" method="post" class="login-form login-form-centered">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="email" value="@recoveryEmail" />
+
+                    <label>
+                        Nueva contraseña
+                        <div class="password-field">
+                            <input id="resetPassword" name="password" type="password" minlength="8" autocomplete="new-password" placeholder="Mínimo 8 caracteres" required />
+                            <button type="button" class="password-toggle" data-toggle-password="resetPassword" aria-label="Mostrar contraseña" title="Mostrar contraseña"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M2.7 12s3.2-6 9.3-6 9.3 6 9.3 6-3.2 6-9.3 6-9.3-6-9.3-6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.7"/></svg></span></button>
+                        </div>
+                    </label>
+
+                    <label>
+                        Confirmar contraseña
+                        <div class="password-field">
+                            <input id="confirmResetPassword" name="confirmPassword" type="password" minlength="8" autocomplete="new-password" placeholder="Repite tu contraseña" required />
+                            <button type="button" class="password-toggle" data-toggle-password="confirmResetPassword" aria-label="Mostrar contraseña" title="Mostrar contraseña"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M2.7 12s3.2-6 9.3-6 9.3 6 9.3 6-3.2 6-9.3 6-9.3-6-9.3-6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.7"/></svg></span></button>
+                        </div>
+                    </label>
+
+                    <button class="primary-btn large full login-submit" type="submit"><span class="btn-icon">✓</span>Guardar nueva contraseña</button>
+                </form>
+                <div class="auth-step-actions">
+                    <button type="button" class="text-action" data-switch-tab="resetCode">← Volver al código</button>
+                    <button type="button" class="text-action" data-switch-tab="login">Cancelar y volver al inicio</button>
+                </div>
+            </div>
         </section>
     </main>
 
     <footer class="login-footer professional-footer">@appSettings.RestaurantName · Acceso y gestión del restaurante</footer>
 
-    @* Datos que la vista expone al JavaScript. *@
     <script src="~/js/modules/validation.js" asp-append-version="true"></script>
-    @* Datos que la vista expone al JavaScript. *@
     <script src="~/js/modules/auth.js" asp-append-version="true"></script>
 </body>
 </html>

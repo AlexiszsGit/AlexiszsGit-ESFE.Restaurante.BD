@@ -13,16 +13,31 @@ public static class RestaurantDb
     // Conexión y operaciones principales de SQL Server.
     private static string? _connectionString;
 
-    // Configura la conexión principal con la base de datos.
+    // Toma la conexión desde configuración, secretos locales o variables del servidor.
     public static void Configure(IConfiguration configuration)
     {
-        _connectionString = configuration.GetConnectionString("RestaurantDb")
-            ?? Environment.GetEnvironmentVariable("ConnectionStrings__RestaurantDb");
+        _connectionString =
+            Environment.GetEnvironmentVariable("ConnectionStrings__RestaurantDb")
+            ?? configuration.GetConnectionString("RestaurantDb")
+            ?? configuration["RestaurantDb:ConnectionString"];
     }
 
-    public static bool IsConfigured => !string.IsNullOrWhiteSpace(_connectionString)
-        && !_connectionString.Contains("TU_USUARIO_SQL", StringComparison.OrdinalIgnoreCase)
-        && !_connectionString.Contains("TU_PASSWORD_SQL", StringComparison.OrdinalIgnoreCase);
+    // Comprueba que exista una cadena utilizable antes de intentar abrir SQL Server.
+    public static bool IsConfigured => HasUsableConnectionString(_connectionString);
+
+    private static bool HasUsableConnectionString(string? connectionString)
+    {
+        if (string.IsNullOrWhiteSpace(connectionString)) return false;
+        if (connectionString.Contains("TU_USUARIO_SQL", StringComparison.OrdinalIgnoreCase)) return false;
+        if (connectionString.Contains("TU_PASSWORD_SQL", StringComparison.OrdinalIgnoreCase)) return false;
+
+        var lower = connectionString.ToLowerInvariant();
+        if (lower.Contains("password=;") || lower.Contains("pwd=;")) return false;
+
+        return connectionString.Contains("Integrated Security", StringComparison.OrdinalIgnoreCase)
+            || connectionString.Contains("User Id=", StringComparison.OrdinalIgnoreCase)
+            || connectionString.Contains("UID=", StringComparison.OrdinalIgnoreCase);
+    }
 
     // Abre una conexión activa con SQL Server.
     private static SqlConnection Open()
@@ -84,6 +99,53 @@ BEGIN
     );
 END;
 
+IF OBJECT_ID(N'dbo.AppAuthCodes', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.AppAuthCodes
+    (
+        AuthCodeId bigint IDENTITY(1,1) NOT NULL CONSTRAINT PK_AppAuthCodes PRIMARY KEY,
+        AccountId int NOT NULL,
+        Email nvarchar(254) NOT NULL,
+        Purpose nvarchar(40) NOT NULL,
+        CodeHash nvarchar(128) NOT NULL,
+        ExpiresAt datetime2(3) NOT NULL,
+        UsedAt datetime2(3) NULL,
+        CreatedAt datetime2(3) NOT NULL CONSTRAINT DF_AppAuthCodes_CreatedAt DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT FK_AppAuthCodes_Account FOREIGN KEY(AccountId) REFERENCES dbo.Accounts(AccountId) ON DELETE CASCADE
+    );
+END;
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name=N'IX_AppAuthCodes_Email_Purpose' AND object_id=OBJECT_ID(N'dbo.AppAuthCodes'))
+    CREATE INDEX IX_AppAuthCodes_Email_Purpose ON dbo.AppAuthCodes(Email,Purpose,CreatedAt DESC);
+
+IF OBJECT_ID(N'dbo.AppMailMessages', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.AppMailMessages
+    (
+        AppMailMessageId bigint IDENTITY(1,1) NOT NULL CONSTRAINT PK_AppMailMessages PRIMARY KEY,
+        SenderAccountId int NULL,
+        SenderEmail nvarchar(254) NOT NULL,
+        SenderName nvarchar(120) NOT NULL,
+        RecipientAccountId int NULL,
+        RecipientEmail nvarchar(254) NOT NULL,
+        RecipientName nvarchar(120) NULL,
+        CcJson nvarchar(max) NULL,
+        BccJson nvarchar(max) NULL,
+        Subject nvarchar(120) NOT NULL,
+        Body nvarchar(max) NOT NULL,
+        AttachmentsJson nvarchar(max) NULL,
+        IsRead bit NOT NULL CONSTRAINT DF_AppMailMessages_IsRead DEFAULT 0,
+        IsStarred bit NOT NULL CONSTRAINT DF_AppMailMessages_IsStarred DEFAULT 0,
+        IsArchived bit NOT NULL CONSTRAINT DF_AppMailMessages_IsArchived DEFAULT 0,
+        SentAt datetime2(3) NOT NULL CONSTRAINT DF_AppMailMessages_SentAt DEFAULT SYSUTCDATETIME(),
+        CONSTRAINT FK_AppMailMessages_Sender FOREIGN KEY(SenderAccountId) REFERENCES dbo.Accounts(AccountId),
+        CONSTRAINT FK_AppMailMessages_Recipient FOREIGN KEY(RecipientAccountId) REFERENCES dbo.Accounts(AccountId)
+    );
+END;
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name=N'IX_AppMailMessages_Recipient' AND object_id=OBJECT_ID(N'dbo.AppMailMessages'))
+    CREATE INDEX IX_AppMailMessages_Recipient ON dbo.AppMailMessages(RecipientAccountId,SentAt DESC);
+
 INSERT dbo.Permissions(PermissionKey,DisplayName,Description,ModuleName,IsActive)
 SELECT v.PermissionKey,v.DisplayName,v.Description,v.PermissionKey,1
 FROM (VALUES
@@ -100,7 +162,7 @@ INSERT dbo.Roles(Name,DisplayName,Description,IsSystemRole,IsActive,CreatedAt)
 SELECT v.Name,v.DisplayName,v.Description,1,1,SYSUTCDATETIME()
 FROM (VALUES
 (N'Administrador',N'Administrador',N'Administrador del sistema'),
-(N'Dueno',N'Administrador',N'Administrador principal'),
+(N'Dueno',N'Dueño',N'Administrador principal'),
 (N'Gerente',N'Gerente',N'Gestión operativa y reportes'),
 (N'Cajero',N'Cajero',N'Caja y atención'),
 (N'Inventario',N'Inventario',N'Inventario y catálogo'),
@@ -153,7 +215,7 @@ BEGIN
 END;
 
 IF EXISTS (SELECT 1 FROM dbo.Roles WHERE Name=N'Dueno')
-    UPDATE dbo.Roles SET IsSystemRole=1,IsActive=1,DisplayName=N'Administrador',Description=N'Administrador principal' WHERE Name=N'Dueno';
+    UPDATE dbo.Roles SET IsSystemRole=1,IsActive=1,DisplayName=N'Dueño',Description=N'Administrador principal' WHERE Name=N'Dueno';
 
 DECLARE @all TABLE(PermissionKey nvarchar(50) NOT NULL);
 INSERT @all VALUES (N'Dashboard'),(N'Menu'),(N'Orders'),(N'Kitchen'),(N'Delivery'),(N'Reservations'),(N'Customers'),(N'Notifications'),(N'Reports'),(N'Payments'),(N'Profile'),(N'LocalOrders'),(N'Workers'),(N'Ratings'),(N'Information');
@@ -237,6 +299,7 @@ AND NOT EXISTS(SELECT 1 FROM dbo.RolePermissions rp WHERE rp.RoleId=r.RoleId AND
             ProfilePhotoMediaAssetId = photoId,
             FailedLoginCount = rd.IsDBNull(15) ? 0 : rd.GetInt32(15),
             LockedUntil = rd.IsDBNull(16) ? null : rd.GetDateTime(16),
+            EmailVerified = rd.IsDBNull(17) || rd.GetBoolean(17),
             ProfilePhotoData = photoId.HasValue ? $"/Perfil1/Foto?accountId={rd.GetInt32(0)}&v={photoId.Value}" : string.Empty
         };
     }
@@ -248,7 +311,7 @@ SELECT TOP(1) a.AccountId,a.FullName,a.Email,r.Name,a.PasswordHash,a.PasswordSal
        CONVERT(nvarchar(40),DecryptByKey(a.PhoneCipher)) AS Phone,
        CONVERT(nvarchar(10),DecryptByKey(a.DuiCipher)) AS Dui,
        CONVERT(nvarchar(250),DecryptByKey(a.AddressCipher)) AS Address,
-       a.ProfilePhotoMediaAssetId,a.FailedLoginCount,a.LockedUntil
+       a.ProfilePhotoMediaAssetId,a.FailedLoginCount,a.LockedUntil,a.EmailConfirmed
 FROM dbo.Accounts a JOIN dbo.Roles r ON r.RoleId=a.RoleId
 WHERE LOWER(LTRIM(RTRIM(COALESCE(a.EmailNormalized,a.Email))))=@email AND (@includeInactive=1 OR a.IsActive=1);
 CLOSE SYMMETRIC KEY SK_RestauranteSensitiveData;";
@@ -279,7 +342,7 @@ SELECT a.AccountId,a.FullName,a.Email,r.Name,a.PasswordHash,a.PasswordSalt,a.IsA
        CONVERT(nvarchar(40),DecryptByKey(a.PhoneCipher)) AS Phone,
        CONVERT(nvarchar(10),DecryptByKey(a.DuiCipher)) AS Dui,
        CONVERT(nvarchar(250),DecryptByKey(a.AddressCipher)) AS Address,
-       a.ProfilePhotoMediaAssetId,a.FailedLoginCount,a.LockedUntil
+       a.ProfilePhotoMediaAssetId,a.FailedLoginCount,a.LockedUntil,a.EmailConfirmed
 FROM dbo.Accounts a JOIN dbo.Roles r ON r.RoleId=a.RoleId
 ORDER BY a.FullName,a.Email;
 CLOSE SYMMETRIC KEY SK_RestauranteSensitiveData;";
@@ -303,7 +366,7 @@ OPEN SYMMETRIC KEY SK_RestauranteSensitiveData DECRYPTION BY CERTIFICATE Cert_Re
 DECLARE @roleId int=(SELECT TOP(1) RoleId FROM dbo.Roles WHERE Name=@role AND IsActive=1);
 IF @roleId IS NULL BEGIN CLOSE SYMMETRIC KEY SK_RestauranteSensitiveData; ROLLBACK; THROW 50001, 'El rol indicado no existe.', 1; END;
 INSERT dbo.Accounts(RoleId,FullName,Email,Phone,Dui,Address,PasswordHash,PasswordSalt,IsActive,EmailConfirmed,CreatedAt,PasswordAlgorithm,PasswordIterations,PasswordKeyBytes,PasswordNeedsChange,FailedLoginCount,IsDemoAccount,LastPasswordChangedAt,EmailNormalized,EmailLookupHash,PhoneLookupHash,DuiLookupHash,PhoneCipher,DuiCipher,AddressCipher)
-VALUES(@roleId,@name,@email,NULL,NULL,NULL,@hash,@salt,1,1,SYSUTCDATETIME(),N'PBKDF2-HMAC-SHA256',@iters,@keyBytes,0,0,0,SYSUTCDATETIME(),@email,HASHBYTES('SHA2_256',CONVERT(varbinary(max),@email)),CASE WHEN NULLIF(@phone,N'') IS NULL THEN NULL ELSE HASHBYTES('SHA2_256',CONVERT(varbinary(max),LOWER(LTRIM(RTRIM(@phone))))) END,CASE WHEN NULLIF(@dui,N'') IS NULL THEN NULL ELSE HASHBYTES('SHA2_256',CONVERT(varbinary(max),LOWER(LTRIM(RTRIM(@dui))))) END,CASE WHEN NULLIF(@phone,N'') IS NULL THEN NULL ELSE EncryptByKey(Key_GUID(N'SK_RestauranteSensitiveData'),CONVERT(varbinary(max),@phone)) END,CASE WHEN NULLIF(@dui,N'') IS NULL THEN NULL ELSE EncryptByKey(Key_GUID(N'SK_RestauranteSensitiveData'),CONVERT(varbinary(max),@dui)) END,CASE WHEN NULLIF(@address,N'') IS NULL THEN NULL ELSE EncryptByKey(Key_GUID(N'SK_RestauranteSensitiveData'),CONVERT(varbinary(max),@address)) END);
+VALUES(@roleId,@name,@email,NULL,NULL,NULL,@hash,@salt,1,0,SYSUTCDATETIME(),N'PBKDF2-HMAC-SHA256',@iters,@keyBytes,0,0,0,SYSUTCDATETIME(),@email,HASHBYTES('SHA2_256',CONVERT(varbinary(max),@email)),CASE WHEN NULLIF(@phone,N'') IS NULL THEN NULL ELSE HASHBYTES('SHA2_256',CONVERT(varbinary(max),LOWER(LTRIM(RTRIM(@phone))))) END,CASE WHEN NULLIF(@dui,N'') IS NULL THEN NULL ELSE HASHBYTES('SHA2_256',CONVERT(varbinary(max),LOWER(LTRIM(RTRIM(@dui))))) END,CASE WHEN NULLIF(@phone,N'') IS NULL THEN NULL ELSE EncryptByKey(Key_GUID(N'SK_RestauranteSensitiveData'),CONVERT(varbinary(max),@phone)) END,CASE WHEN NULLIF(@dui,N'') IS NULL THEN NULL ELSE EncryptByKey(Key_GUID(N'SK_RestauranteSensitiveData'),CONVERT(varbinary(max),@dui)) END,CASE WHEN NULLIF(@address,N'') IS NULL THEN NULL ELSE EncryptByKey(Key_GUID(N'SK_RestauranteSensitiveData'),CONVERT(varbinary(max),@address)) END);
 DECLARE @accountId int=CONVERT(int,SCOPE_IDENTITY());
 IF @role=N'Cliente'
 BEGIN
@@ -927,6 +990,258 @@ SELECT TOP(1) StateJson FROM dbo.AppGlobalState WHERE StateKey=@key;
         cmd.ExecuteNonQuery();
     }
 
+
+    // Guarda un código temporal para confirmar una cuenta o recuperar una contraseña.
+    public static void SaveAuthCode(int accountId, string email, string purpose, string code, DateTime expiresAt)
+    {
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = @"
+DELETE FROM dbo.AppAuthCodes
+WHERE AccountId=@accountId AND Purpose=@purpose AND UsedAt IS NULL;
+
+INSERT dbo.AppAuthCodes(AccountId,Email,Purpose,CodeHash,ExpiresAt)
+VALUES(@accountId,@email,@purpose,@hash,@expiresAt);";
+        cmd.Parameters.Add("@accountId", SqlDbType.Int).Value = accountId;
+        cmd.Parameters.Add("@email", SqlDbType.NVarChar, 254).Value = email;
+        cmd.Parameters.Add("@purpose", SqlDbType.NVarChar, 40).Value = purpose;
+        cmd.Parameters.Add("@hash", SqlDbType.NVarChar, 128).Value = HashCode(code);
+        cmd.Parameters.Add("@expiresAt", SqlDbType.DateTime2).Value = expiresAt;
+        cmd.ExecuteNonQuery();
+    }
+
+    // Comprueba un código y lo marca como usado cuando es correcto.
+    public static bool ValidateAuthCode(string email, string purpose, string code)
+    {
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = @"
+SELECT TOP(1) AuthCodeId,CodeHash
+FROM dbo.AppAuthCodes
+WHERE Email=@email AND Purpose=@purpose AND UsedAt IS NULL AND ExpiresAt>SYSUTCDATETIME()
+ORDER BY AuthCodeId DESC;";
+        cmd.Parameters.Add("@email", SqlDbType.NVarChar, 254).Value = email;
+        cmd.Parameters.Add("@purpose", SqlDbType.NVarChar, 40).Value = purpose;
+
+        long id;
+        string expected;
+        using (var rd = cmd.ExecuteReader())
+        {
+            if (!rd.Read())
+                return false;
+
+            id = rd.GetInt64(0);
+            expected = rd.GetString(1);
+        }
+
+        if (!CryptographicOperations.FixedTimeEquals(
+                Convert.FromHexString(expected),
+                Convert.FromHexString(HashCode(code))))
+        {
+            return false;
+        }
+
+        using var update = connection.CreateCommand();
+        update.CommandText = "UPDATE dbo.AppAuthCodes SET UsedAt=SYSUTCDATETIME() WHERE AuthCodeId=@id AND UsedAt IS NULL;";
+        update.Parameters.Add("@id", SqlDbType.BigInt).Value = id;
+        return update.ExecuteNonQuery() == 1;
+    }
+
+    // Marca el correo de una cuenta como confirmado.
+    public static bool ConfirmEmail(int accountId)
+    {
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "UPDATE dbo.Accounts SET EmailConfirmed=1,UpdatedAt=SYSUTCDATETIME() WHERE AccountId=@accountId;";
+        cmd.Parameters.Add("@accountId", SqlDbType.Int).Value = accountId;
+        return cmd.ExecuteNonQuery() == 1;
+    }
+
+    // Guarda un correo interno para que aparezca en la bandeja del destinatario.
+    public static long SaveMailMessage(
+        int senderAccountId,
+        string senderEmail,
+        string senderName,
+        int? recipientAccountId,
+        string recipientEmail,
+        string? recipientName,
+        string subject,
+        string body,
+        string? ccJson,
+        string? bccJson,
+        string? attachmentsJson)
+    {
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = @"
+INSERT dbo.AppMailMessages
+(SenderAccountId,SenderEmail,SenderName,RecipientAccountId,RecipientEmail,RecipientName,CcJson,BccJson,Subject,Body,AttachmentsJson)
+OUTPUT INSERTED.AppMailMessageId
+VALUES
+(@senderAccountId,@senderEmail,@senderName,@recipientAccountId,@recipientEmail,@recipientName,@ccJson,@bccJson,@subject,@body,@attachmentsJson);";
+        cmd.Parameters.Add("@senderAccountId", SqlDbType.Int).Value = senderAccountId;
+        cmd.Parameters.Add("@senderEmail", SqlDbType.NVarChar, 254).Value = senderEmail;
+        cmd.Parameters.Add("@senderName", SqlDbType.NVarChar, 120).Value = senderName;
+        cmd.Parameters.Add("@recipientAccountId", SqlDbType.Int).Value = (object?)recipientAccountId ?? DBNull.Value;
+        cmd.Parameters.Add("@recipientEmail", SqlDbType.NVarChar, 254).Value = recipientEmail;
+        cmd.Parameters.Add("@recipientName", SqlDbType.NVarChar, 120).Value = (object?)recipientName ?? DBNull.Value;
+        cmd.Parameters.Add("@ccJson", SqlDbType.NVarChar, -1).Value = (object?)ccJson ?? DBNull.Value;
+        cmd.Parameters.Add("@bccJson", SqlDbType.NVarChar, -1).Value = (object?)bccJson ?? DBNull.Value;
+        cmd.Parameters.Add("@subject", SqlDbType.NVarChar, 120).Value = subject;
+        cmd.Parameters.Add("@body", SqlDbType.NVarChar, -1).Value = body;
+        cmd.Parameters.Add("@attachmentsJson", SqlDbType.NVarChar, -1).Value = (object?)attachmentsJson ?? DBNull.Value;
+        return Convert.ToInt64(cmd.ExecuteScalar());
+    }
+
+    // Obtiene los correos que pertenecen a la cuenta actual.
+    public static List<MailMessageRecord> GetMailMessages(int accountId)
+    {
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = @"
+SELECT AppMailMessageId,SenderAccountId,SenderEmail,SenderName,RecipientAccountId,RecipientEmail,
+       RecipientName,CcJson,BccJson,Subject,Body,AttachmentsJson,IsRead,IsStarred,IsArchived,SentAt
+FROM dbo.AppMailMessages
+WHERE RecipientAccountId=@accountId OR SenderAccountId=@accountId
+ORDER BY SentAt DESC,AppMailMessageId DESC;";
+        cmd.Parameters.Add("@accountId", SqlDbType.Int).Value = accountId;
+
+        using var rd = cmd.ExecuteReader();
+        var result = new List<MailMessageRecord>();
+        while (rd.Read())
+        {
+            result.Add(new MailMessageRecord(
+                rd.GetInt64(0),
+                rd.IsDBNull(1) ? null : rd.GetInt32(1),
+                rd.GetString(2),
+                rd.GetString(3),
+                rd.IsDBNull(4) ? null : rd.GetInt32(4),
+                rd.GetString(5),
+                rd.IsDBNull(6) ? "" : rd.GetString(6),
+                rd.IsDBNull(7) ? "[]" : rd.GetString(7),
+                rd.IsDBNull(8) ? "[]" : rd.GetString(8),
+                rd.GetString(9),
+                rd.GetString(10),
+                rd.IsDBNull(11) ? "[]" : rd.GetString(11),
+                rd.GetBoolean(12),
+                rd.GetBoolean(13),
+                rd.GetBoolean(14),
+                rd.GetDateTime(15)));
+        }
+
+        return result;
+    }
+
+    // Actualiza si un correo fue leído.
+    public static void MarkMailRead(int accountId, long messageId, bool read)
+    {
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "UPDATE dbo.AppMailMessages SET IsRead=@read WHERE AppMailMessageId=@id AND RecipientAccountId=@accountId;";
+        cmd.Parameters.Add("@read", SqlDbType.Bit).Value = read;
+        cmd.Parameters.Add("@id", SqlDbType.BigInt).Value = messageId;
+        cmd.Parameters.Add("@accountId", SqlDbType.Int).Value = accountId;
+        cmd.ExecuteNonQuery();
+    }
+
+    // Elimina un correo interno de la bandeja del usuario.
+    public static void DeleteMail(int accountId, long messageId)
+    {
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "DELETE FROM dbo.AppMailMessages WHERE AppMailMessageId=@id AND (RecipientAccountId=@accountId OR SenderAccountId=@accountId);";
+        cmd.Parameters.Add("@id", SqlDbType.BigInt).Value = messageId;
+        cmd.Parameters.Add("@accountId", SqlDbType.Int).Value = accountId;
+        cmd.ExecuteNonQuery();
+    }
+
+    // Actualiza si un correo está destacado o archivado.
+    public static void UpdateMailFlags(int accountId, long messageId, bool? starred = null, bool? archived = null)
+    {
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = @"
+UPDATE dbo.AppMailMessages
+SET IsStarred=COALESCE(@starred,IsStarred),
+    IsArchived=COALESCE(@archived,IsArchived)
+WHERE AppMailMessageId=@id AND RecipientAccountId=@accountId;";
+        cmd.Parameters.Add("@starred", SqlDbType.Bit).Value = (object?)starred ?? DBNull.Value;
+        cmd.Parameters.Add("@archived", SqlDbType.Bit).Value = (object?)archived ?? DBNull.Value;
+        cmd.Parameters.Add("@id", SqlDbType.BigInt).Value = messageId;
+        cmd.Parameters.Add("@accountId", SqlDbType.Int).Value = accountId;
+        cmd.ExecuteNonQuery();
+    }
+
+    private static string HashCode(string code)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes((code ?? "").Trim()));
+        return Convert.ToHexString(bytes);
+    }
+
+    public sealed record MailMessageRecord(
+        long Id,
+        int? SenderAccountId,
+        string SenderEmail,
+        string SenderName,
+        int? RecipientAccountId,
+        string RecipientEmail,
+        string RecipientName,
+        string CcJson,
+        string BccJson,
+        string Subject,
+        string Body,
+        string AttachmentsJson,
+        bool IsRead,
+        bool IsStarred,
+        bool IsArchived,
+        DateTime SentAt);
+
+    // Lee el catálogo actual directamente desde SQL Server.
+    public static List<MenuCatalogItem> GetMenuCatalog()
+    {
+        if (!IsConfigured) return [];
+
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandTimeout = 60;
+        cmd.CommandText = @"
+SELECT
+    p.ProductId,
+    c.Name AS CategoryName,
+    p.Name,
+    p.Description,
+    p.Price,
+    p.IsAvailable
+FROM dbo.Products p
+LEFT JOIN dbo.MenuCategories c ON c.CategoryId=p.CategoryId
+WHERE p.IsDeleted=0
+ORDER BY ISNULL(c.DisplayOrder,9999), ISNULL(p.DisplayOrder,9999), p.Name;";
+
+        using var reader = cmd.ExecuteReader();
+        var result = new List<MenuCatalogItem>();
+
+        while (reader.Read())
+        {
+            result.Add(new MenuCatalogItem(
+                reader.GetInt32(0),
+                reader.IsDBNull(1) ? "Sin categoría" : reader.GetString(1),
+                reader.IsDBNull(2) ? "Producto" : reader.GetString(2),
+                reader.IsDBNull(3) ? "" : reader.GetString(3),
+                reader.GetDecimal(4),
+                !reader.IsDBNull(5) && reader.GetBoolean(5)));
+        }
+
+        return result;
+    }
+
+    public sealed record MenuCatalogItem(
+        int ProductId,
+        string CategoryName,
+        string Name,
+        string Description,
+        decimal Price,
+        bool IsAvailable);
+
     // Ejecuta el comando SQL preparado y devuelve su resultado.
     public static int Execute(string sql, IDictionary<string, object?> parameters)
     {
@@ -984,6 +1299,35 @@ SELECT TOP(1) StateJson FROM dbo.AppGlobalState WHERE StateKey=@key;
         else lines.Add($"PRIVACIDAD | Rol {user.Rol}. Solo responde con información pública y con información operativa que corresponda al rol y sus permisos. Nunca reveles datos privados de terceros.");
         return string.Join("\n",lines);
     }
+
+    // Recupera los últimos mensajes para que la conversación continúe sin empezar de cero.
+    public static List<ChatHistoryRecord> GetRecentChatHistory(int accountId, int take = 12)
+    {
+        if (!IsConfigured || accountId <= 0)
+            return [];
+
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = @"
+SELECT TOP(@take) m.SenderType,m.MessageText
+FROM dbo.ChatMessages m
+INNER JOIN dbo.ChatSessions s ON s.ChatSessionId=m.ChatSessionId
+WHERE s.AccountId=@accountId AND s.Status=N'Abierta'
+ORDER BY m.ChatMessageId DESC;";
+        cmd.Parameters.Add("@take", SqlDbType.Int).Value = Math.Clamp(take, 2, 30);
+        cmd.Parameters.Add("@accountId", SqlDbType.Int).Value = accountId;
+
+        using var rd = cmd.ExecuteReader();
+        var result = new List<ChatHistoryRecord>();
+
+        while (rd.Read())
+            result.Add(new ChatHistoryRecord(rd.GetString(0), rd.GetString(1)));
+
+        result.Reverse();
+        return result;
+    }
+
+    public sealed record ChatHistoryRecord(string SenderType, string MessageText);
 
     // Guarda la conversación del chatbot en la base de datos.
     public static void SaveChatExchange(int accountId,string question,string answer,string role)
