@@ -1,15 +1,21 @@
+
 (() => {
     const apiBase = '/api';
     const userKeys = new Set(['esfe_carrito','esfe_pedidos','esfe_ventas','esfe_reservas','restaurantebd_calificaciones','restaurantebd_notificaciones','esfe_reportes_guardados','esfe_report_periodo_inicio','esfe_reportes_semanales','restaurantebd_mail_draft']);
     const globalKeys = new Set(['restaurantebd_product_overrides','restaurantebd_product_deleted','restaurantebd_custom_categories']);
+    // Obtiene el rol del usuario actual.
     const role = () => (document.body?.dataset.role || 'Publico').trim();
     const originalSet = localStorage.setItem.bind(localStorage);
     const originalRemove = localStorage.removeItem.bind(localStorage);
     let hydrating = false;
     const timers = new Map();
+    // Obtiene el token utilizado para la operación actual.
     const token = () => document.querySelector('meta[name="request-verification-token"]')?.content || '';
+    // Procesa la información de auth.
     const auth = () => document.body?.dataset.auth === 'true' || document.body?.dataset.auth === 'True';
+    // Procesa la información de key allowed.
     const keyAllowed = key => userKeys.has(key) || globalKeys.has(key);
+    // Sincroniza los datos entre la interfaz y la base de datos.
     async function sync(key, raw) {
         if (hydrating || !auth() || !keyAllowed(key)) return;
         clearTimeout(timers.get(key));
@@ -19,6 +25,7 @@
                 const t = token(); if (t) headers['RequestVerificationToken'] = t;
                 await fetch(apiBase + '/state/sync', { method:'POST', credentials:'same-origin', headers, body:JSON.stringify({ key, value: raw === null ? null : (() => { try { return JSON.parse(raw); } catch { return raw; } })() }) });
                 if (key === 'esfe_pedidos' && role() !== 'Publico' && raw !== null) {
+                    // Procesa la información de parsed.
                     const parsed = (() => { try { const v = JSON.parse(raw); return Array.isArray(v) ? v : []; } catch { return []; } })();
                     await fetch(apiBase + '/state/operational-orders', { method:'POST', credentials:'same-origin', headers, body:JSON.stringify({ orders: parsed }) });
                 }
@@ -29,6 +36,7 @@
     localStorage.removeItem = key => { originalRemove(key); sync(key, null); };
 
     let operationalRefreshBusy = false;
+    // Procesa la información de refresh operational orders.
     async function refreshOperationalOrders() {
         if (operationalRefreshBusy || role() === 'Publico' || !auth()) return;
         operationalRefreshBusy = true;
@@ -42,6 +50,7 @@
         finally { operationalRefreshBusy = false; }
     }
 
+    // Procesa la información de bootstrap.
     async function bootstrap() {
         try {
             const response = await fetch(apiBase + '/state/bootstrap', { credentials:'same-origin', cache:'no-store' });
@@ -58,6 +67,7 @@
             document.dispatchEvent(new CustomEvent('esfe:database-ready'));
         } catch { hydrating = false; }
     }
+    // Evento que conecta una acción del usuario con la lógica del módulo.
     document.addEventListener('DOMContentLoaded', bootstrap, { once:true });
     setInterval(refreshOperationalOrders, 3000);
 })();

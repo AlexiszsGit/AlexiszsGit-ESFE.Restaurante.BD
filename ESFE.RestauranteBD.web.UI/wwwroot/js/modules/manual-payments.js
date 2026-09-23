@@ -1,26 +1,41 @@
+
 (() => {
     if (!window.ESFERestaurante) return;
     const app = ESFERestaurante;
+    // Lee los datos guardados del módulo.
     const read = key => { try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch { return []; } };
+    // Guarda los datos actuales del módulo.
     const write = (key, value) => localStorage.setItem(key, JSON.stringify(value));
+    // Obtiene el rol del usuario actual.
     const role = () => document.body?.dataset.role || "Publico";
+    // Escapa caracteres especiales para insertar texto de forma segura en HTML.
     const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+    // Conserva solo los dígitos válidos del valor recibido.
     const digit = v => String(v || "").replace(/\D/g, "");
+    // Valida un número de tarjeta con el algoritmo de Luhn.
     const luhn = number => { let sum=0, dbl=false; for(let i=number.length-1;i>=0;i--){let n=Number(number[i]);if(dbl){n*=2;if(n>9)n-=9;}sum+=n;dbl=!dbl;} return sum%10===0; };
+    // Comprueba que el nombre tenga un formato válido.
     const validName = v => /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñÀ-ÿ' -]{3,60}$/.test(v);
+    // Obtiene las facturas disponibles para el usuario.
     const invoices = id => app.invoices?.get?.(id) || null;
+    // Obtiene los registros que todavía están pendientes.
     const pending = () => read(app.KEY.orders).filter(o => o.paymentStatus !== "Pagado" && !['Cancelado'].includes(o.status));
+    // Obtiene los datos del pedido seleccionado.
     const getOrder = id => read(app.KEY.orders).find(o => o.id === id);
 
+    // Estado compartido del módulo: manager.
     const manager = {
         selectedId: null,
         filter: "",
         init(){
             if(!["Dueno","Administrador","Barra"].includes(role())) return;
             const search=document.getElementById("manualPaymentSearch");
+            // Evento que conecta una acción del usuario con la lógica del módulo.
             search?.addEventListener("input",()=>{this.filter=search.value.trim().toLowerCase();this.renderList();});
             this.renderList();
+            // Evento que conecta una acción del usuario con la lógica del módulo.
             const close=document.getElementById("manualPaymentClose"); close?.addEventListener("click",()=>this.close());
+            // Evento que conecta una acción del usuario con la lógica del módulo.
             document.getElementById("manualPaymentBackdrop")?.addEventListener("click",e=>{if(e.target.id==="manualPaymentBackdrop")this.close();});
         },
         renderList(){
@@ -50,8 +65,11 @@
             if(method==="Efectivo") box.innerHTML='<div class="manual-method-note"><strong>Efectivo</strong><span>Registra el pago recibido en caja. No se almacenan datos bancarios.</span></div>';
             else if(method==="Transferencia") box.innerHTML='<label class="field-label">Referencia de transferencia<input id="manualTransferRef" maxlength="40" placeholder="TRX-2026-001245"></label>';
             else box.innerHTML='<div class="manual-card-grid"><label class="field-label">Titular<input id="manualCardName" maxlength="60" placeholder="NOMBRE DEL TITULAR"></label><label class="field-label">Número<input id="manualCardNumber" maxlength="23" inputmode="numeric" placeholder="0000 0000 0000 0000"></label><label class="field-label">Vencimiento<input id="manualCardExpiry" maxlength="5" placeholder="MM/AA"></label><label class="field-label">CVV<input id="manualCardCvv" maxlength="4" inputmode="numeric" placeholder="123"></label></div>';
+            // Evento que conecta una acción del usuario con la lógica del módulo.
             document.getElementById("manualCardNumber")?.addEventListener("input",e=>{const d=digit(e.target.value).slice(0,19);e.target.value=(d.match(/.{1,4}/g)||[]).join(" ");});
+            // Evento que conecta una acción del usuario con la lógica del módulo.
             document.getElementById("manualCardExpiry")?.addEventListener("input",e=>{let d=digit(e.target.value).slice(0,4);if(d.length>2)d=`${d.slice(0,2)}/${d.slice(2)}`;e.target.value=d;});
+            // Evento que conecta una acción del usuario con la lógica del módulo.
             document.getElementById("manualCardCvv")?.addEventListener("input",e=>e.target.value=digit(e.target.value).slice(0,4));
         },
         complete(){
@@ -80,5 +98,6 @@
         }
     };
     app.manualPayments=manager;
+    // Evento que conecta una acción del usuario con la lógica del módulo.
     document.addEventListener("DOMContentLoaded",()=>manager.init());
 })();

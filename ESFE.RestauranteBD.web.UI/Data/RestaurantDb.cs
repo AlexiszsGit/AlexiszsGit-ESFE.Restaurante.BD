@@ -1,3 +1,4 @@
+
 using System.Data;
 using System.Security.Cryptography;
 using System.Text;
@@ -9,8 +10,10 @@ namespace ESFE.RestauranteBD.web.UI.Data;
 
 public static class RestaurantDb
 {
+    // Conexión y operaciones principales de SQL Server.
     private static string? _connectionString;
 
+    // Configura la conexión principal con la base de datos.
     public static void Configure(IConfiguration configuration)
     {
         _connectionString = configuration.GetConnectionString("RestaurantDb")
@@ -21,6 +24,7 @@ public static class RestaurantDb
         && !_connectionString.Contains("TU_USUARIO_SQL", StringComparison.OrdinalIgnoreCase)
         && !_connectionString.Contains("TU_PASSWORD_SQL", StringComparison.OrdinalIgnoreCase);
 
+    // Abre una conexión activa con SQL Server.
     private static SqlConnection Open()
     {
         if (!IsConfigured)
@@ -30,6 +34,7 @@ public static class RestaurantDb
         return connection;
     }
 
+    // Prepara el comando SQL y sus parámetros.
     private static SqlCommand Command(SqlConnection connection, string sql, IDictionary<string, object?>? parameters = null)
     {
         var cmd = connection.CreateCommand();
@@ -46,6 +51,8 @@ public static class RestaurantDb
         return cmd;
     }
 
+    // Inicializa tablas auxiliares necesarias para el estado de la aplicación.
+    // Crea y sincroniza las tablas auxiliares que necesita la aplicación.
     public static void EnsureBridgeSchema()
     {
         if (!IsConfigured) return;
@@ -207,6 +214,7 @@ AND NOT EXISTS(SELECT 1 FROM dbo.RolePermissions rp WHERE rp.RoleId=r.RoleId AND
         cmd.ExecuteNonQuery();
     }
 
+    // Convierte los datos de la cuenta de SQL al modelo de la aplicación.
     private static UserAccount MapAccount(SqlDataReader rd)
     {
         var photoId = rd.IsDBNull(14) ? (long?)null : rd.GetInt64(14);
@@ -245,6 +253,7 @@ FROM dbo.Accounts a JOIN dbo.Roles r ON r.RoleId=a.RoleId
 WHERE LOWER(LTRIM(RTRIM(COALESCE(a.EmailNormalized,a.Email))))=@email AND (@includeInactive=1 OR a.IsActive=1);
 CLOSE SYMMETRIC KEY SK_RestauranteSensitiveData;";
 
+    // Obtiene los datos de la cuenta solicitada.
     public static UserAccount? GetAccount(string email, bool includeInactive = false)
     {
         if (!IsConfigured) return null;
@@ -257,6 +266,7 @@ CLOSE SYMMETRIC KEY SK_RestauranteSensitiveData;";
         return rd.Read() ? MapAccount(rd) : null;
     }
 
+    // Obtiene las cuentas que cumplen los filtros indicados.
     public static List<UserAccount> GetAccounts()
     {
         if (!IsConfigured) return [];
@@ -279,6 +289,7 @@ CLOSE SYMMETRIC KEY SK_RestauranteSensitiveData;";
         return list;
     }
 
+    // Crea una nueva cuenta y registra sus datos de acceso.
     public static bool CreateAccount(UserAccount user)
     {
         if (!IsConfigured) return false;
@@ -311,8 +322,10 @@ COMMIT;";
         return true;
     }
 
+    // Actualiza los datos principales de una cuenta.
     public static bool UpdateAccount(UserAccount user) => UpdateAccount(user, false);
 
+    // Actualiza los datos principales de una cuenta.
     public static bool UpdateAccount(UserAccount user, bool resetLoginState)
     {
         if (!IsConfigured) return false;
@@ -367,6 +380,7 @@ COMMIT;";
         return true;
     }
 
+    // Actualiza el rol asignado a una cuenta.
     public static bool UpdateAccountRole(int accountId, string role, bool? active = null)
     {
         if (!IsConfigured || accountId <= 0 || string.IsNullOrWhiteSpace(role)) return false;
@@ -457,6 +471,7 @@ COMMIT;";
         return true;
     }
 
+    // Convierte una cuenta existente en trabajador y crea su perfil laboral.
     public static bool PromoteAccountToWorker(int accountId, string role, string password)
     {
         if (!IsConfigured || accountId <= 0 || string.IsNullOrWhiteSpace(role) || string.IsNullOrWhiteSpace(password)) return false;
@@ -501,6 +516,7 @@ COMMIT;";
         return true;
     }
 
+    // Actualiza la contraseña de la cuenta.
     public static bool ChangePassword(int accountId, string password)
     {
         if (!IsConfigured) return false;
@@ -515,6 +531,7 @@ COMMIT;";
         return cmd.ExecuteNonQuery() == 1;
     }
 
+    // Obtiene el estado de salud de la conexión y los componentes principales.
     public static DatabaseHealth GetHealth()
     {
         if (!IsConfigured)
@@ -570,6 +587,7 @@ CLOSE SYMMETRIC KEY SK_RestauranteSensitiveData;";
         return new DatabaseHealth(true, master, cert, sym, encryptionWorks, empUpdated, paidNullable, accountsCount, employeeCount, productCount);
     }
 
+    // Registra un inicio de sesión correcto y limpia los intentos fallidos.
     public static bool RecordLoginSuccess(int accountId)
     {
         if (!IsConfigured || accountId <= 0) return false;
@@ -581,6 +599,7 @@ CLOSE SYMMETRIC KEY SK_RestauranteSensitiveData;";
         return true;
     }
 
+    // Registra un intento fallido de inicio de sesión.
     public static bool RecordLoginFailure(int accountId)
     {
         if (!IsConfigured || accountId <= 0) return false;
@@ -592,6 +611,7 @@ CLOSE SYMMETRIC KEY SK_RestauranteSensitiveData;";
         return true;
     }
 
+    // Guarda la foto de perfil y su referencia en la base de datos.
     public static bool SaveProfilePhoto(int accountId, string fileName, string contentType, byte[] content)
     {
         if (!IsConfigured || accountId <= 0 || content is null || content.Length == 0) return false;
@@ -650,6 +670,7 @@ SELECT @newId;";
         }
     }
 
+    // Elimina la foto de perfil asociada a la cuenta.
     public static bool DeleteProfilePhoto(int accountId)
     {
         if (!IsConfigured || accountId <= 0) return false;
@@ -690,8 +711,10 @@ WHERE AccountId=@AccountId;";
         }
     }
 
+    // Obtiene la imagen almacenada en el sistema de medios.
     public sealed record MediaImage(byte[] Content, string ContentType, string FileName);
 
+    // Obtiene la foto de perfil guardada para la cuenta.
     public static MediaImage? GetProfilePhoto(int accountId)
     {
         if (!IsConfigured || accountId <= 0) return null;
@@ -726,6 +749,7 @@ CLOSE SYMMETRIC KEY SK_RestauranteSensitiveData;";
         return new MediaImage(encryptedReader.GetFieldValue<byte[]>(2), encryptedReader.GetString(0), encryptedReader.GetString(1));
     }
 
+    // Agrega los parámetros al comando SQL antes de ejecutarlo.
     private static void AddParameters(SqlCommand cmd, UserAccount user)
     {
         cmd.Parameters.Add("@role", SqlDbType.NVarChar, 50).Value = user.Rol;
@@ -741,6 +765,7 @@ CLOSE SYMMETRIC KEY SK_RestauranteSensitiveData;";
         cmd.Parameters.Add("@active", SqlDbType.Bit).Value = user.Activo;
     }
 
+    // Obtiene los roles disponibles en el sistema.
     public static List<RoleDefinition> GetRoles()
     {
         if (!IsConfigured) return [];
@@ -764,6 +789,7 @@ WHERE r.IsActive=1 ORDER BY CASE WHEN r.Name=N'Administrador' THEN 0 WHEN r.Name
         return map.Values.ToList();
     }
 
+    // Obtiene los estados guardados para un usuario.
     public static Dictionary<string,string> GetUserStates(int accountId, IEnumerable<string> keys)
     {
         if (!IsConfigured) return [];
@@ -772,38 +798,87 @@ WHERE r.IsActive=1 ORDER BY CASE WHEN r.Name=N'Administrador' THEN 0 WHEN r.Name
         using var connection = Open();
         using var cmd = connection.CreateCommand();
         var paramsSql = new List<string>();
-        for (var i=0;i<keyList.Length;i++) { var p=cmd.Parameters.Add("@k"+i,SqlDbType.NVarChar,160);p.Value=keyList[i];paramsSql.Add(p.ParameterName); }
-        cmd.Parameters.Add("@accountId",SqlDbType.Int).Value=accountId;
-        cmd.CommandText=$"SELECT StateKey,StateJson FROM dbo.AppUserState WHERE AccountId=@accountId AND StateKey IN ({string.Join(",",paramsSql)});";
-        using var rd=cmd.ExecuteReader();
-        var result=new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase);
-        while(rd.Read()) result[rd.GetString(0)]=rd.GetString(1);
+        for (var i = 0; i < keyList.Length; i++)
+        {
+            var parameter = cmd.Parameters.Add($"@k{i}", SqlDbType.NVarChar, 160);
+            parameter.Value = keyList[i];
+            paramsSql.Add(parameter.ParameterName);
+        }
+
+        cmd.Parameters.Add("@accountId", SqlDbType.Int).Value = accountId;
+        cmd.CommandText = $"SELECT StateKey,StateJson FROM dbo.AppUserState WHERE AccountId=@accountId AND StateKey IN ({string.Join(",", paramsSql)});";
+
+        using var rd = cmd.ExecuteReader();
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        while (rd.Read())
+            result[rd.GetString(0)] = rd.GetString(1);
+
         return result;
     }
 
-    public static Dictionary<string,string> GetGlobalStates(IEnumerable<string> keys)
+    // Obtiene los estados generales guardados por la aplicación.
+    public static Dictionary<string, string> GetGlobalStates(IEnumerable<string> keys)
     {
-        if (!IsConfigured) return [];
-        var keyList=keys.Where(k=>!string.IsNullOrWhiteSpace(k)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
-        if(keyList.Length==0)return [];
-        using var connection=Open(); using var cmd=connection.CreateCommand();
-        var ps=new List<string>(); for(var i=0;i<keyList.Length;i++){var p=cmd.Parameters.Add("@k"+i,SqlDbType.NVarChar,160);p.Value=keyList[i];ps.Add(p.ParameterName);} cmd.CommandText=$"SELECT StateKey,StateJson FROM dbo.AppGlobalState WHERE StateKey IN ({string.Join(",",ps)});";
-        using var rd=cmd.ExecuteReader(); var result=new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase); while(rd.Read())result[rd.GetString(0)]=rd.GetString(1); return result;
+        if (!IsConfigured)
+            return [];
+
+        var keyList = keys
+            .Where(k => !string.IsNullOrWhiteSpace(k))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (keyList.Length == 0)
+            return [];
+
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        var parametersSql = new List<string>();
+
+        for (var i = 0; i < keyList.Length; i++)
+        {
+            var parameter = cmd.Parameters.Add($"@k{i}", SqlDbType.NVarChar, 160);
+            parameter.Value = keyList[i];
+            parametersSql.Add(parameter.ParameterName);
+        }
+
+        cmd.CommandText = $"SELECT StateKey,StateJson FROM dbo.AppGlobalState WHERE StateKey IN ({string.Join(",", parametersSql)});";
+
+        using var rd = cmd.ExecuteReader();
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        while (rd.Read())
+            result[rd.GetString(0)] = rd.GetString(1);
+
+        return result;
     }
 
-    public static void SaveUserState(int accountId,string key,string rawJson)
+    // Guarda el estado de interfaz asociado al usuario.
+    public static void SaveUserState(int accountId, string key, string rawJson)
     {
-        using var connection=Open(); using var cmd=connection.CreateCommand();
-        cmd.CommandText=@"UPDATE dbo.AppUserState SET StateJson=@json,UpdatedAt=SYSUTCDATETIME() WHERE AccountId=@accountId AND StateKey=@key;
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = @"UPDATE dbo.AppUserState SET StateJson=@json,UpdatedAt=SYSUTCDATETIME() WHERE AccountId=@accountId AND StateKey=@key;
 IF @@ROWCOUNT=0 INSERT dbo.AppUserState(AccountId,StateKey,StateJson) VALUES(@accountId,@key,@json);";
-        cmd.Parameters.Add("@accountId",SqlDbType.Int).Value=accountId; cmd.Parameters.Add("@key",SqlDbType.NVarChar,160).Value=key; cmd.Parameters.Add("@json",SqlDbType.NVarChar,-1).Value=rawJson; cmd.ExecuteNonQuery();
+
+        cmd.Parameters.Add("@accountId", SqlDbType.Int).Value = accountId;
+        cmd.Parameters.Add("@key", SqlDbType.NVarChar, 160).Value = key;
+        cmd.Parameters.Add("@json", SqlDbType.NVarChar, -1).Value = rawJson;
+        cmd.ExecuteNonQuery();
     }
 
-    public static void SaveGlobalState(string key,string rawJson)
+    // Guarda un estado general compartido por la aplicación.
+    public static void SaveGlobalState(string key, string rawJson)
     {
-        using var connection=Open(); using var cmd=connection.CreateCommand(); cmd.CommandText=@"UPDATE dbo.AppGlobalState SET StateJson=@json,UpdatedAt=SYSUTCDATETIME() WHERE StateKey=@key; IF @@ROWCOUNT=0 INSERT dbo.AppGlobalState(StateKey,StateJson) VALUES(@key,@json);"; cmd.Parameters.Add("@key",SqlDbType.NVarChar,160).Value=key;cmd.Parameters.Add("@json",SqlDbType.NVarChar,-1).Value=rawJson;cmd.ExecuteNonQuery();
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = @"UPDATE dbo.AppGlobalState SET StateJson=@json,UpdatedAt=SYSUTCDATETIME() WHERE StateKey=@key; IF @@ROWCOUNT=0 INSERT dbo.AppGlobalState(StateKey,StateJson) VALUES(@key,@json);";
+        cmd.Parameters.Add("@key", SqlDbType.NVarChar, 160).Value = key;
+        cmd.Parameters.Add("@json", SqlDbType.NVarChar, -1).Value = rawJson;
+        cmd.ExecuteNonQuery();
     }
 
+    // Obtiene el estado persistido de los pedidos operativos.
     public static string GetOperationalOrdersJson(string key)
     {
         if (!IsConfigured) return "[]";
@@ -835,26 +910,39 @@ SELECT TOP(1) StateJson FROM dbo.AppGlobalState WHERE StateKey=@key;
         return System.Text.Json.JsonSerializer.Serialize(merged);
     }
 
+    // Guarda el estado operativo de los pedidos en la base de datos.
     public static void SaveOperationalOrdersJson(string key, string rawJson)
     {
         SaveGlobalState(key, rawJson);
     }
 
-    public static void DeleteUserState(int accountId,string key)
+    // Elimina o limpia los datos de delete user state.
+    public static void DeleteUserState(int accountId, string key)
     {
-        using var connection=Open(); using var cmd=connection.CreateCommand();cmd.CommandText="DELETE dbo.AppUserState WHERE AccountId=@accountId AND StateKey=@key;";cmd.Parameters.Add("@accountId",SqlDbType.Int).Value=accountId;cmd.Parameters.Add("@key",SqlDbType.NVarChar,160).Value=key;cmd.ExecuteNonQuery();
+        using var connection = Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "DELETE dbo.AppUserState WHERE AccountId=@accountId AND StateKey=@key;";
+        cmd.Parameters.Add("@accountId", SqlDbType.Int).Value = accountId;
+        cmd.Parameters.Add("@key", SqlDbType.NVarChar, 160).Value = key;
+        cmd.ExecuteNonQuery();
     }
 
+    // Ejecuta el comando SQL preparado y devuelve su resultado.
     public static int Execute(string sql, IDictionary<string, object?> parameters)
     {
         using var connection = Open();
         using var cmd = connection.CreateCommand();
         cmd.CommandText = sql;
         cmd.CommandTimeout = 60;
-        foreach (var pair in parameters) { var p = cmd.Parameters.Add("@" + pair.Key, SqlDbType.NVarChar, -1); p.Value = pair.Value ?? DBNull.Value; }
+        foreach (var pair in parameters)
+        {
+            var parameter = cmd.Parameters.Add("@" + pair.Key, SqlDbType.NVarChar, -1);
+            parameter.Value = pair.Value ?? DBNull.Value;
+        }
         return cmd.ExecuteNonQuery();
     }
 
+    // Construye el contexto de datos que puede consultar la IA.
     public static string BuildAssistantContext(UserAccount user)
     {
         if (!IsConfigured) return "Base de datos no configurada. Usa la información pública del sitio y no inventes datos.";
@@ -897,6 +985,7 @@ SELECT TOP(1) StateJson FROM dbo.AppGlobalState WHERE StateKey=@key;
         return string.Join("\n",lines);
     }
 
+    // Guarda la conversación del chatbot en la base de datos.
     public static void SaveChatExchange(int accountId,string question,string answer,string role)
     {
         if (!IsConfigured || accountId<=0) return;
@@ -908,6 +997,7 @@ SELECT TOP(1) StateJson FROM dbo.AppGlobalState WHERE StateKey=@key;
         tx.Commit();
     }
 
+// Comprueba que la conexión y los componentes principales de la base estén disponibles.
 public sealed record DatabaseHealth(
     bool Connected,
     bool MasterKeyExists,

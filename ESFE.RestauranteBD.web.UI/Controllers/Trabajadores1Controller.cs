@@ -1,4 +1,5 @@
-﻿using ESFE.RestauranteBD.web.UI.Models;
+
+using ESFE.RestauranteBD.web.UI.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.RegularExpressions;
 
@@ -8,18 +9,30 @@ namespace ESFE.RestauranteBD.web.UI.Controllers;
 public class Trabajadores1Controller : Controller
 {
     [HttpGet]
+    // Carga la vista principal del módulo.
     public IActionResult Index()
     {
         if (!IsOwner()) return Forbid();
         var users = UserStore.All();
-        ViewBag.Clients = users.Where(x => x.Rol.Equals("Cliente", StringComparison.OrdinalIgnoreCase)).OrderBy(x => x.Nombre).ToArray();
+        ViewBag.Clients = users
+            .Where(x => x.Rol.Equals("Cliente", StringComparison.OrdinalIgnoreCase))
+            .OrderBy(x => x.Nombre)
+            .ToArray();
         ViewBag.Roles = RoleStore.All();
         ViewBag.PermissionLabels = RoleStore.PermissionLabels;
-        return View(users.Where(x => !x.Rol.Equals("Cliente", StringComparison.OrdinalIgnoreCase)).OrderBy(x => RoleStore.IsAdministrator(x.Rol) ? 0 : 1).ThenBy(x => x.Nombre).ToArray());
+
+        var workers = users
+            .Where(x => !x.Rol.Equals("Cliente", StringComparison.OrdinalIgnoreCase))
+            .OrderBy(x => RoleStore.IsAdministrator(x.Rol) ? 0 : 1)
+            .ThenBy(x => x.Nombre)
+            .ToArray();
+
+        return View(workers);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    // Crea un nuevo rol con sus datos básicos.
     public IActionResult CrearRol(string nombre, string[] permisos)
     {
         if (!IsOwner()) return Forbid();
@@ -34,6 +47,7 @@ public class Trabajadores1Controller : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    // Actualiza los permisos asociados a un rol.
     public IActionResult EditarPermisos(string rol, string[] permisos)
     {
         if (!IsOwner()) return Forbid();
@@ -48,6 +62,7 @@ public class Trabajadores1Controller : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    // Procesa la información de eliminar rol.
     public IActionResult EliminarRol(string rol)
     {
         if (!IsOwner()) return Forbid();
@@ -66,6 +81,7 @@ public class Trabajadores1Controller : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    // Crea el registro solicitado a partir de los datos del cliente.
     public IActionResult AgregarDesdeCliente(string email, string rol, string password)
     {
         if (!IsOwner()) return Forbid();
@@ -83,6 +99,7 @@ public class Trabajadores1Controller : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    // Actualiza el rol asignado a una cuenta.
     public IActionResult CambiarRol(string email, string rol)
     {
         if (!IsOwner()) return Forbid();
@@ -97,6 +114,7 @@ public class Trabajadores1Controller : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    // Procesa la información de cambiar acliente.
     public IActionResult CambiarACliente(string email)
     {
         if (!IsOwner()) return Forbid();
@@ -110,6 +128,7 @@ public class Trabajadores1Controller : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    // Actualiza el estado activo o inactivo del registro.
     public IActionResult CambiarEstado(string email)
     {
         if (!IsOwner()) return Forbid();
@@ -121,7 +140,19 @@ public class Trabajadores1Controller : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    private IActionResult WorkerError(string message) { TempData["WorkerError"] = message; return RedirectToAction(nameof(Index)); }
-    private bool IsOwner() => RoleStore.IsAdministrator(HttpContext.Session.GetString("RolUsuario"));
-    private static bool IsValidPassword(string value) => value.Length >= 8 && value.Any(char.IsUpper) && value.Any(char.IsLower) && value.Any(char.IsDigit);
+    // Muestra el error ocurrido durante una operación de trabajadores.
+    private IActionResult WorkerError(string message)
+    {
+        TempData["WorkerError"] = message;
+        return RedirectToAction(nameof(Index));
+    }
+    // Comprueba si la cuenta actual pertenece al dueño del restaurante.
+    private bool IsOwner() =>
+        RoleStore.IsAdministrator(HttpContext.Session.GetString("RolUsuario"));
+    // Comprueba que la contraseña cumpla las reglas establecidas.
+    private static bool IsValidPassword(string value) =>
+        value.Length >= 8
+        && value.Any(char.IsUpper)
+        && value.Any(char.IsLower)
+        && value.Any(char.IsDigit);
 }

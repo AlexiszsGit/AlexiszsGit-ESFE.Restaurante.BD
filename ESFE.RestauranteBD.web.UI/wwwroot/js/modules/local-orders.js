@@ -1,22 +1,34 @@
+
 (() => {
     const app = (typeof ESFERestaurante !== "undefined" ? ESFERestaurante : window.ESFERestaurante);
     if (!app) return;
     const state = { lines: [], customer: null, customerMode: "registered", pendingPaymentOrder: null };
+    // Obtiene el campo de entrada usado por el formulario.
     const input = id => document.getElementById(id);
+    // Obtiene la ventana modal utilizada por el módulo.
     const modal = () => input("localOrderModal");
+    // Da formato monetario a un valor antes de mostrarlo.
     const money = value => app.money(Number(value) || 0);
+    // Obtiene los productos disponibles para la operación.
     const products = () => app.catalogProducts ? app.catalogProducts() : (app.products || []);
+    // Obtiene el rol del usuario actual.
     const role = () => (document.body?.dataset.role || "Publico").trim();
+    // Comprueba si el usuario actual puede operar este módulo.
     const canOperate = () => ["Dueno", "Administrador", "Barra"].includes(role());
+    // Obtiene los clientes disponibles para seleccionar.
     const customers = () => {
         try { return JSON.parse(input("localCustomerData")?.textContent || "[]"); } catch { return []; }
     };
+    // Obtiene los trabajadores disponibles para atender el pedido.
     const attendants = () => {
         try { return JSON.parse(input("localAttendantData")?.textContent || "[]"); } catch { return []; }
     };
+    // Escapa caracteres especiales para insertar texto de forma segura en HTML.
     const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
 
+    // Construye el texto visible del cliente seleccionado.
     const customerLabel = c => `${c.Nombre || "Cliente"} · ${c.Email || ""}`;
+    // Comprueba si la mesa seleccionada está disponible para el pedido.
     const isTableAvailable = tableId => {
         const date = input("localDate")?.value || app.localDate();
         const time = input("localTime")?.value || `${String(new Date().getHours()).padStart(2,"0")}:${String(new Date().getMinutes()).padStart(2,"0")}`;
@@ -24,6 +36,7 @@
         return !reservations.some(r => Number(r.tableId) === Number(tableId) && r.date === date && r.time === time && r.status === "Confirmada");
     };
 
+    // Actualiza la lista visible de productos.
     function renderProducts() {
         const select = input("localProduct"); if (!select) return;
         select.innerHTML = products().map(p => `<option value="${esc(p.id)}">${esc(p.name)} · ${money(p.price)}</option>`).join("");
@@ -31,6 +44,7 @@
 
 
     let menuCategory = "Todos";
+    // Actualiza el selector de categorías y productos.
     function renderMenuBrowser() {
         const grid = input("localMenuGrid");
         const categoriesBox = input("localMenuCategories");
@@ -47,7 +61,9 @@
         }
         grid.innerHTML = visible.map(p => `<article class="local-menu-item"><div class="local-menu-item-image"><img src="${esc(p.image || "")}" alt="${esc(p.name)}" loading="lazy" onerror="this.style.display='none';this.parentElement.classList.add('image-missing')" /></div><div class="local-menu-item-copy"><span class="category">${esc(p.cat || "Producto")}</span><strong>${esc(p.name)}</strong><p>${esc(p.desc || "Producto del menú")}</p><div class="local-menu-item-bottom"><strong>${money(p.price)}</strong><button type="button" onclick="ESFERestaurante.localOrders.addProduct('${esc(p.id)}')">Agregar</button></div></div></article>`).join("");
     }
+    // Cambia la categoría activa del menú.
     function setMenuCategory(category) { menuCategory = category || "Todos"; renderMenuBrowser(); }
+    // Agrega un producto al pedido actual.
     function addProduct(productId) {
         const p = products().find(x => String(x.id) === String(productId));
         const q = Number(input("localQuantity")?.value || 1);
@@ -60,6 +76,7 @@
         app.ui.mostrarToast(`${q} × ${p.name} agregado al pedido.`, "success");
     }
 
+    // Actualiza la lista de mesas disponibles.
     function renderTables() {
         const select = input("localTable"); if (!select) return;
         const type = input("localOrderType")?.value || "Consumo en restaurante";
@@ -70,11 +87,13 @@
         if (current && !select.querySelector(`option[value="${current}"]`)?.disabled) select.value = current;
     }
 
+    // Actualiza la lista de responsables disponibles.
     function renderAttendants() {
         const select = input("localAttendant"); if (!select) return;
         select.innerHTML = `<option value="">Asignación automática / sin mesero</option>` + attendants().map(a => `<option value="${esc(a.Email)}">${esc(a.Nombre)} · ${esc(a.Rol)}</option>`).join("");
     }
 
+    // Actualiza los datos visibles del cliente seleccionado.
     function renderCustomer() {
         const mode = state.customerMode || "registered";
         const search = input("localCustomerSearch");
@@ -114,6 +133,7 @@
         }
     }
 
+    // Cambia entre cliente registrado y cliente no registrado.
     function setCustomerMode(mode) {
         state.customerMode = mode === "walkin" ? "walkin" : "registered";
         if (state.customerMode === "walkin") state.customer = null;
@@ -122,6 +142,7 @@
         else input("localCustomerName")?.focus();
     }
 
+    // Actualiza las líneas y el total del pedido.
     function renderLines() {
         const box = input("localOrderLines");
         const total = state.lines.reduce((sum, l) => sum + l.price * l.qty, 0);
@@ -133,6 +154,7 @@
         box.innerHTML = state.lines.length ? state.lines.map((l,i) => `<article class="local-order-line"><div><strong>${l.qty} × ${esc(l.name)}</strong><small>${money(l.price*l.qty)}</small></div><button type="button" class="icon-btn danger-icon" onclick="ESFERestaurante.localOrders.removeLine(${i})" aria-label="Eliminar producto">×</button></article>`).join("") : `<div class="empty-state compact"><strong>Agrega productos</strong><p>La orden presencial seguirá el mismo flujo de cocina.</p></div>`;
     }
 
+    // Procesa la información de reset.
     function reset() {
         state.lines = []; state.customer = null; state.customerMode = "registered";
         ["localCustomerSearch","localCustomerName","localCustomerPhone","localDate","localTime","localAddress"].forEach(id => { const e=input(id); if(e)e.value=""; });
@@ -147,6 +169,7 @@
         renderProducts(); renderMenuBrowser(); renderTables(); renderAttendants(); renderCustomer(); renderLines();
     }
 
+    // Abre el formulario o módulo correspondiente.
     function open(productId = null, initialQty = 1) {
         if(!canOperate()){app.ui.mostrarToast("No tienes permiso para registrar pedidos presenciales.","error");return;}
         reset();
@@ -163,15 +186,21 @@
         input("localCustomerSearch")?.focus();
     }
 
+    // Abre el pedido desde el producto seleccionado en el menú.
     function openFromMenu(productId, initialQty = 1) { open(productId, initialQty); }
+    // Cierra el formulario o módulo actualmente abierto.
     function close(){ const m=modal(); if(!m)return; m.classList.add("hidden"); showOrderForm(); state.pendingPaymentOrder=null; }
+    // Agrega una línea de producto al pedido.
     function addLine(){ const p=products().find(x=>x.id===input("localProduct")?.value), q=Number(input("localQuantity")?.value||1); if(!p||!Number.isInteger(q)||q<1||q>20){app.ui.mostrarToast("Producto o cantidad inválidos.","error");return;} const old=state.lines.find(x=>x.id===p.id); if(old) old.qty=Math.min(20,old.qty+q); else state.lines.push({id:p.id,name:p.name,price:Number(p.price)||0,qty:q}); renderLines(); }
+    // Elimina una línea de producto del pedido.
     function removeLine(i){ state.lines.splice(i,1); renderLines(); }
 
+    // Muestra el formulario para capturar el pedido.
     function showOrderForm(){
         input("localOrderFormView")?.classList.remove("hidden");
         input("localPaymentView")?.classList.add("hidden");
     }
+    // Muestra el formulario para procesar el pago.
     function showPaymentForm(order){
         state.pendingPaymentOrder=order;
         const form=input("localOrderFormView");
@@ -199,6 +228,7 @@
             fields.innerHTML=`<div class="local-payment-method-card"><div class="local-payment-method-head"><span class="payment-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 7h14M6 12h12M8 17h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 5h16v14H4z" stroke="currentColor" stroke-width="1.7"/></svg></span><div><span class="eyebrow">Transferencia</span><strong>Registrar referencia</strong><small>Modo demostración. No se realiza ninguna transferencia real.</small></div></div><div class="local-payment-reference"><span>Referencia sugerida</span><strong>${suggested}</strong></div><label class="field-label">Referencia de transferencia<input id="localTransferReference" type="text" maxlength="40" value="${suggested}" placeholder="TRX-2026-001245" /></label></div>`;
         } else {
             fields.innerHTML=`<div class="local-payment-card-grid"><div class="local-payment-method-card"><div class="local-payment-method-head"><span class="payment-tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3 10h18M7 15h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span><div><span class="eyebrow">Tarjeta</span><strong>Datos de pago</strong><small>Los datos se usan solo para esta simulación local.</small></div></div><div class="local-payment-field-grid"><label class="field-label">Nombre del titular<input id="localCardName" type="text" maxlength="60" placeholder="NOMBRE DEL TITULAR" /></label><label class="field-label">Número de tarjeta<input id="localCardNumber" type="text" maxlength="23" inputmode="numeric" placeholder="0000 0000 0000 0000" /></label><label class="field-label">Vencimiento<input id="localCardExpiry" type="text" maxlength="5" inputmode="numeric" placeholder="MM/AA" /></label><label class="field-label">CVV<input id="localCardCvv" type="password" maxlength="4" inputmode="numeric" placeholder="123" /></label></div></div><div class="local-card-preview"><span>RestauranteBD</span><strong id="localCardPreviewNumber">•••• •••• •••• ••••</strong><div><small id="localCardPreviewName">NOMBRE DEL TITULAR</small><small id="localCardPreviewExpiry">MM/AA</small></div></div></div>`;
+            // Procesa la información de update.
             const update=()=>{
                 const n=(input("localCardNumber")?.value||"").replace(/\D/g,"").slice(0,16); const parts=n.match(/.{1,4}/g)||[];
                 if(input("localCardNumber")) input("localCardNumber").value=parts.join(" ");
@@ -206,8 +236,11 @@
                 if(input("localCardPreviewName")) input("localCardPreviewName").textContent=(input("localCardName")?.value||"NOMBRE DEL TITULAR").toUpperCase().slice(0,24);
                 if(input("localCardPreviewExpiry")) input("localCardPreviewExpiry").textContent=input("localCardExpiry")?.value||"MM/AA";
             };
+            // Evento que conecta una acción del usuario con la lógica del módulo.
             input("localCardName")?.addEventListener("input",update);
+            // Evento que conecta una acción del usuario con la lógica del módulo.
             input("localCardNumber")?.addEventListener("input",update);
+            // Evento que conecta una acción del usuario con la lógica del módulo.
             input("localCardExpiry")?.addEventListener("input",e=>{let v=e.target.value.replace(/\D/g,"").slice(0,4);if(v.length>2)v=v.slice(0,2)+"/"+v.slice(2);e.target.value=v;update();});
             update();
         }
@@ -217,8 +250,11 @@
         });
         return true;
     }
+    // Regresa del pago al formulario del pedido.
     function backToOrder(){ state.pendingPaymentOrder=null; showOrderForm(); }
+    // Valida el número de tarjeta mediante el algoritmo de Luhn.
     function validLuhn(value){let sum=0,d=false;for(let i=value.length-1;i>=0;i--){let n=Number(value[i]);if(d){n*=2;if(n>9)n-=9;}sum+=n;d=!d;}return value.length>=13&&sum%10===0;}
+    // Confirma y registra el pago del pedido.
     function confirmPayment(){
         const order=state.pendingPaymentOrder;
         if(!order){app.ui.mostrarToast("No hay un pago pendiente de confirmar.","error");return;}
@@ -245,6 +281,7 @@
         state.pendingPaymentOrder=null; close(); app.ui.mostrarToast(`Pago confirmado. Pedido ${target.id} finalizado.`); app.orders?.render();
     }
 
+    // Guarda la reserva para mantenerla disponible después de recargar.
     function persistReservation(order){
         if(!order.tableId || order.orderType!=="Consumo en restaurante" || order.reservationId) return;
         try{
@@ -255,6 +292,7 @@
         }catch{}
     }
 
+    // Procesa la información de create.
     function create(){
         if(!canOperate()) return;
         const name=input("localCustomerName")?.value.trim() || "Cliente presencial";
@@ -303,10 +341,13 @@
         close(); app.orders?.render();
     }
 
+    // Procesa la información de init.
     function init(){ if(!canOperate()){ input("openLocalOrderButton")?.remove(); return; } renderProducts(); renderTables(); renderAttendants(); renderLines();
         const productId = new URLSearchParams(window.location.search).get("localProduct");
         if (productId) { history.replaceState({}, document.title, window.location.pathname); setTimeout(() => open(productId), 0); }
+        // Evento que conecta una acción del usuario con la lógica del módulo.
         const launch=input("openLocalOrderButton"); launch?.addEventListener("click",e=>{ e.preventDefault(); open(); });
+        // Evento que conecta una acción del usuario con la lógica del módulo.
         input("localOrderType")?.addEventListener("change",()=>{const t=input("localOrderType").value;input("localAddress")?.closest("label")?.classList.toggle("hidden",t!=="Domicilio");renderTables();}); input("localCustomerSearch")?.addEventListener("input",renderCustomer); input("localCustomerSearch")?.addEventListener("change",renderCustomer); input("localDate")?.addEventListener("change",renderTables); input("localTime")?.addEventListener("change",renderTables); }
     app.localOrders={init,open,openFromMenu,close,addLine,removeLine,create,setCustomerMode,setMenuCategory,addProduct,backToOrder,confirmPayment};
 })();

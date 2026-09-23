@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Mvc;
 using ESFE.RestauranteBD.web.UI.Models;
 
@@ -7,6 +8,7 @@ namespace ESFE.RestauranteBD.web.UI.Controllers;
 public class Clientes1Controller : Controller
 {
     [HttpGet]
+    // Carga la vista principal del módulo.
     public IActionResult Index(string? q)
     {
         if (!CanViewCustomers())
@@ -29,6 +31,7 @@ public class Clientes1Controller : Controller
         return View(customers);
     }
 
+    // Comprueba si el usuario tiene permiso para consultar clientes.
     private bool CanViewCustomers()
     {
         var role = HttpContext.Session.GetString("RolUsuario");

@@ -1,3 +1,4 @@
+
 @{
     var appSettings = AppSettingsStore.Current;
     ViewData["Title"] = "Iniciar sesión";
@@ -40,7 +41,9 @@
         <p>Es un placer recibirte en RestauranteBD.</p>
     </div>
 
+    @* Contenido principal de la página. *@
     <main class="login-page-shell">
+        @* Contenido principal de la página. *@
         <section class="login-welcome">
             <div class="login-logo login-logo-large">
                 <img src="@appSettings.LogoPath" alt="Logo del restaurante" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" />
@@ -60,6 +63,7 @@
             </div>
         </section>
 
+        @* Contenido principal de la página. *@
         <section class="login-card login-card-professional">
             <div class="login-tabs login-tabs-professional" role="tablist" aria-label="Acceso a RestauranteBD">
                 <button type="button" class="login-tab @(activeTab == "login" ? "active" : "")" data-login-tab="login">Iniciar sesión</button>
@@ -82,6 +86,7 @@
                     <p>Usa las credenciales de tu cuenta para continuar.</p>
                 </div>
 
+                @* Campos y controles para capturar información. *@
                 <form asp-controller="IniciarSesion1" asp-action="Login" method="post" class="login-form login-form-centered" novalidate>
                     @Html.AntiForgeryToken()
                     <label>
@@ -121,6 +126,7 @@
                     <p>Completa todos los datos. Luego podrás pedir, reservar y consultar tus pedidos.</p>
                 </div>
 
+                @* Campos y controles para capturar información. *@
                 <form asp-controller="IniciarSesion1" asp-action="Registrar" method="post" class="login-form login-form-centered" id="registerForm" novalidate>
                     @Html.AntiForgeryToken()
 
@@ -205,7 +211,9 @@
 
     <footer class="login-footer professional-footer">@appSettings.RestaurantName · Acceso y gestión del restaurante</footer>
 
+    @* Datos que la vista expone al JavaScript. *@
     <script src="~/js/modules/validation.js" asp-append-version="true"></script>
+    @* Datos que la vista expone al JavaScript. *@
     <script src="~/js/modules/auth.js" asp-append-version="true"></script>
 </body>
 </html>

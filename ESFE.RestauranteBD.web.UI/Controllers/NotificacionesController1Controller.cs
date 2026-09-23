@@ -1,3 +1,4 @@
+
 using ESFE.RestauranteBD.web.UI.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +9,7 @@ public class NotificacionesController1Controller : Controller
     {
         // Centro de comunicación común para todos los perfiles autenticados.
         // La lista de destinatarios reutiliza el mismo UserStore del sistema.
+        // Carga la vista principal del módulo.
         public IActionResult Index()
         {
             if (string.IsNullOrWhiteSpace(HttpContext.Session.GetString("UsuarioLogueado")))

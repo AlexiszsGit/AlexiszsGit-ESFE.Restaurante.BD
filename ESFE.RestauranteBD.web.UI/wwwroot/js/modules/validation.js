@@ -1,3 +1,4 @@
+
 (() => {
     const countries = [
         { id: "sv", name: "El Salvador", code: "503", lengths: [8], group: [4, 4] },
@@ -36,9 +37,12 @@
         { id: "kr", name: "Corea del Sur", code: "82", lengths: [9, 10], group: [2, 3, 4] }
     ];
 
+    // Normaliza un valor eliminando caracteres no numéricos.
     const normalizeDigits = value => String(value || "").replace(/\D/g, "");
+    // Obtiene el país asociado al campo actual.
     const getCountry = id => countries.find(country => country.id === id || country.code === id) || countries[0];
 
+    // Da formato agrupado a los valores que se muestran.
     const formatGrouped = (digits, group) => {
         const chunks = [];
         let cursor = 0;
@@ -50,6 +54,7 @@
         return chunks.join(" ");
     };
 
+    // Configura el campo de país y sus eventos.
     const setupCountryField = field => {
         const select = field.querySelector("[data-country-select]");
         const input = field.querySelector("[data-international-phone]");
@@ -71,6 +76,7 @@
             : initialDigits;
         input.value = formatGrouped(initial, initialCountry.group);
 
+        // Procesa la información de update.
         const update = () => {
             const country = getCountry(select.value);
             const digits = normalizeDigits(input.value).slice(0, Math.max(...country.lengths));
@@ -80,11 +86,14 @@
             input.setCustomValidity(country.lengths.includes(digits.length) ? "" : `Introduce ${country.lengths.join(" o ")} dígitos para ${country.name}.`);
         };
 
+        // Evento que conecta una acción del usuario con la lógica del módulo.
         input.addEventListener("input", update);
+        // Evento que conecta una acción del usuario con la lógica del módulo.
         select.addEventListener("change", update);
         update();
 
         const form = field.closest("form");
+        // Evento que conecta una acción del usuario con la lógica del módulo.
         form?.addEventListener("submit", event => {
             update();
             const country = getCountry(select.value);
@@ -97,10 +106,12 @@
         });
     };
 
+    // Configura las reglas generales de validación.
     const setupGenericRules = root => {
         root.querySelectorAll?.("[data-letters-only]").forEach(input => {
             if (input.dataset.lettersReady === "1") return;
             input.dataset.lettersReady = "1";
+            // Evento que conecta una acción del usuario con la lógica del módulo.
             input.addEventListener("input", () => {
                 input.value = input.value
                     .replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñÀ-ÿ' -]/g, "")
@@ -111,6 +122,7 @@
         root.querySelectorAll?.("[data-dui]").forEach(input => {
             if (input.dataset.duiReady === "1") return;
             input.dataset.duiReady = "1";
+            // Evento que conecta una acción del usuario con la lógica del módulo.
             input.addEventListener("input", () => {
                 const digits = normalizeDigits(input.value).slice(0, 9);
                 input.value = digits.length > 8 ? `${digits.slice(0, 8)}-${digits.slice(8)}` : digits;
@@ -121,6 +133,7 @@
         root.querySelectorAll?.('input[type="number"]').forEach(input => {
             if (input.dataset.numericReady === "1") return;
             input.dataset.numericReady = "1";
+            // Evento que conecta una acción del usuario con la lógica del módulo.
             input.addEventListener("keydown", event => {
                 if (["e", "E", "+", "-"].includes(event.key)) event.preventDefault();
             });
@@ -136,6 +149,7 @@
         root.querySelectorAll?.("[data-phone-country-field]").forEach(setupCountryField);
     };
 
+    // Evento que conecta una acción del usuario con la lógica del módulo.
     document.addEventListener("DOMContentLoaded", () => setupGenericRules(document));
 
     window.RestauranteBDValidation = { countries, normalizeDigits, setup: setupGenericRules };

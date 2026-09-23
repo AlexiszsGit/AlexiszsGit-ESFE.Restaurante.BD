@@ -1,3 +1,4 @@
+
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Menú";
@@ -7,6 +8,7 @@
 
 @if (esDueno)
 {
+    @* Contenido principal de la página. *@
     <section class="page-shell">
         <div class="page-head">
             <div>
@@ -45,7 +47,9 @@
             </div>
         </div>
 
+        @* Contenido principal de la página. *@
         <section class="admin-work-grid">
+            @* Contenido principal de la página. *@
             <section class="panel">
                 <div class="panel-head">
                     <div>
@@ -57,6 +61,7 @@
                 <div id="adminProductList" class="admin-product-list"></div>
             </section>
 
+            @* Resumen y acciones secundarias de la vista. *@
             <aside class="panel admin-category-panel">
                 <div class="panel-head">
                     <div>
@@ -151,6 +156,7 @@
 }
 else
 {
+    @* Contenido principal de la página. *@
     <section class="page-shell">
         <div class="page-head">
             <div>
@@ -168,6 +174,7 @@ else
             }
         </div>
 
+        @* Contenido principal de la página. *@
         <section class="menu-search-panel">
             <div class="menu-search-title">
                 <div>
@@ -253,7 +260,9 @@ else
     </div>
 }
 
+@* Scripts necesarios para el funcionamiento de esta vista. *@
 @section Scripts {
+    @* Datos que la vista expone al JavaScript. *@
     <script>
         document.addEventListener('DOMContentLoaded', () => @(esDueno ? "ESFERestaurante.adminProducts.init()" : "ESFERestaurante.menu.init()"));
     </script>

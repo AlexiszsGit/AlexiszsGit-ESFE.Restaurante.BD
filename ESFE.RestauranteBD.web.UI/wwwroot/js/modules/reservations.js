@@ -1,5 +1,8 @@
+
 (() => {
+    // Obtiene la fecha y hora de forma segura.
     const nowSafe = () => new Date();
+    // Sincroniza los campos usados para clientes sin cuenta.
     const syncWalkInFields = () => {
         const table = document.getElementById("walkInTable");
         if (!table) return;
@@ -17,9 +20,13 @@
         const previous = table.value;
         table.innerHTML = ESFERestaurante.tables.map(item => { const busy=reservations.some(r=>r.tableId===item.id&&r.date===selectedDate&&r.time===selectedTime&&(r.status==="Confirmada"||r.status==="Atendida")); return `<option value="${item.id}" ${busy?"disabled":""}>Mesa ${String(item.id).padStart(2,"0")} · ${item.seats} personas · ${item.zone}${busy?" · OCUPADA":""}</option>`; }).join("");
         if (previous && table.querySelector(`option[value="${previous}"]:not([disabled])`)) table.value=previous;
+        // Evento que conecta una acción del usuario con la lógica del módulo.
         date?.removeEventListener("change", syncWalkInFields);
+        // Evento que conecta una acción del usuario con la lógica del módulo.
         time?.removeEventListener("change", syncWalkInFields);
+        // Evento que conecta una acción del usuario con la lógica del módulo.
         date?.addEventListener("change", syncWalkInFields);
+        // Evento que conecta una acción del usuario con la lógica del módulo.
         time?.addEventListener("change", syncWalkInFields);
     };
 
@@ -59,6 +66,7 @@
             return;
         }
 
+        // Estado compartido del módulo: reservation.
         const reservation = {
             id: `RES-P-${Date.now().toString(36).toUpperCase()}`,
             customer: document.body.dataset.user || "presencial@restaurante.local",
@@ -87,10 +95,12 @@
         ESFERestaurante.ui.mostrarToast(isOpen ? "Reserva presencial registrada y mesa ocupada." : "Reserva registrada fuera de horario; la mesa permanece disponible.", "info");
     };
 
+    // Evento que conecta una acción del usuario con la lógica del módulo.
     document.addEventListener("DOMContentLoaded", () => {
         if (document.getElementById("walkInTable")) syncWalkInFields();
         const tablesMap = document.getElementById("tablesMap");
         if (tablesMap) {
+            // Evento que conecta una acción del usuario con la lógica del módulo.
             tablesMap.addEventListener("click", event => {
                 const button = event.target.closest(".restaurant-table");
                 if (!button || button.disabled) return;

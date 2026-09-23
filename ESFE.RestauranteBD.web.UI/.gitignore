@@ -1,0 +1,13 @@
+# Visual Studio / .NET
+.vs/
+bin/
+obj/
+*.user
+*.suo
+
+# Archivos locales de respaldo
+users.local.json
+roles.local.json
+
+# Publish local
+Properties/PublishProfiles/*.pubxml.user

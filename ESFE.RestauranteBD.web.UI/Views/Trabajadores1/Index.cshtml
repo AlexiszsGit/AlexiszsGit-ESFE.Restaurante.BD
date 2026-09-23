@@ -1,3 +1,5 @@
+
+@* Modelo: define los datos que recibe la vista. *@
 @model IReadOnlyCollection<ESFE.RestauranteBD.web.UI.Models.UserAccount>
 @using ESFE.RestauranteBD.web.UI.Models
 @using System.Text.Json
@@ -16,11 +18,13 @@
         new { Title = "Control", Items = new[] { RoleStore.Payments, RoleStore.Reports, RoleStore.Workers, RoleStore.Notifications, RoleStore.Information } }
     };
 }
+@* Contenido principal de la página. *@
 <section class="page-shell">
     <div class="page-head"><div><span class="eyebrow">Administración de personal</span><h2>Trabajadores, roles y permisos</h2><p>Los roles se crean una sola vez y quedan disponibles automáticamente para asignarlos a nuevos empleados.</p></div><span class="result-count">@Model.Count trabajadores · @roles.Count roles</span></div>
     @if (TempData["WorkerError"] is string workerError && !string.IsNullOrWhiteSpace(workerError)) { <div class="alert-error" role="alert">@workerError</div> }
     @if (TempData["WorkerSuccess"] is string workerSuccess && !string.IsNullOrWhiteSpace(workerSuccess)) { <div class="alert-success" role="status">@workerSuccess</div> }
     <div class="worker-admin-grid">
+        @* Contenido principal de la página. *@
         <section class="panel">
             <div class="panel-head"><div><span class="eyebrow">Personal actual</span><h3>Todos los trabajadores</h3></div><span class="result-count">@Model.Count registrados</span></div>
             <div class="worker-search-toolbar"><div class="search-box"><span>⌕</span><input id="workerSearch" type="search" placeholder="Buscar por nombre, correo, DUI o teléfono..." autocomplete="off" /></div></div>
@@ -43,6 +47,7 @@
                         @if (!RoleStore.IsAdministrator(worker.Rol))
                         {
                             <div class="worker-actions">
+                                @* Campos y controles para capturar información. *@
                                 <form asp-action="CambiarRol" method="post" class="inline-form">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="email" value="@worker.Email" />
@@ -66,7 +71,9 @@
                                     </label>
                                     <button class="secondary-btn small" type="submit">Actualizar rol</button>
                                 </form>
+                                @* Campos y controles para capturar información. *@
                                 <form asp-action="CambiarEstado" method="post">@Html.AntiForgeryToken()<input type="hidden" name="email" value="@worker.Email" /><button class="@(worker.Activo ? "danger-btn" : "secondary-btn") small" type="submit">@(worker.Activo ? "Desactivar" : "Activar")</button></form>
+                                @* Campos y controles para capturar información. *@
                                 <form asp-action="CambiarACliente" method="post" onsubmit="return confirm('¿Convertir esta cuenta nuevamente en Cliente?');">@Html.AntiForgeryToken()<input type="hidden" name="email" value="@worker.Email" /><button class="secondary-btn small" type="submit">Volver a Cliente</button></form>
                             </div>
                         }
@@ -75,8 +82,10 @@
                 @if (Model.Count == 0) { <div class="empty-state compact"><strong>Aún no hay trabajadores</strong><p>Convierte una cuenta Cliente en empleado desde el panel lateral.</p></div> }
             </div>
         </section>
+        @* Resumen y acciones secundarias de la vista. *@
         <aside class="panel worker-promotion-panel">
             <span class="eyebrow">Alta de trabajador</span><h3>Convertir cliente en trabajador</h3><p class="form-help">Busca una cuenta registrada, asigna el rol recién creado o uno existente y define su acceso.</p>
+            @* Campos y controles para capturar información. *@
             <form asp-action="AgregarDesdeCliente" method="post" class="form-stack">@Html.AntiForgeryToken()
                 <label class="field-label">Cliente por nombre o correo<input id="workerEmailSearch" name="email" type="email" list="workerClientList" maxlength="120" autocomplete="email" placeholder="cliente@correo.com" required /></label>
                 <datalist id="workerClientList">@foreach (var client in clients){<option value="@client.Email">@client.Nombre · @client.Email</option>}</datalist>
@@ -88,6 +97,7 @@
         </aside>
     </div>
     <div class="role-admin-grid">
+        @* Contenido principal de la página. *@
         <section class="panel">
             <div class="panel-head"><div><span class="eyebrow">Catálogo de roles</span><h3>Roles disponibles</h3><p>Cada rol controla qué pantallas aparecen y qué áreas puede utilizar su cuenta.</p></div><span class="result-count">@roles.Count roles</span></div>
             <div class="role-catalog-grid">
@@ -103,6 +113,7 @@
                         {
                             <details class="role-editor">
                                 <summary><span>Editar pantallas y permisos</span><b>⌄</b></summary>
+                                @* Campos y controles para capturar información. *@
                                 <form asp-action="EditarPermisos" method="post" class="role-editor-form">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="rol" value="@r.Name" />
@@ -129,14 +140,17 @@
                         }
                         else
                         {
+                            @* Campos y controles para capturar información. *@
                             <form asp-action="EliminarRol" method="post" onsubmit="return confirm('¿Eliminar este rol? Las cuentas que lo usen volverán a Cliente.');">@Html.AntiForgeryToken()<input type="hidden" name="rol" value="@r.Name"/><button class="danger-btn small" type="submit">Eliminar rol</button></form>
                         }
                     </article>
                 }
             </div>
         </section>
+        @* Resumen y acciones secundarias de la vista. *@
         <aside class="panel role-create-panel">
             <div class="role-create-hero"><span class="eyebrow">Constructor de acceso</span><h3>Crear nuevo rol</h3><p>Ejemplo: Limpieza, Caja, Supervisión. Marca exactamente las pantallas que quieres mostrarle al iniciar sesión.</p></div>
+            @* Campos y controles para capturar información. *@
             <form asp-action="CrearRol" method="post" class="form-stack role-create-form">@Html.AntiForgeryToken()
                 <label class="field-label">Nombre del nuevo rol<input name="nombre" maxlength="40" pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñÀ-ÿ0-9 _-]{3,40}" placeholder="Ej. Limpieza" required /></label>
                 <div class="permission-selector-head"><div><strong>Pantallas y permisos</strong><span>Inicio y Perfil son la base. El resto lo eliges tú.</span></div><button type="button" class="secondary-btn small" onclick="document.querySelectorAll('#newRolePermissions input[type=checkbox]').forEach(x=>x.checked=false)">Limpiar</button></div>
@@ -151,4 +165,5 @@
         </aside>
     </div>
 </section>
+@* Scripts necesarios para el funcionamiento de esta vista. *@
 @section Scripts { <script src="~/js/modules/workers.js" asp-append-version="true"></script> }

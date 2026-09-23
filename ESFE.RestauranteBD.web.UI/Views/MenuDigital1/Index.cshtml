@@ -1,3 +1,4 @@
+
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Menú";
@@ -267,7 +268,9 @@
     </div>
 </div>
 
+@* Scripts necesarios para el funcionamiento de esta vista. *@
 @section Scripts {
+    @* Datos que la vista expone al JavaScript. *@
     <script>
         document.getElementById('buscadorMenu').addEventListener('keyup', filtrarMenu);
         document.getElementById('filtroCategoria').addEventListener('change', filtrarMenu);

@@ -1,3 +1,4 @@
+
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Inicio";
@@ -8,9 +9,11 @@
     var loginWelcome = TempData["LoginWelcome"] as string;
     var nombre = Context.Session.GetString("NombreUsuario") ?? (esDueno ? "Administrador" : "Cliente");
 }
+@* Contenido principal de la página. *@
 <section class="page-shell">
     @if (!string.IsNullOrWhiteSpace(loginWelcome))
     {
+        @* Contenido principal de la página. *@
         <section id="loginWelcomeHero" class="login-welcome-hero" role="status" aria-live="polite">
             <div class="login-welcome-hero-content">
                 <div class="login-welcome-hero-copy">
@@ -46,6 +49,7 @@
         <div class="dashboard-grid">
             @if (AppSettingsStore.Current.ShowQuickActions)
             {
+            @* Contenido principal de la página. *@
             <section class="panel"><div class="panel-head"><div><span class="eyebrow">Centro operativo</span><h3>Accesos rápidos</h3><p>Las áreas críticas del restaurante, a una acción de distancia.</p></div></div><div class="quick-grid">
                 @if (esDueno)
                 {
@@ -61,9 +65,12 @@
                 }
             </div></section>
             }
+            @* Resumen y acciones secundarias de la vista. *@
             <aside class="panel side-summary"><span class="eyebrow">Resumen</span><h3>Estado operativo</h3><div class="summary-row"><span>Sistema</span><strong class="text-success">Operativo</strong></div><div class="summary-row"><span>Productos</span><strong id="cardProductos">32</strong></div><div class="summary-row"><span>Última actualización</span><strong id="ultimaActualizacion">Ahora</strong></div><a asp-controller="Informacion1" asp-action="Index" class="text-link">Ver información del sistema <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></aside>
         </div>
+        @* Contenido principal de la página. *@
         <section class="panel"><div class="panel-head"><div><span class="eyebrow">Actividad</span><h3>Pedidos recientes</h3></div><a asp-controller="GestionDePedidos1" asp-action="Index" class="text-link">Ver todos <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></div><div id="recentOrders" class="recent-list"></div></section>
     }
 </section>
+@* Scripts necesarios para el funcionamiento de esta vista. *@
 @section Scripts { <script>document.addEventListener('DOMContentLoaded',()=>{ if(document.getElementById('cardPedidosHoy')) ESFERestaurante.dashboard.init(); });</script> }

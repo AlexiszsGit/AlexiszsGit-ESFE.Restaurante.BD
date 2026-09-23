@@ -1,10 +1,13 @@
+
 (() => {
+    // Evento que conecta una acción del usuario con la lógica del módulo.
     document.addEventListener("DOMContentLoaded", () => {
         const search = document.getElementById("workerSearch");
         const list = document.getElementById("workerList");
         const email = document.getElementById("workerEmailSearch");
         const preview = document.getElementById("workerClientPreview");
 
+        // Evento que conecta una acción del usuario con la lógica del módulo.
         search?.addEventListener("input", () => {
             const query = search.value.trim().toLowerCase();
             list?.querySelectorAll("[data-search]").forEach(card => {
@@ -17,6 +20,7 @@
             label: option.textContent || option.value
         }));
 
+        // Actualiza la vista previa de los datos seleccionados.
         const renderPreview = () => {
             if (!preview || !email) return;
             const value = email.value.trim().toLowerCase();
@@ -30,7 +34,9 @@
             }
         };
 
+        // Evento que conecta una acción del usuario con la lógica del módulo.
         email?.addEventListener("input", renderPreview);
+        // Evento que conecta una acción del usuario con la lógica del módulo.
         email?.addEventListener("change", renderPreview);
         renderPreview();
     });

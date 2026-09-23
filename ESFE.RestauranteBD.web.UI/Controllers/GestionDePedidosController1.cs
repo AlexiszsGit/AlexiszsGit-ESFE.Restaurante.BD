@@ -1,4 +1,5 @@
-﻿using ESFE.RestauranteBD.web.UI.Models;
+
+using ESFE.RestauranteBD.web.UI.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ESFE.RestauranteBD.web.UI.Controllers;
@@ -7,6 +8,7 @@ namespace ESFE.RestauranteBD.web.UI.Controllers;
 public class GestionDePedidos1Controller : Controller
 {
     [HttpGet]
+    // Carga la vista principal del módulo.
     public IActionResult Index()
     {
         var role = HttpContext.Session.GetString("RolUsuario") ?? "";

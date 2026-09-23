@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
@@ -10,6 +11,7 @@ public sealed class RequirePermissionAttribute : ActionFilterAttribute
 
     public RequirePermissionAttribute(string permission) => _permission = permission;
 
+    // Comprueba los permisos antes de ejecutar la acción del controlador.
     public override void OnActionExecuting(ActionExecutingContext context)
     {
         var session = context.HttpContext.Session;

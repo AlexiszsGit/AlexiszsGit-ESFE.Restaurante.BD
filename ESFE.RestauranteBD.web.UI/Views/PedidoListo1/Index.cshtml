@@ -1,3 +1,4 @@
+
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Entregas";
@@ -6,6 +7,7 @@
     var esBarra = string.Equals(rol, "Barra", StringComparison.OrdinalIgnoreCase);
 }
 
+@* Contenido principal de la página. *@
 <section class="page-shell">
     <div class="page-head">
         <div>
@@ -16,6 +18,7 @@
         <span id="readyCounter" class="result-count">0 disponibles</span>
     </div>
 
+    @* Contenido principal de la página. *@
     <section class="panel">
         <div class="toolbar-row ready-toolbar">
             <div class="search-box small ready-search">
@@ -29,7 +32,9 @@
     </section>
 </section>
 
+@* Scripts necesarios para el funcionamiento de esta vista. *@
 @section Scripts {
+    @* Datos que la vista expone al JavaScript. *@
     <script>
         document.addEventListener('DOMContentLoaded', () => ESFERestaurante.ready.init());
     </script>

@@ -1,4 +1,5 @@
-﻿@using ESFE.RestauranteBD.web.UI.Models
+
+@using ESFE.RestauranteBD.web.UI.Models
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery AntiForgery
 
 @{
@@ -148,8 +149,10 @@
 
     @if (mostrarApp && !autenticado)
     {
+        @* Contenido principal de la página. *@
         <main class="public-menu-shell">
 
+            @* Encabezado de la página con título y acciones principales. *@
             <header class="public-menu-header">
 
                 <a asp-controller="GestionDeMenu1"
@@ -196,6 +199,7 @@
              onclick="ESFERestaurante.layout.toggleSidebar(false)">
         </div>
 
+        @* Resumen y acciones secundarias de la vista. *@
         <aside id="appSidebar"
                class="app-sidebar">
 
@@ -248,6 +252,7 @@
                 </div>
             }
 
+            @* Navegación y accesos de esta vista. *@
             <nav class="side-nav"
                  aria-label="Navegación principal">
 
@@ -1265,6 +1270,7 @@
 
         <div class="app-shell">
 
+            @* Encabezado de la página con título y acciones principales. *@
             <header class="topbar">
 
                 <div class="topbar-left">
@@ -1593,6 +1599,7 @@
 
             </header>
 
+            @* Contenido principal de la página. *@
             <main class="page-content">
 
                 @RenderBody()
@@ -1642,13 +1649,12 @@
 
         @if (settings.ShowChatbot)
         {
+            @* Contenido principal de la página. *@
             <section id="chatbot"
                      class="chatbot"
                      aria-label="Asistente de ayuda">
 
-                <!-- =====================================================
-                     CABECERA DEL CHAT
-                     ===================================================== -->
+                <!-- CABECERA DEL CHAT -->
 
                 <div class="chat-header">
 
@@ -1687,9 +1693,7 @@
 
                     </div>
 
-                    <!-- =================================================
-                         ACCIONES DEL CHAT
-                         ================================================= -->
+                    <!-- ACCIONES DEL CHAT -->
 
                     <div class="chat-header-actions">
 
@@ -1759,9 +1763,7 @@
 
                 </div>
 
-                <!-- =====================================================
-                     MODO VOZ DENTRO DEL CHATBOT
-                     ===================================================== -->
+                <!-- MODO VOZ DENTRO DEL CHATBOT -->
 
                 <div id="chatVoiceMode"
                      class="chat-voice-overlay"
@@ -1915,17 +1917,13 @@
 
                 </div>
 
-                <!-- =====================================================
-                     MENSAJES DEL CHAT NORMAL
-                     ===================================================== -->
+                <!-- MENSAJES DEL CHAT NORMAL -->
 
                 <div id="chatMessages"
                      class="chat-messages">
                 </div>
 
-                <!-- =====================================================
-                     SUGERENCIAS
-                     ===================================================== -->
+                <!-- SUGERENCIAS -->
 
                 <div class="chat-suggestions">
 
@@ -1952,10 +1950,9 @@
 
                 </div>
 
-                <!-- =====================================================
-                     INPUT NORMAL DEL CHAT
-                     ===================================================== -->
+                <!-- INPUT NORMAL DEL CHAT -->
 
+                @* Campos y controles para capturar información. *@
                 <form class="chat-input"
                       onsubmit="event.preventDefault();ESFERestaurante.chat.send()">
 
@@ -2023,9 +2020,7 @@
 
             </section>
 
-            <!-- =========================================================
-                 BOTÓN FLOTANTE DEL CHAT
-                 ========================================================= -->
+            <!-- BOTÓN FLOTANTE DEL CHAT -->
 
             <button type="button"
                     class="chat-launcher"
@@ -2059,28 +2054,33 @@
         @RenderBody()
     }
 
-    <!-- =============================================================
-         JAVASCRIPT
-         ============================================================= -->
+    <!-- JAVASCRIPT -->
 
+    @* Datos que la vista expone al JavaScript. *@
     <script src="~/js/db-bridge.js"
             asp-append-version="true"></script>
 
+    @* Datos que la vista expone al JavaScript. *@
     <script src="~/js/site.js"
             asp-append-version="true"></script>
 
+    @* Datos que la vista expone al JavaScript. *@
     <script src="~/js/modules/local-orders.js"
             asp-append-version="true"></script>
 
+    @* Datos que la vista expone al JavaScript. *@
     <script src="~/js/modules/validation.js"
             asp-append-version="true"></script>
 
+    @* Datos que la vista expone al JavaScript. *@
     <script src="~/js/modules/chatbot.js"
             asp-append-version="true"></script>
 
+    @* Datos que la vista expone al JavaScript. *@
     <script src="~/js/modules/payment.js"
             asp-append-version="true"></script>
 
+    @* Datos que la vista expone al JavaScript. *@
     <script src="~/js/modules/cart.js"
             asp-append-version="true"></script>
 

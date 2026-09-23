@@ -1,3 +1,4 @@
+
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Reservas";
@@ -5,6 +6,7 @@
     var esTrabajador = RoleStore.IsAdministrator(rol) || rol == "Barra";
 }
 
+@* Contenido principal de la página. *@
 <section class="page-shell">
     <div class="page-head">
         <div>
@@ -19,6 +21,7 @@
     </div>
 
     <div class="reservation-layout">
+        @* Contenido principal de la página. *@
         <section class="panel floor-panel">
             <div class="floor-head">
                 <div>
@@ -39,6 +42,7 @@
 
         @if (!esTrabajador)
         {
+            @* Resumen y acciones secundarias de la vista. *@
             <aside class="panel reservation-form-panel">
                 <span class="eyebrow">Detalles</span>
                 <h3>Datos de la reserva</h3>
@@ -88,6 +92,7 @@
         }
         else
         {
+            @* Resumen y acciones secundarias de la vista. *@
             <aside class="panel reservation-form-panel owner-table-summary">
                 <span class="eyebrow">Operación de sala</span>
                 <h3>Reserva y llegada presencial</h3>
@@ -140,6 +145,7 @@
         }
     </div>
 
+    @* Contenido principal de la página. *@
     <section class="panel">
         <div class="panel-head">
             <div>
@@ -152,8 +158,11 @@
     </section>
 </section>
 
+@* Scripts necesarios para el funcionamiento de esta vista. *@
 @section Scripts {
+    @* Datos que la vista expone al JavaScript. *@
     <script src="~/js/modules/reservations.js" asp-append-version="true"></script>
+    @* Datos que la vista expone al JavaScript. *@
     <script>
         document.addEventListener('DOMContentLoaded', () => ESFERestaurante.reservas.init());
     </script>

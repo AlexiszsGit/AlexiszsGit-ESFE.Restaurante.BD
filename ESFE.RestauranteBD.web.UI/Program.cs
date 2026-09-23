@@ -1,8 +1,10 @@
-using ESFE.RestauranteBD.web.UI.Models;
+
 using ESFE.RestauranteBD.web.UI.Data;
+using ESFE.RestauranteBD.web.UI.Models;
 using ESFE.RestauranteBD.web.UI.Services;
 using Microsoft.AspNetCore.Http;
 
+// Configuración de servicios.
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
@@ -17,8 +19,16 @@ builder.Services.AddSession(options =>
     options.Cookie.SameSite = SameSiteMode.Lax;
 });
 
+// Construcción y middleware de la aplicación.
 var app = builder.Build();
-try { RestaurantDb.EnsureBridgeSchema(); } catch { /* La aplicación sigue funcionando localmente hasta configurar SQL Server. */ }
+try
+{
+    RestaurantDb.EnsureBridgeSchema();
+}
+catch
+{
+    // Permite iniciar la aplicación mientras SQL Server no esté configurado.
+}
 
 if (!app.Environment.IsDevelopment())
 {
@@ -31,6 +41,7 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseSession();
 
+// Protección de rutas.
 app.Use(async (context, next) =>
 {
     var path = context.Request.Path.Value ?? string.Empty;

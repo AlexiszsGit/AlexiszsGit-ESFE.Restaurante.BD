@@ -1,3 +1,5 @@
+
+@* Modelo: define los datos que recibe la vista. *@
 @model ESFE.RestauranteBD.web.UI.Models.UserAccount
 @{
     Layout = "_Layout";
@@ -5,6 +7,7 @@
     var displayRole = RoleStore.IsAdministrator(Model.Rol) ? "Administrador" : Model.Rol;
 }
 
+@* Contenido principal de la página. *@
 <section class="page-shell narrow-page">
     <div class="page-head">
         <div>
@@ -26,6 +29,7 @@
     }
 
     <div class="profile-layout">
+        @* Contenido principal de la página. *@
         <section class="panel profile-summary-panel">
             <div class="profile-hero profile-hero-large">
                 <div class="profile-avatar profile-avatar-photo">
@@ -52,6 +56,7 @@
                     <p>JPG, PNG o WebP · máximo 2 MB. La imagen se guarda dentro de tu perfil.</p>
                 </div>
                 <div class="profile-photo-actions">
+                    @* Campos y controles para capturar información. *@
                     <form asp-action="ActualizarFoto" method="post" enctype="multipart/form-data" class="profile-photo-form">
                         @Html.AntiForgeryToken()
                         <label class="secondary-btn small profile-photo-picker">
@@ -62,6 +67,7 @@
                     </form>
                     @if (!string.IsNullOrWhiteSpace(Model.ProfilePhotoData))
                     {
+                        @* Campos y controles para capturar información. *@
                         <form asp-action="EliminarFoto" method="post">
                             @Html.AntiForgeryToken()
                             <button type="submit" class="danger-btn small">Eliminar foto</button>
@@ -86,9 +92,11 @@
             </div>
         </section>
 
+        @* Contenido principal de la página. *@
         <section class="panel">
             <span class="eyebrow">Editar información</span>
             <h3>Datos personales</h3>
+            @* Campos y controles para capturar información. *@
             <form asp-action="Actualizar" method="post" class="form-stack profile-edit-form">
                 @Html.AntiForgeryToken()
 
@@ -130,6 +138,8 @@
     </div>
 </section>
 
+@* Scripts necesarios para el funcionamiento de esta vista. *@
 @section Scripts {
+    @* Datos que la vista expone al JavaScript. *@
     <script src="~/js/modules/validation.js" asp-append-version="true"></script>
 }

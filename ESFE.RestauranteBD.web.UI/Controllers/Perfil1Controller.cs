@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Mvc;
 using ESFE.RestauranteBD.web.UI.Models;
 using ESFE.RestauranteBD.web.UI.Data;
@@ -10,6 +11,7 @@ namespace ESFE.RestauranteBD.web.UI.Controllers;
 public class Perfil1Controller : Controller
 {
     [HttpGet]
+    // Carga la vista principal del módulo.
     public IActionResult Index()
     {
         var email = HttpContext.Session.GetString("UsuarioLogueado");
@@ -24,6 +26,7 @@ public class Perfil1Controller : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [RequestSizeLimit(3 * 1024 * 1024)]
+    // Guarda o actualiza la foto de perfil del usuario.
     public async Task<IActionResult> ActualizarFoto(IFormFile? foto)
     {
         var email = HttpContext.Session.GetString("UsuarioLogueado");
@@ -98,6 +101,7 @@ public class Perfil1Controller : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    // Procesa la información de eliminar foto.
     public IActionResult EliminarFoto()
     {
         var email = HttpContext.Session.GetString("UsuarioLogueado");
@@ -126,6 +130,7 @@ public class Perfil1Controller : Controller
 
     [HttpGet]
     [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
+    // Carga o actualiza la foto de perfil del usuario.
     public IActionResult Foto(int? accountId = null)
     {
         var email = HttpContext.Session.GetString("UsuarioLogueado");
@@ -147,6 +152,7 @@ public class Perfil1Controller : Controller
         }
     }
 
+    // Comprueba que el archivo tenga una firma de imagen válida.
     private static bool IsValidImageSignature(byte[] bytes, string contentType)
     {
         if (contentType.Equals("image/jpeg", StringComparison.OrdinalIgnoreCase))
@@ -160,6 +166,7 @@ public class Perfil1Controller : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    // Guarda los cambios realizados en el perfil.
     public IActionResult Actualizar(string nombre, string telefono, string dui, string direccion)
     {
         var email = HttpContext.Session.GetString("UsuarioLogueado");
@@ -228,12 +235,15 @@ public class Perfil1Controller : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    // Comprueba que el nombre cumpla el formato permitido.
     private static bool IsValidName(string value) =>
         Regex.IsMatch(value, @"^(?=.*[A-Za-zÁÉÍÓÚÜÑáéíóúüñÀ-ÿ])[A-Za-zÁÉÍÓÚÜÑáéíóúüñÀ-ÿ' -]{3,80}$");
 
+    // Comprueba que el teléfono cumpla el formato permitido.
     private static bool IsValidPhone(string value) =>
         Regex.IsMatch(value, @"^\+\d{1,3}\s\d{3,4}(?:[ -]\d{3,4}){1,3}$|^\d{4}-\d{4}$");
 
+    // Comprueba que el DUI cumpla el formato permitido.
     private static bool IsValidDui(string value) =>
         Regex.IsMatch(value, @"^\d{8}-\d$");
 }

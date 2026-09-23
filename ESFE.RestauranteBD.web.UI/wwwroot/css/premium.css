@@ -1,4 +1,4 @@
-﻿:root{
+:root{
  --rb-black:#151617;--rb-white:#fff;--rb-paper:#f7f5f0;--rb-paper2:#f0ede6;--rb-text:#1b1d20;--rb-text2:#474c52;--rb-muted:#747a81;
  --rb-line:#e0dcd4;--rb-gold:#b9934d;--rb-gold2:#cfb477;--rb-gold-soft:#f4ecda;--rb-green:#3f7958;--rb-red:#a55353;
  --rb-shadow:0 10px 28px rgba(25,23,19,.05);--rb-shadow2:0 18px 48px rgba(25,23,19,.075)
@@ -162,9 +162,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 
 
 
-/* ================================================================
-   FINAL FIX — PEDIDO LOCAL + BIENVENIDA AUTOMÁTICA
-   ================================================================ */
+/* Estilos del pedido local y bienvenida automática */
 .modal-backdrop {
     box-sizing: border-box !important;
     padding: 36px !important;
@@ -214,9 +212,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 }
 
 
-/* ================================================================
-   FINAL WELCOME CLEANUP — FULLSCREEN, FAST, CENTERED
-   ================================================================ */
+/* Ajustes de la pantalla de bienvenida */
 .login-welcome-hero {
     position: fixed !important;
     inset: 0 !important;

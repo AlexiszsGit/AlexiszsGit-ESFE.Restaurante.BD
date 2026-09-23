@@ -1,4 +1,6 @@
+
 (() => {
+    // Cambia la pestaña activa del formulario.
     const setTab = (tab) => {
         document.getElementById("loginPanel")?.classList.toggle("hidden", tab !== "login");
         document.getElementById("registerPanel")?.classList.toggle("hidden", tab !== "register");
@@ -7,12 +9,15 @@
         });
     };
 
+    // Evento que conecta una acción del usuario con la lógica del módulo.
     document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll("[data-login-tab], [data-switch-tab]").forEach(button => {
+            // Evento que conecta una acción del usuario con la lógica del módulo.
             button.addEventListener("click", () => setTab(button.dataset.loginTab || button.dataset.switchTab));
         });
 
         document.querySelectorAll("[data-toggle-password]").forEach(button => {
+            // Evento que conecta una acción del usuario con la lógica del módulo.
             button.addEventListener("click", () => {
                 const input = document.getElementById(button.dataset.togglePassword);
                 if (!input) return;
@@ -31,6 +36,7 @@
         const password = document.getElementById("registerPassword");
         const confirmation = document.getElementById("confirmPassword");
 
+        // Actualiza las reglas visibles para la contraseña.
         const updatePasswordRules = () => {
             if (!password) return;
             const value = password.value;
@@ -41,15 +47,20 @@
         };
 
         document.querySelectorAll("[data-international-phone]").forEach(phoneInput => {
+            // Evento que conecta una acción del usuario con la lógica del módulo.
             phoneInput.addEventListener("paste", () => setTimeout(() => phoneInput.dispatchEvent(new Event("input", { bubbles: true })), 0));
+            // Evento que conecta una acción del usuario con la lógica del módulo.
             phoneInput.addEventListener("blur", () => phoneInput.dispatchEvent(new Event("input", { bubbles: true })));
         });
 
+        // Evento que conecta una acción del usuario con la lógica del módulo.
         password?.addEventListener("input", updatePasswordRules);
+        // Evento que conecta una acción del usuario con la lógica del módulo.
         confirmation?.addEventListener("input", () => {
             confirmation.setCustomValidity(password?.value === confirmation.value ? "" : "Las contraseñas no coinciden.");
         });
 
+        // Evento que conecta una acción del usuario con la lógica del módulo.
         registerForm?.addEventListener("submit", event => {
             confirmation?.setCustomValidity(password?.value === confirmation?.value ? "" : "Las contraseñas no coinciden.");
             if (!registerForm.checkValidity()) {

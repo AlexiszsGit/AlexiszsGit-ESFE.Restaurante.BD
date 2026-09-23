@@ -1,9 +1,12 @@
+
 (() => {
     if (!window.ESFERestaurante?.payment) return;
 
     const base = ESFERestaurante.payment;
+    // Conserva solo los dígitos válidos del valor recibido.
     const digit = value => String(value || "").replace(/\D/g, "");
 
+    // Identifica la marca de la tarjeta a partir de su número.
     const brand = number => {
         if (/^4/.test(number)) return "VISA";
         if (/^(5[1-5]|2[2-7])/.test(number)) return "MASTERCARD";
@@ -11,6 +14,7 @@
         return "CARD";
     };
 
+    // Actualiza visualmente la tarjeta según los datos ingresados.
     const updateCard = () => {
         const numberInput = document.getElementById("cardNumber");
         const nameInput = document.getElementById("cardName");
@@ -39,6 +43,7 @@
         if (cvvInput) cvvInput.value = digit(cvvInput.value).slice(0, 4);
     };
 
+    // Actualiza los campos visibles del formulario según el método seleccionado.
     const renderFields = () => {
         const box = document.getElementById("paymentFields");
         const preview = document.getElementById("cardPreviewWrap");
@@ -110,14 +115,18 @@
                 </div>
             </div>`;
 
+        // Evento que conecta una acción del usuario con la lógica del módulo.
         document.getElementById("cardName")?.addEventListener("input", updateCard);
+        // Evento que conecta una acción del usuario con la lógica del módulo.
         document.getElementById("cardNumber")?.addEventListener("input", updateCard);
+        // Evento que conecta una acción del usuario con la lógica del módulo.
         document.getElementById("cardExpiry")?.addEventListener("input", event => {
             let value = digit(event.target.value).slice(0, 8);
             if (value.length > 2) value = `${value.slice(0, 2)}/${value.slice(2)}`;
             event.target.value = value;
             updateCard();
         });
+        // Evento que conecta una acción del usuario con la lógica del módulo.
         document.getElementById("cardCvv")?.addEventListener("input", updateCard);
         updateCard();
     };

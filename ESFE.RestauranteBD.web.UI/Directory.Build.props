@@ -1,3 +1,5 @@
+<!-- Propiedades de compilación compartidas por el proyecto. -->
+
 <Project>
   <PropertyGroup>
     <NuGetAudit>false</NuGetAudit>

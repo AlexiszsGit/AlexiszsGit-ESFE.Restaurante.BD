@@ -1,3 +1,4 @@
+
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Pagos";
@@ -7,10 +8,13 @@
 
 @if (esCaja)
 {
+@* Contenido principal de la página. *@
 <section class="page-shell">
     <div class="page-head payment-staff-head"><div><span class="eyebrow">Caja y cobros</span><h2>Pagos presenciales</h2><p>Busca un pedido por ID, cliente, correo, teléfono o DUI y registra el método con el que acaba de pagar.</p></div><span id="manualPaymentCount" class="result-count">0 pendientes</span></div>
     <div class="payment-staff-grid">
+        @* Contenido principal de la página. *@
         <section class="panel"><div class="panel-head"><div><span class="eyebrow">Pedidos con saldo</span><h3>Pagos pendientes</h3></div><div class="search-box payment-staff-search"><span>⌕</span><input id="manualPaymentSearch" type="search" placeholder="ID, nombre, correo, teléfono o DUI..." autocomplete="off"></div></div><div id="manualPaymentList" class="manual-payment-list"></div></section>
+        @* Resumen y acciones secundarias de la vista. *@
         <aside class="panel payment-staff-guide"><span class="eyebrow">Flujo de caja</span><h3>Cómo funciona</h3><div class="staff-flow"><div><b>01</b><span>Localiza el pedido.</span></div><div><b>02</b><span>Elige efectivo, tarjeta o transferencia.</span></div><div><b>03</b><span>Valida y confirma el cobro.</span></div><div><b>04</b><span>El pedido pasa a Pagado y se genera la factura.</span></div></div></aside>
     </div>
 </section>
@@ -27,6 +31,7 @@
 }
 else
 {
+@* Contenido principal de la página. *@
 <section class="page-shell narrow-page">
     <div class="page-head">
         <div>
@@ -43,6 +48,7 @@ else
     </div>
 
     <div class="checkout-grid payment-layout-premium">
+        @* Contenido principal de la página. *@
         <section class="panel payment-main-panel">
             <div class="panel-head">
                 <div>
@@ -96,6 +102,7 @@ else
             </div>
         </section>
 
+        @* Resumen y acciones secundarias de la vista. *@
         <aside class="panel order-summary premium-order-summary">
             <span class="eyebrow">Resumen</span>
             <h3>Tu pedido</h3>
@@ -110,6 +117,7 @@ else
 </section>
 }
 
+@* Scripts necesarios para el funcionamiento de esta vista. *@
 @section Scripts {
     @if (esCaja) { <script src="~/js/modules/manual-payments.js" asp-append-version="true"></script> }
     else { <script>document.addEventListener('DOMContentLoaded', () => ESFERestaurante.payment.init());</script> }

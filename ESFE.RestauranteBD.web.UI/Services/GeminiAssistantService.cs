@@ -1,3 +1,4 @@
+
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -9,6 +10,7 @@ namespace ESFE.RestauranteBD.web.UI.Services;
 
 public sealed class GeminiAssistantService
 {
+    // Servicio de IA y contexto del chatbot.
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfiguration _configuration;
     private readonly ILogger<GeminiAssistantService> _logger;
@@ -23,6 +25,7 @@ public sealed class GeminiAssistantService
         _logger = logger;
     }
 
+    // Envía la consulta del usuario al asistente de IA.
     public async Task<string> AskAsync(
         UserAccount user,
         string question,
@@ -51,6 +54,7 @@ public sealed class GeminiAssistantService
         return answer;
     }
 
+    // Procesa una consulta pública sin exponer datos privados.
     public Task<string> AskPublicAsync(
         string question,
         CancellationToken cancellationToken)
@@ -61,6 +65,7 @@ public sealed class GeminiAssistantService
             cancellationToken);
     }
 
+    // Procesa la consulta de IA y prepara el contexto de la respuesta.
     private async Task<string> AskCoreAsync(
         UserAccount? user,
         string question,
@@ -88,10 +93,7 @@ public sealed class GeminiAssistantService
             ?? "gemini-3.8-flash";
 
         var role = user?.Rol ?? "Publico";
-
-        // ---------------------------------------------------------
-        // 1. CONSULTAR SQL SERVER
-        // ---------------------------------------------------------
+        // Consulta de la información disponible en SQL Server.
         string context;
 
         try
@@ -109,10 +111,7 @@ public sealed class GeminiAssistantService
             return
                 "No pude consultar la información del restaurante en la base de datos en este momento.";
         }
-
-        // ---------------------------------------------------------
-        // 2. VALIDAR CONFIGURACIÓN DE GEMINI
-        // ---------------------------------------------------------
+        // Validación de la configuración de Gemini.
         if (!enabled)
         {
             return
@@ -132,10 +131,7 @@ public sealed class GeminiAssistantService
             return
                 "La API de Gemini no está configurada correctamente.";
         }
-
-        // ---------------------------------------------------------
-        // 3. PREPARAR PROMPT
-        // ---------------------------------------------------------
+        // Preparación del contexto y las instrucciones para Gemini.
         var privacyRule = GetPrivacyRule(user);
 
         var prompt = $"""
@@ -172,19 +168,13 @@ INFORMACIÓN DISPONIBLE DEL RESTAURANTE:
 PREGUNTA DEL USUARIO:
 {question}
 """;
-
-        // ---------------------------------------------------------
-        // 4. PREPARAR CLIENTE HTTP
-        // ---------------------------------------------------------
+        // Preparación del cliente HTTP para la solicitud.
         var client = _httpClientFactory.CreateClient();
 
         var endpoint =
             $"https://generativelanguage.googleapis.com/v1beta/models/" +
             $"{Uri.EscapeDataString(model)}:generateContent";
-
-        // ---------------------------------------------------------
-        // 5. CONFIGURACIÓN DE GEMINI
-        // ---------------------------------------------------------
+        // Configuración del contenido que se envía a Gemini.
         var payload = new
         {
             contents = new[]
@@ -216,10 +206,7 @@ PREGUNTA DEL USUARIO:
         };
 
         var json = JsonSerializer.Serialize(payload);
-
-        // ---------------------------------------------------------
-        // 6. LLAMADA A GEMINI CON REINTENTOS
-        // ---------------------------------------------------------
+        // Envío de la solicitud a Gemini con reintentos.
         const int maxAttempts = 3;
 
         for (var attempt = 1;
@@ -252,10 +239,7 @@ PREGUNTA DEL USUARIO:
                 var responseBody =
                     await response.Content.ReadAsStringAsync(
                         cancellationToken);
-
-                // -------------------------------------------------
                 // 7. REINTENTAR ERRORES TRANSITORIOS
-                // -------------------------------------------------
                 if (response.StatusCode == HttpStatusCode.ServiceUnavailable
                     || response.StatusCode == HttpStatusCode.TooManyRequests)
                 {
@@ -288,10 +272,7 @@ PREGUNTA DEL USUARIO:
                     return
                         $"Gemini no está disponible en este momento (HTTP {(int)response.StatusCode}). Intenta nuevamente en unos segundos.";
                 }
-
-                // -------------------------------------------------
                 // 8. OTROS ERRORES HTTP
-                // -------------------------------------------------
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogError(
@@ -302,10 +283,7 @@ PREGUNTA DEL USUARIO:
                     return
                         $"Gemini devolvió un error HTTP {(int)response.StatusCode}.";
                 }
-
-                // -------------------------------------------------
                 // 9. LEER RESPUESTA DE GEMINI
-                // -------------------------------------------------
                 using var document =
                     JsonDocument.Parse(responseBody);
 
@@ -414,10 +392,8 @@ PREGUNTA DEL USUARIO:
         return
             "No fue posible obtener una respuesta de Gemini.";
     }
-
-    // -------------------------------------------------------------
-    // PRIVACIDAD SEGÚN USUARIO / ROL
-    // -------------------------------------------------------------
+    // Reglas de privacidad según el usuario y su rol.
+    // Obtiene las reglas de privacidad que corresponden al usuario actual.
     private static string GetPrivacyRule(UserAccount? user)
     {
         if (user is null)
@@ -448,10 +424,8 @@ PREGUNTA DEL USUARIO:
             $"Solo información pública y datos operativos permitidos " +
             $"para el cargo {user.Rol}. Nunca datos privados de terceros.";
     }
-
-    // -------------------------------------------------------------
-    // CONTEXTO PÚBLICO
-    // -------------------------------------------------------------
+    // Construcción del contexto público para el asistente.
+    // Construye el contexto público disponible para la IA.
     private static string BuildPublicContext()
     {
         try

@@ -46,9 +46,7 @@
 @media(max-width:650px){.public-menu-header{height:68px;padding:0 14px}.public-login-btn{min-width:auto;padding-left:13px;padding-right:13px}.bank-card{padding:16px}.bank-card-number{font-size:16px;letter-spacing:.11em}.bank-card-bottom strong{max-width:150px}}
 
 
-/* ==========================================================
-   RestauranteBD · refinamiento profesional
-   ========================================================== */
+/* Estilos para la pantalla de inicio de sesión */
 .login-body {
     min-height: 100vh;
     margin: 0;
@@ -1146,7 +1144,7 @@
 .notification-detail-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(15,23,42,.42);backdrop-filter:blur(4px);z-index:3000;padding:24px}.notification-detail-modal.show{display:flex}.notification-detail-dialog{width:min(780px,96vw);max-height:min(86vh,820px);overflow:auto;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 70px rgba(15,23,42,.22)}.notification-detail-head{display:flex;align-items:flex-start;gap:14px;padding:22px 24px 16px;border-bottom:1px solid #eef2f7}.notification-detail-icon{width:44px;height:44px;border-radius:12px;background:#f8fafc;display:grid;place-items:center;flex:0 0 auto}.notification-detail-icon svg{width:21px;height:21px}.notification-detail-title{min-width:0;flex:1}.notification-detail-title h3{margin:0;font-size:18px;color:#172033}.notification-detail-title .subject{margin:5px 0 0;color:#475569;font-size:12px}.notification-detail-title time{display:block;margin-top:8px;color:#94a3b8;font-size:10px}.notification-detail-close{border:0;background:transparent;cursor:pointer;color:#64748b;width:34px;height:34px;border-radius:9px}.notification-detail-close:hover{background:#f1f5f9}.notification-detail-body{padding:22px 24px 26px;color:#334155;font-size:12px;line-height:1.7}.mail-detail-card{margin-top:18px;border:1px solid #e7edf4;border-radius:12px;overflow:hidden}.mail-detail-row{display:flex;justify-content:space-between;gap:20px;padding:11px 14px;border-bottom:1px solid #eef2f7}.mail-detail-row:last-child{border-bottom:0}.mail-detail-row span{color:#64748b}.mail-detail-row strong{color:#172033}.mail-detail-meta{display:flex;justify-content:space-between;gap:16px;margin-top:18px;color:#94a3b8;font-size:10px}.notification-detail-foot{display:flex;justify-content:flex-end;gap:8px;padding:14px 24px;border-top:1px solid #eef2f7;background:#fbfcfe}.notification-star .ui-icon{width:20px;height:20px;display:grid;place-items:center}.notification-star .ui-icon svg{width:18px;height:18px}.notification-star.active{color:#f59e0b}.payment-method-symbol svg{width:21px;height:21px}.method-box>.payment-method-symbol{flex:0 0 auto;width:36px;height:36px;display:grid;place-items:center}
 
 
-/* ===== Lectura de correo profesional para notificaciones ===== */
+/* Lectura de correo profesional para notificaciones */
 .gmail-center{border-radius:18px;box-shadow:0 12px 38px rgba(15,23,42,.06)}
 .gmail-reader-dialog{width:min(1080px,97vw);max-height:92vh;display:flex;flex-direction:column;border-radius:18px;overflow:hidden}
 .gmail-reader-toolbar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #edf1f5;background:#fff;min-height:58px}
@@ -1175,16 +1173,16 @@
 .card-brand-icon{width:36px;height:24px;display:grid;place-items:center;color:rgba(255,255,255,.92)}.card-brand-icon svg{width:26px;height:26px}
 @media(max-width:760px){.gmail-reader-heading{padding:20px 18px 8px}.gmail-sender-row{padding:10px 18px 16px;grid-template-columns:36px minmax(0,1fr) auto}.gmail-sender-avatar{width:36px;height:36px}.gmail-sender-row>time{grid-column:2/-1}.gmail-message-body{padding:4px 18px 22px}.mail-info-grid{grid-template-columns:1fr}.mail-info-grid>div:nth-last-child(-n+2){border-bottom:1px solid #f0f3f6}.mail-info-grid>div:last-child{border-bottom:0}.mail-items-head,.mail-item-row{grid-template-columns:minmax(0,1fr) 55px 78px 86px;gap:6px;padding:10px 10px}.gmail-reader-subject-wrap h3{font-size:21px}}
 
-/* ===== DETALLE VISUAL DEL CENTRO DE NOTIFICACIONES ===== */
+/* Detalle visual del centro de notificaciones */
 .notification-head-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}.notification-head-stat{display:flex;align-items:center;gap:8px;padding:8px 11px;border:1px solid var(--line);border-radius:12px;background:#fff;min-width:96px}.notification-head-stat>.ui-icon{width:28px;height:28px;display:grid;place-items:center;border-radius:9px;background:#f6f8fb;color:#64748b}.notification-head-stat>.ui-icon svg{width:16px;height:16px}.notification-head-stat div{display:grid;gap:1px}.notification-head-stat span{font-size:8px;color:#94a3b8;font-weight:800;text-transform:uppercase;letter-spacing:.05em}.notification-head-stat strong{font-size:13px;color:#172033}.notification-toolbar-brand{display:flex;align-items:center;gap:9px;margin-right:auto}.notification-toolbar-brand>.ui-icon{width:34px;height:34px;display:grid;place-items:center;background:#f6f8fb;border:1px solid #e8edf3;border-radius:10px;color:#64748b}.notification-toolbar-brand>.ui-icon svg{width:18px;height:18px}.notification-toolbar-brand div{display:grid;gap:2px}.notification-toolbar-brand strong{font-size:11px;color:#172033}.notification-toolbar-brand small{font-size:9px;color:#94a3b8}.notifications-page .page-head{align-items:flex-end;margin-bottom:18px}.gmail-center{border:1px solid #dfe6ee;background:#fff;box-shadow:0 18px 55px rgba(15,23,42,.07)}.notification-list{min-height:360px}.notification-row.unread .notification-icon{background:#fff7ed;color:#b45309;box-shadow:inset 0 0 0 1px #fed7aa}.notification-row.unread .notification-main-top strong{font-weight:900}.notification-row.read{background:#fff}.notification-row.read:hover{background:#f8fafc}.notification-action.icon-only{width:32px;height:32px;padding:0;justify-content:center}.notification-detail-icon{box-shadow:inset 0 0 0 1px #e8edf3}.gmail-reader-dialog{box-shadow:0 30px 90px rgba(15,23,42,.24);border-color:#dfe6ee}.gmail-reader-toolbar{box-shadow:0 1px 0 rgba(15,23,42,.03)}.gmail-message-body{max-width:100%;margin:0 auto}.mail-reference strong,.mail-info-grid strong{font-variant-numeric:tabular-nums}.mail-section-title{position:relative}.mail-section-title:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,#e8edf3,transparent)}
 @media(max-width:900px){.notification-head-stat{display:none}.notification-toolbar-brand{margin-right:0}}
 @media(max-width:760px){.notification-toolbar-brand{display:none}.notifications-page .page-head{align-items:stretch}.notification-head-tools{justify-content:stretch}.notification-head-tools .secondary-btn{flex:1}}
 
 
-/* ===== CENTRO DE CORREO PROFESIONAL ===== */
+/* Centro de correo profesional */
 .mail-app-header{display:flex;justify-content:space-between;gap:24px;align-items:flex-end;margin-bottom:16px}.mail-brand-block{display:flex;gap:14px;align-items:center}.mail-brand-icon{width:48px;height:48px;border-radius:15px;border:1px solid #e2e8f0;background:#fff;display:grid;place-items:center;box-shadow:0 10px 28px rgba(15,23,42,.06)}.mail-brand-icon svg{width:23px;height:23px}.mail-brand-block h2{margin:2px 0 0;font-size:23px;letter-spacing:-.025em}.mail-brand-block p{margin:4px 0 0;color:#64748b;font-size:11px}.mail-header-stats{display:flex;align-items:center;gap:8px}.mail-header-stats>div{min-width:84px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:#fff}.mail-header-stats span{display:block;font-size:8px;color:#94a3b8;font-weight:900;text-transform:uppercase;letter-spacing:.06em}.mail-header-stats strong{display:block;margin-top:3px;font-size:14px;color:#172033}.mail-app-shell{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:calc(100vh - 240px);border:1px solid #dfe5ec;border-radius:20px;overflow:hidden;background:#fff;box-shadow:0 18px 60px rgba(15,23,42,.07)}.mail-sidebar{background:#fafbfd;border-right:1px solid #e8edf3;padding:18px 12px;display:flex;flex-direction:column}.compose-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:1px solid #d9e2ec;background:#fff;box-shadow:0 7px 20px rgba(15,23,42,.07);color:#172033;border-radius:13px;padding:11px 14px;font-weight:900;cursor:pointer}.compose-btn:hover{background:#f8fafc;transform:translateY(-1px)}.mail-nav{margin-top:16px;display:grid;gap:4px}.mail-nav-item{display:flex;align-items:center;gap:9px;border:0;background:transparent;color:#475569;padding:10px 11px;border-radius:10px;font:800 11px inherit;text-align:left;cursor:pointer}.mail-nav-item:hover{background:#eef2f7}.mail-nav-item.active{background:#e9eef6;color:#172033}.mail-nav-item .ui-icon{width:18px;height:18px;display:grid;place-items:center;flex:none}.mail-nav-item .ui-icon svg{width:17px;height:17px}.mail-nav-item b{margin-left:auto;min-width:20px;padding:2px 5px;border-radius:999px;background:#dfe7f1;color:#334155;text-align:center;font-size:8px}.mail-sidebar-foot{display:flex;gap:9px;align-items:flex-start;margin-top:auto;padding:13px 10px;border-top:1px solid #e8edf3;color:#64748b}.mail-sidebar-foot .ui-icon{width:18px}.mail-sidebar-foot svg{width:17px;height:17px}.mail-sidebar-foot strong{display:block;color:#475569;font-size:10px}.mail-sidebar-foot p{margin:3px 0 0;font-size:9px;line-height:1.5}.mail-main-area{min-width:0;display:flex;flex-direction:column}.mail-toolbar{display:flex;gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid #edf1f5;background:#fff}.mail-toolbar-tabs{display:flex;gap:5px}.mail-toolbar .filter-chip{border:1px solid transparent;background:transparent;padding:7px 10px;border-radius:9px;color:#64748b;font-size:9px;font-weight:900;cursor:pointer}.mail-toolbar .filter-chip.active{background:#f1f5f9;color:#172033;border-color:#e3e8ef}.mail-search{display:flex;align-items:center;gap:8px;flex:1;max-width:520px;margin-left:auto;border:1px solid #e0e6ed;background:#f8fafc;border-radius:11px;padding:8px 10px}.mail-search .ui-icon{display:grid;place-items:center;color:#94a3b8}.mail-search svg{width:17px;height:17px}.mail-search input{width:100%;border:0;outline:0;background:transparent;font:700 11px inherit;color:#172033}.mail-list-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 11px;border-bottom:1px solid #edf1f5}.mail-list-head>div:first-child{display:grid;gap:2px}.mail-list-head strong{font-size:12px}.mail-list-head span{font-size:9px;color:#94a3b8}.mail-list-tools .icon-btn{width:31px;height:31px}.mail-list{min-height:0;flex:1;overflow:auto}.mail-row{display:grid;grid-template-columns:32px 38px minmax(0,1fr) 38px;gap:9px;align-items:center;padding:10px 14px;border-bottom:1px solid #eef2f6;background:#fff;transition:background .16s ease}.mail-row:hover{background:#f8fafc}.mail-row.unread{background:#fdfefd}.mail-row.unread .mail-main-top strong,.mail-row.unread .mail-subject strong{font-weight:950;color:#172033}.mail-row.sent{border-left:3px solid #dbeafe}.mail-star,.mail-main{border:0;background:transparent;padding:0;cursor:pointer}.mail-star{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;color:#a5afbb}.mail-star:hover{background:#eef2f7}.mail-star.active{color:#d49400}.mail-star svg{width:17px;height:17px}.mail-avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#eef2f7;color:#475569;font-size:10px;font-weight:950}.mail-main{text-align:left;min-width:0}.mail-main-top{display:grid;grid-template-columns:minmax(110px,180px) minmax(100px,1fr) auto;align-items:center;gap:9px}.mail-main-top strong{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mail-main-top span{font-size:9px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mail-main-top time{font-size:8px;color:#94a3b8;white-space:nowrap}.mail-subject{display:flex;align-items:center;gap:6px;margin-top:4px;min-width:0}.mail-subject .mail-type-icon{width:16px;height:16px;display:grid;place-items:center;color:#64748b;flex:none}.mail-subject .mail-type-icon svg{width:15px;height:15px}.mail-subject strong{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mail-subject em{margin-left:auto;font-size:8px;color:#94a3b8;font-style:normal}.mail-main p{margin:3px 0 0;font-size:9px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mail-row-actions .icon-btn{width:30px;height:30px}.mail-row-actions svg{width:16px;height:16px}.mail-empty{min-height:420px;display:grid;place-items:center;align-content:center;padding:40px;text-align:center;color:#94a3b8}.mail-empty-icon{width:58px;height:58px;border-radius:18px;background:#f8fafc;border:1px solid #e8edf3;display:grid;place-items:center;margin-bottom:12px;color:#94a3b8}.mail-empty-icon svg{width:26px;height:26px}.mail-empty strong{color:#475569;font-size:12px}.mail-empty p{margin:5px 0 0;font-size:10px}.compose-dialog{width:min(720px,96vw);max-height:90vh;display:flex;flex-direction:column;background:#fff;border:1px solid #dfe6ee;border-radius:18px;box-shadow:0 28px 90px rgba(15,23,42,.25);overflow:hidden}.compose-head{display:flex;justify-content:space-between;align-items:flex-start;padding:18px 20px;border-bottom:1px solid #edf1f5}.compose-head h3{margin:3px 0 0;font-size:17px}.compose-body{padding:18px 20px;display:grid;gap:14px;overflow:auto}.compose-field{display:grid;gap:6px}.compose-field>span{font-size:9px;font-weight:900;letter-spacing:.07em;text-transform:uppercase;color:#64748b}.compose-field input,.compose-field select,.compose-field textarea{width:100%;border:1px solid #dfe5ec;border-radius:10px;background:#fff;padding:10px 11px;outline:0;font:600 11px inherit;color:#172033}.compose-field input:focus,.compose-field select:focus,.compose-field textarea:focus{border-color:#94a3b8;box-shadow:0 0 0 3px rgba(148,163,184,.12)}.compose-field textarea{min-height:260px;resize:vertical;line-height:1.65}.compose-field small{font-size:8px;color:#94a3b8}.compose-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid #edf1f5;background:#fbfcfe}.compose-footer>span{font-size:9px;color:#94a3b8}.compose-footer>div{display:flex;gap:8px}.reader-meta{margin:18px 0;display:grid;grid-template-columns:1fr 1fr;gap:12px}.reader-meta>div{border:1px solid #e7edf3;border-radius:13px;background:#fafbfd;display:grid;grid-template-columns:1fr 1fr}.reader-meta>div>div{padding:11px 13px;border-bottom:1px solid #edf1f5}.reader-meta>div>div:nth-last-child(-n+2){border-bottom:0}.reader-meta span{display:block;font-size:8px;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;font-weight:900}.reader-meta strong{display:block;margin-top:4px;font-size:10px;overflow-wrap:anywhere}.reader-meta small{display:block;margin-top:3px;color:#94a3b8;font-size:8px;overflow-wrap:anywhere}.reader-section{margin-top:16px;border:1px solid #e5eaf0;border-radius:14px;overflow:hidden}.reader-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 13px;background:#fbfcfe;border-bottom:1px solid #edf1f5}.reader-section-head>div{display:flex;align-items:center;gap:8px}.reader-section-head strong{font-size:11px}.reader-section-head small{font-size:8px;color:#94a3b8}.reader-status{padding:5px 8px;border-radius:999px;background:#fff7ed;color:#9a3412;font-size:8px;font-weight:900}.reader-status.paid{background:#ecfdf3;color:#166534}.reader-section-icon{width:20px;height:20px;display:grid;place-items:center;color:#64748b;flex:none}.reader-section-icon svg{width:18px;height:18px}.reader-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.reader-grid>div{padding:11px 13px;border-bottom:1px solid #f0f3f6}.reader-grid>div:nth-last-child(-n+2){border-bottom:0}.reader-grid span{display:block;font-size:8px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;font-weight:900}.reader-grid strong{display:block;margin-top:4px;font-size:10px;overflow-wrap:anywhere}.reader-grid small{display:block;margin-top:2px;font-size:8px;color:#94a3b8}.reader-items{display:grid}.reader-item{display:grid;grid-template-columns:minmax(0,1fr) 90px 100px;gap:12px;align-items:center;padding:11px 13px;border-bottom:1px solid #f1f4f7;font-size:10px}.reader-item:last-child{border-bottom:0}.reader-item>div{min-width:0}.reader-item strong{overflow-wrap:anywhere}.reader-item small{display:block;margin-top:3px;font-size:8px;color:#94a3b8}.reader-item>span,.reader-item>strong:last-child{text-align:right}.reader-note{display:flex;gap:10px;margin-top:16px;padding:13px;border:1px solid #e8edf3;border-radius:12px;background:#f8fafc}.reader-note strong{font-size:10px}.reader-note p{margin:4px 0 0;font-size:9px;color:#64748b;line-height:1.6;white-space:pre-line}.reader-invoice-banner{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-top:16px;padding:13px 14px;border:1px solid #e7dfd9;border-radius:13px;background:#fffbf7}.reader-invoice-banner div{display:grid;gap:3px}.reader-invoice-banner strong{font-size:10px}.reader-invoice-banner span{font-size:9px;color:#64748b}@media(max-width:900px){.mail-app-header{align-items:stretch;flex-direction:column}.mail-header-stats{justify-content:flex-end}.mail-app-shell{grid-template-columns:190px minmax(0,1fr)}}@media(max-width:720px){.mail-app-shell{grid-template-columns:1fr}.mail-sidebar{border-right:0;border-bottom:1px solid #e8edf3}.mail-sidebar-foot{display:none}.mail-nav{grid-template-columns:repeat(5,1fr);overflow:auto}.mail-nav-item{justify-content:center}.mail-nav-item span:not(.ui-icon),.mail-nav-item b{display:none}.mail-toolbar{flex-direction:column;align-items:stretch}.mail-search{max-width:none;margin-left:0}.mail-main-top{grid-template-columns:minmax(90px,1fr) auto}.mail-main-top span{display:none}.mail-row{grid-template-columns:28px 34px minmax(0,1fr) 28px;padding:9px 9px}.mail-avatar{width:31px;height:31px}.reader-meta{grid-template-columns:1fr}.reader-grid{grid-template-columns:1fr}.reader-grid>div:nth-last-child(-n+2){border-bottom:1px solid #f0f3f6}.reader-grid>div:last-child{border-bottom:0}.reader-item{grid-template-columns:minmax(0,1fr) 70px 80px}.compose-dialog{max-height:96vh}.compose-field textarea{min-height:220px}}
 
-/* ===== COMPOSITOR DE CORREO: apariencia tipo Gmail ===== */
+/* Compositor de correo: apariencia tipo gmail */
 .compose-dialog{width:min(820px,96vw);border-radius:20px;box-shadow:0 30px 90px rgba(15,23,42,.28)}
 .gmail-compose-body{gap:0;padding:0;background:#fff}
 .compose-account-row,.compose-recipient-row{display:flex;align-items:center;min-height:58px;padding:0 22px;border-bottom:1px solid #edf1f5}
@@ -1204,12 +1202,12 @@
 
 .reader-message-rendered{color:#334155;line-height:1.75}.reader-message-rendered strong{font-weight:800}.reader-message-rendered em{font-style:italic}.reader-message-list{margin:8px 0 8px 20px}.reader-message-list li{margin:3px 0}.compose-format-panel{display:none}.compose-format-panel.show{display:flex}.compose-format-panel button{cursor:pointer!important}.compose-attachments[hidden]{display:none!important}
 
-/* ===== Refinamientos profesionales 2026 ===== */
+/* Refinamientos profesionales 2026 */
 .reader-attachment-pro{display:grid!important;grid-template-columns:48px minmax(0,1fr) 28px;align-items:center;gap:12px;padding:10px 12px!important;border:1px solid #e5eaf0;border-radius:12px;background:#fff;transition:box-shadow .15s,transform .15s,background .15s}.reader-attachment-pro:hover{background:#f8fafc;box-shadow:0 6px 20px rgba(15,23,42,.08);transform:translateY(-1px)}.reader-attachment-filemark{width:40px;height:46px;border-radius:8px;background:#f1f5f9;display:grid;place-items:center;font-weight:900;font-size:9px;color:#475569;position:relative;overflow:hidden}.reader-attachment-filemark:before{content:'';position:absolute;inset:0 0 auto auto;border-style:solid;border-width:0 0 10px 10px;border-color:transparent transparent #fff #cbd5e1}.reader-attachment-pro.pdf .reader-attachment-filemark{background:#fee2e2;color:#b91c1c}.reader-attachment-pro.word .reader-attachment-filemark{background:#dbeafe;color:#1d4ed8}.reader-attachment-pro.sheet .reader-attachment-filemark{background:#dcfce7;color:#15803d}.reader-attachment-pro.slide .reader-attachment-filemark{background:#ffedd5;color:#c2410c}.reader-attachment-pro.image .reader-attachment-filemark{background:#ede9fe;color:#6d28d9}.reader-attachment-copy{min-width:0}.reader-attachment-copy strong{display:block;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.reader-attachment-copy small{display:block;font-size:8px;color:#94a3b8;margin-top:3px}.chat-bubble.bot .assistant-list{display:grid;gap:6px;margin-top:8px}.assistant-list-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 9px;border:1px solid rgba(148,163,184,.2);border-radius:9px;background:rgba(255,255,255,.6)}.assistant-list-row>span{min-width:0}.assistant-list-row strong,.assistant-list-row small{display:block}.assistant-list-row strong{font-size:9px}.assistant-list-row small{font-size:8px;color:#64748b;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.assistant-list-row>b{font-size:9px;white-space:nowrap}.assistant-muted{font-size:9px;color:#64748b}.assistant-table-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:8px}.assistant-table-chip{padding:5px 6px;border-radius:8px;text-align:center;font-size:7px;font-weight:900;border:1px solid #e2e8f0}.assistant-table-chip.free{background:#ecfdf5;color:#166534}.assistant-table-chip.busy{background:#fff7ed;color:#9a3412}.local-order-modal-pro{width:min(1120px,96vw)}.local-order-section-label{font-size:8px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;color:#64748b;margin:7px 0}.local-order-grid-pro{align-items:start}.local-order-summary-pro{position:sticky;top:0}.local-summary-mini{display:grid;gap:7px;padding:10px 0;border-top:1px solid #edf1f5;border-bottom:1px solid #edf1f5;margin:10px 0}.local-summary-mini div{display:flex;justify-content:space-between;font-size:9px}.local-summary-mini .grand{font-size:12px;font-weight:900}.local-order-policy{display:grid;gap:4px;padding:10px 11px;border-radius:11px;background:#f8fafc;border:1px solid #e7edf3;margin:10px 0}.local-order-policy strong{font-size:9px}.local-order-policy span{font-size:8px;color:#64748b;line-height:1.5}.role-admin-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,.75fr);gap:18px;margin-top:18px}.role-catalog-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.role-definition-card{padding:12px;border:1px solid #e7edf3;border-radius:12px;background:#fff;display:grid;gap:7px}.role-definition-card>div{display:flex;justify-content:space-between;gap:8px}.role-definition-card>div span{font-size:8px;color:#94a3b8}.role-definition-card p{font-size:8px;line-height:1.55;color:#64748b;margin:0}.permission-check-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;max-height:360px;overflow:auto;padding-right:3px}.permission-check{display:flex;gap:7px;align-items:flex-start;padding:8px;border:1px solid #e7edf3;border-radius:10px;background:#fafbfd;cursor:pointer}.permission-check input{margin-top:2px}.permission-check strong,.permission-check small{display:block}.permission-check strong{font-size:8px}.permission-check small{font-size:7px;color:#94a3b8;margin-top:2px}.local-address-field.hidden{display:none}.local-order-modal-pro .field-label{font-size:9px}.ready-card .order-actions{display:grid;gap:7px;margin-top:8px}.ready-card .order-actions button:disabled{opacity:.45;cursor:not-allowed}
 @media(max-width:900px){.role-admin-grid{grid-template-columns:1fr}.role-catalog-grid{grid-template-columns:1fr}.local-order-summary-pro{position:static}.permission-check-grid{grid-template-columns:1fr}}
 
 
-/* ===== Professional 2026 refinements ===== */
+/* Professional 2026 refinements */
 .chat-input{grid-template-columns:42px minmax(0,1fr) 44px!important;gap:7px}
 .chat-voice-btn{display:grid;place-items:center;border:1px solid #e3e8ef;background:#fff;border-radius:12px;color:#475569;cursor:pointer;transition:.18s}
 .chat-voice-btn:hover{border-color:#cbd5e1;box-shadow:0 6px 18px rgba(15,23,42,.08)}
@@ -1267,10 +1265,7 @@ body.app-body{background:var(--bg);color:var(--ink)}
 
 body[data-settings-animations="false"] *,body[data-settings-animations="false"] *::before,body[data-settings-animations="false"] *::after{transition:none!important;animation:none!important}
 
-/* ============================================================
-   RESTAURANTEBD · VISUAL SYSTEM V11
-   Profundidad, jerarquía y acento dorado con azul noche.
-   ============================================================ */
+/* Sistema visual general: profundidad, jerarquía y colores de la aplicación */
 :root{
   --ui-radius:18px;
   --ui-radius-sm:13px;
@@ -1424,11 +1419,7 @@ body.app-body[style*="--sidebar:"]{}
 .side-nav a.active{box-shadow:inset 0 0 0 1px rgba(255,255,255,.035),0 7px 18px rgba(0,0,0,.08)}
 @media(max-width:760px){.top-notification-link{width:36px;height:36px}.top-notification-link b{font-size:7px}}
 
-/* =========================================================
-   RESTAURANTEBD PREMIUM UI / UX
-   Capa visual global. Mantiene la lógica existente y eleva
-   la interfaz a un lenguaje SaaS de hospitalidad.
-   ========================================================= */
+/* Estilos globales de la interfaz y componentes reutilizables */
 :root{
   --premium-radius-sm:12px;
   --premium-radius-md:16px;
@@ -1770,10 +1761,7 @@ tbody tr:hover{background:color-mix(in srgb,var(--accent,#f59e0b) 4%,#fff 96%);t
 
 body.app-body[data-settings-reduce-shadows="true"] .panel,body.app-body[data-settings-reduce-shadows="true"] .stat-card,body.app-body[data-settings-reduce-shadows="true"] .order-card,body.app-body[data-settings-reduce-shadows="true"] .kitchen-card,body.app-body[data-settings-reduce-shadows="true"] .product-card,body.app-body[data-settings-reduce-shadows="true"] .producto-card,body.app-body[data-settings-reduce-shadows="true"] .quick-card{box-shadow:0 4px 14px rgba(15,23,42,.045)!important}
 
-/* ================================================================
-   RestauranteBD · V13 Ultra Premium Hospitality UI
-   Capa visual: no cambia rutas, controladores ni lógica de negocio.
-   ================================================================ */
+/* Ajustes visuales generales para las pantallas del restaurante */
 :root{
   --premium-bg:#f8fafc;
   --premium-surface:#ffffff;
@@ -2083,9 +2071,7 @@ button,.primary-btn,.secondary-btn,.filter-chip,.side-nav a,.mail-nav-item,.mail
         transform: scale(1.06);
     }
 }
-/* =========================================================
-   MODO CONVERSACIÓN POR VOZ
-   ========================================================= */
+/* Estilos del modo de conversación por voz */
 
 .chat-voice-mode-btn {
     height: 42px;
@@ -2119,9 +2105,7 @@ button,.primary-btn,.secondary-btn,.filter-chip,.side-nav a,.mail-nav-item,.mail
     }
 
 
-/* ---------------------------------------------------------
-   OVERLAY
-   --------------------------------------------------------- */
+/* OVERLAY */
 
 .chat-voice-overlay {
     position: absolute;
@@ -2145,9 +2129,7 @@ button,.primary-btn,.secondary-btn,.filter-chip,.side-nav a,.mail-nav-item,.mail
         pointer-events: auto;
     }
 
-/* ---------------------------------------------------------
-   PANEL
-   --------------------------------------------------------- */
+/* PANEL */
 
 .chat-voice-panel {
     width: min(620px, 100%);
@@ -2161,9 +2143,7 @@ button,.primary-btn,.secondary-btn,.filter-chip,.side-nav a,.mail-nav-item,.mail
 }
 
 
-/* ---------------------------------------------------------
-   HEADER
-   --------------------------------------------------------- */
+/* HEADER */
 
 .chat-voice-topbar {
     display: flex;
@@ -2225,9 +2205,7 @@ button,.primary-btn,.secondary-btn,.filter-chip,.side-nav a,.mail-nav-item,.mail
     }
 
 
-/* ---------------------------------------------------------
-   CONTENIDO
-   --------------------------------------------------------- */
+/* CONTENIDO */
 
 .chat-voice-content {
     flex: 1;
@@ -2240,9 +2218,7 @@ button,.primary-btn,.secondary-btn,.filter-chip,.side-nav a,.mail-nav-item,.mail
 }
 
 
-/* ---------------------------------------------------------
-   CÍRCULO PRINCIPAL
-   --------------------------------------------------------- */
+/* CÍRCULO PRINCIPAL */
 
 .chat-voice-orb {
     position: relative;
@@ -2289,9 +2265,7 @@ button,.primary-btn,.secondary-btn,.filter-chip,.side-nav a,.mail-nav-item,.mail
     }
 
 
-/* ---------------------------------------------------------
-   ESTADO
-   --------------------------------------------------------- */
+/* ESTADO */
 
 .chat-voice-content h2 {
     margin: 0;
@@ -2309,9 +2283,7 @@ button,.primary-btn,.secondary-btn,.filter-chip,.side-nav a,.mail-nav-item,.mail
 }
 
 
-/* ---------------------------------------------------------
-   ONDAS
-   --------------------------------------------------------- */
+/* ONDAS */
 
 .chat-voice-waves {
     height: 35px;
@@ -2347,9 +2319,7 @@ button,.primary-btn,.secondary-btn,.filter-chip,.side-nav a,.mail-nav-item,.mail
         }
 
 
-/* ---------------------------------------------------------
-   SALIR
-   --------------------------------------------------------- */
+/* SALIR */
 
 .chat-voice-end-button {
     min-height: 46px;
@@ -2382,9 +2352,7 @@ button,.primary-btn,.secondary-btn,.filter-chip,.side-nav a,.mail-nav-item,.mail
     }
 
 
-/* ---------------------------------------------------------
-   ANIMACIONES
-   --------------------------------------------------------- */
+/* ANIMACIONES */
 
 @keyframes chatVoiceOrbFloat {
     0%,100% {
@@ -2431,9 +2399,7 @@ button,.primary-btn,.secondary-btn,.filter-chip,.side-nav a,.mail-nav-item,.mail
 }
 
 
-/* ---------------------------------------------------------
-   MÓVIL
-   --------------------------------------------------------- */
+/* MÓVIL */
 
 @media (max-width: 650px) {
 
@@ -2479,11 +2445,7 @@ body.voice-mode-active .chat-launcher {
 body.voice-mode-active {
     overflow: hidden !important;
 }
-/* =========================================================
-   CORRECCIÓN FINAL CHATBOT / MODO VOZ
-   El modo voz vive dentro del panel del chatbot y no crea
-   una segunda ventana ni altera el resto de la página.
-   ========================================================= */
+/* Estilos para integrar el modo voz dentro del chatbot */
 .chatbot .chat-voice-mode-btn.active {
     background: #0f172a;
     color: #ffffff;

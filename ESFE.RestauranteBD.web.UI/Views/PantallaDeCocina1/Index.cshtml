@@ -1,8 +1,10 @@
+
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Cocina";
 }
 
+@* Contenido principal de la página. *@
 <section class="page-shell">
     <div class="page-head">
         <div>
@@ -18,7 +20,9 @@
     <div class="kanban" id="kitchenBoard"></div>
 </section>
 
+@* Scripts necesarios para el funcionamiento de esta vista. *@
 @section Scripts {
+    @* Datos que la vista expone al JavaScript. *@
     <script>
         document.addEventListener('DOMContentLoaded', () => ESFERestaurante.kitchen.init());
     </script>

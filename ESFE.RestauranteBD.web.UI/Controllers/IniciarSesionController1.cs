@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Mvc;
 using ESFE.RestauranteBD.web.UI.Models;
 
@@ -6,10 +7,12 @@ namespace ESFE.RestauranteBD.web.UI.Controllers;
 public class IniciarSesion1Controller : Controller
 {
     [HttpGet]
+    // Carga la vista principal del módulo.
     public IActionResult Index() => View();
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    // Procesa la información de login.
     public IActionResult Login(string email, string password, bool remember = false)
     {
         var normalizedEmail = UserStore.NormalizeEmail(email);
@@ -28,7 +31,17 @@ public class IniciarSesion1Controller : Controller
         TempData["LoginWelcome"] = BuildWelcomeMessage(user.Rol);
 
         if (remember)
-            Response.Cookies.Append("RestauranteBD.Remember", user.Email, new CookieOptions { HttpOnly = false, IsEssential = true, MaxAge = TimeSpan.FromDays(30), SameSite = SameSiteMode.Lax, Secure = Request.IsHttps });
+            Response.Cookies.Append(
+                "RestauranteBD.Remember",
+                user.Email,
+                new CookieOptions
+                {
+                    HttpOnly = false,
+                    IsEssential = true,
+                    MaxAge = TimeSpan.FromDays(30),
+                    SameSite = SameSiteMode.Lax,
+                    Secure = Request.IsHttps
+                });
         else Response.Cookies.Delete("RestauranteBD.Remember");
 
         return RedirectToAction("Index", "Inicio1");
@@ -36,6 +49,7 @@ public class IniciarSesion1Controller : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    // Procesa la información de registrar.
     public IActionResult Registrar(string nombre, string email, string codigoPais, string telefono, string dui, string direccion, string password, string confirmPassword)
     {
         nombre = (nombre ?? string.Empty).Trim();
@@ -47,16 +61,51 @@ public class IniciarSesion1Controller : Controller
         password ??= string.Empty;
         confirmPassword ??= string.Empty;
 
-        if (!IsValidName(nombre)) return RegisterError("El nombre solo puede contener letras, espacios, apóstrofes y guiones.", nombre, email, telefono, dui, direccion, codigoPais);
+        if (!IsValidName(nombre))
+        {
+            return RegisterError(
+                "El nombre solo puede contener letras, espacios, apóstrofes y guiones.",
+                nombre, email, telefono, dui, direccion, codigoPais);
+        }
         if (!IsValidEmail(email)) return RegisterError("Escribe un correo electrónico válido.", nombre, email, telefono, dui, direccion, codigoPais);
         if (!IsValidDui(dui)) return RegisterError("El DUI debe tener el formato 00000000-0.", nombre, email, telefono, dui, direccion, codigoPais);
         if (string.IsNullOrWhiteSpace(codigoPais)) return RegisterError("Selecciona un código de país.", nombre, email, telefono, dui, direccion, codigoPais);
-        if (!TryNormalizeInternationalPhone(codigoPais, telefono, out var fullPhone)) return RegisterError("El teléfono no corresponde al país seleccionado. Revisa la cantidad de dígitos.", nombre, email, telefono, dui, direccion, codigoPais);
+        if (!TryNormalizeInternationalPhone(codigoPais, telefono, out var fullPhone))
+        {
+            return RegisterError(
+                "El teléfono no corresponde al país seleccionado. Revisa la cantidad de dígitos.",
+                nombre, email, telefono, dui, direccion, codigoPais);
+        }
         if (direccion.Length < 5) return RegisterError("Escribe una dirección válida.", nombre, email, telefono, dui, direccion, codigoPais);
-        if (password.Length < 8 || !password.Any(char.IsUpper) || !password.Any(char.IsLower) || !password.Any(char.IsDigit)) return RegisterError("La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número.", nombre, email, telefono, dui, direccion, codigoPais);
-        if (!string.Equals(password, confirmPassword, StringComparison.Ordinal)) return RegisterError("Las contraseñas no coinciden.", nombre, email, telefono, dui, direccion, codigoPais);
-        if (UserStore.All().Any(x => x.Dui.Equals(dui, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(dui))) return RegisterError("Ese DUI ya está registrado.", nombre, email, telefono, dui, direccion, codigoPais);
-        if (!UserStore.Add(UserStore.Create(nombre, email, fullPhone, dui, direccion, "Cliente", password))) return RegisterError("Ese correo ya tiene una cuenta registrada.", nombre, email, telefono, dui, direccion, codigoPais);
+        if (password.Length < 8
+            || !password.Any(char.IsUpper)
+            || !password.Any(char.IsLower)
+            || !password.Any(char.IsDigit))
+        {
+            return RegisterError(
+                "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número.",
+                nombre, email, telefono, dui, direccion, codigoPais);
+        }
+        if (!string.Equals(password, confirmPassword, StringComparison.Ordinal))
+        {
+            return RegisterError(
+                "Las contraseñas no coinciden.",
+                nombre, email, telefono, dui, direccion, codigoPais);
+        }
+        if (UserStore.All().Any(x =>
+                x.Dui.Equals(dui, StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrWhiteSpace(dui)))
+        {
+            return RegisterError(
+                "Ese DUI ya está registrado.",
+                nombre, email, telefono, dui, direccion, codigoPais);
+        }
+        if (!UserStore.Add(UserStore.Create(nombre, email, fullPhone, dui, direccion, "Cliente", password)))
+        {
+            return RegisterError(
+                "Ese correo ya tiene una cuenta registrada.",
+                nombre, email, telefono, dui, direccion, codigoPais);
+        }
 
         ViewBag.Success = "Cuenta creada correctamente. Ahora puedes iniciar sesión.";
         ViewBag.ActiveTab = "login";
@@ -65,6 +114,7 @@ public class IniciarSesion1Controller : Controller
     }
 
     [HttpGet]
+    // Cierra la sesión actual y limpia sus datos temporales.
     public IActionResult CerrarSesion()
     {
         HttpContext.Session.Clear();
@@ -73,6 +123,7 @@ public class IniciarSesion1Controller : Controller
         return RedirectToAction("Index");
     }
 
+    // Procesa la información de build welcome message.
     private static string BuildWelcomeMessage(string role)
     {
         var messages = role switch
@@ -122,6 +173,7 @@ public class IniciarSesion1Controller : Controller
         return messages[Random.Shared.Next(messages.Length)];
     }
 
+    // Actualiza los datos de sesión del usuario autenticado.
     private void SetSession(UserAccount user)
     {
         HttpContext.Session.SetString("UsuarioLogueado", user.Email);
@@ -132,21 +184,38 @@ public class IniciarSesion1Controller : Controller
         HttpContext.Session.SetString("DireccionUsuario", user.Direccion ?? string.Empty);
     }
 
+    // Muestra el error ocurrido durante el registro.
     private IActionResult RegisterError(string message, string nombre, string email, string telefono, string dui, string direccion, string codigoPais = "503")
     {
-        ViewBag.Error = message; ViewBag.ActiveTab = "register"; ViewBag.RegisterName = nombre; ViewBag.RegisterEmail = email;
-        ViewBag.RegisterPhone = telefono; ViewBag.RegisterDui = dui; ViewBag.RegisterAddress = direccion; ViewBag.RegisterCountryCode = string.IsNullOrWhiteSpace(codigoPais) ? "503" : codigoPais;
+        ViewBag.Error = message;
+        ViewBag.ActiveTab = "register";
+        ViewBag.RegisterName = nombre;
+        ViewBag.RegisterEmail = email;
+        ViewBag.RegisterPhone = telefono;
+        ViewBag.RegisterDui = dui;
+        ViewBag.RegisterAddress = direccion;
+        ViewBag.RegisterCountryCode = string.IsNullOrWhiteSpace(codigoPais)
+            ? "503"
+            : codigoPais;
         return View("Index");
     }
 
+    // Comprueba que el correo tenga un formato válido.
     private static bool IsValidEmail(string email)
     {
-        try { var address = new System.Net.Mail.MailAddress(email); return address.Address.Equals(email, StringComparison.OrdinalIgnoreCase); }
+        try
+        {
+            var address = new System.Net.Mail.MailAddress(email);
+            return address.Address.Equals(email, StringComparison.OrdinalIgnoreCase);
+        }
         catch { return false; }
     }
 
+    // Comprueba que el nombre cumpla el formato permitido.
     private static bool IsValidName(string value) =>
-        System.Text.RegularExpressions.Regex.IsMatch(value, @"^(?=.*[A-Za-zÁÉÍÓÚÜÑáéíóúüñÀ-ÿ])[A-Za-zÁÉÍÓÚÜÑáéíóúüñÀ-ÿ' -]{3,80}$");
+        System.Text.RegularExpressions.Regex.IsMatch(
+            value,
+            @"^(?=.*[A-Za-zÁÉÍÓÚÜÑáéíóúüñÀ-ÿ])[A-Za-zÁÉÍÓÚÜÑáéíóúüñÀ-ÿ' -]{3,80}$");
 
     private static readonly Dictionary<string, (string Code, int Min, int Max, int[] Groups)> PhoneRules = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -164,6 +233,7 @@ public class IniciarSesion1Controller : Controller
         ["kr"] = ("82", 9, 10, [2, 3, 4])
     };
 
+    // Procesa la información de try normalize international phone.
     private static bool TryNormalizeInternationalPhone(string countryIdOrCode, string number, out string normalized)
     {
         normalized = string.Empty;
@@ -202,6 +272,7 @@ public class IniciarSesion1Controller : Controller
         return true;
     }
 
+    // Comprueba que el DUI cumpla el formato permitido.
     private static bool IsValidDui(string dui) =>
         System.Text.RegularExpressions.Regex.IsMatch(dui, @"^\d{8}-\d$");
 }

@@ -1,3 +1,5 @@
+
+@* Modelo: define los datos que recibe la vista. *@
 @model IReadOnlyCollection<ESFE.RestauranteBD.web.UI.Models.UserAccount>
 @{
     Layout = "_Layout";
@@ -7,6 +9,7 @@
     var esAdmin = RoleStore.IsAdministrator(rol);
 }
 
+@* Contenido principal de la página. *@
 <section class="page-shell">
     <div class="page-head">
         <div>
@@ -17,6 +20,7 @@
         <span class="result-count">@Model.Count clientes</span>
     </div>
 
+    @* Contenido principal de la página. *@
     <section class="panel customer-search-panel">
         <div class="panel-head">
             <div>
@@ -25,6 +29,7 @@
             </div>
         </div>
 
+        @* Campos y controles para capturar información. *@
         <form method="get" class="customer-search-form">
             <div class="search-box customer-search-input">
                 <span>⌕</span>
@@ -35,6 +40,7 @@
         </form>
     </section>
 
+    @* Contenido principal de la página. *@
     <section class="customer-grid">
         @foreach (var customer in Model)
         {

@@ -1,8 +1,10 @@
-﻿(() => {
+
+(() => {
     if (!window.ESFERestaurante?.chat) return;
 
     const bot = ESFERestaurante.chat;
 
+    // Escapa caracteres especiales para insertar texto de forma segura en HTML.
     const esc = value =>
         String(value ?? '').replace(
             /[&<>"']/g,
@@ -15,6 +17,7 @@
             }[char])
         );
 
+    // Procesa la información de add.
     const add = (html, kind = 'bot') => {
         const box = document.getElementById('chatMessages');
         if (!box) return null;
@@ -29,6 +32,7 @@
         return item;
     };
 
+    // Muestra el indicador de que el asistente está escribiendo.
     const addTyping = () => {
         const box = document.getElementById('chatMessages');
         if (!box) return null;
@@ -48,30 +52,37 @@
         return item;
     };
 
+    // Elimina o limpia los datos de typing.
     const removeTyping = item => {
         if (item?.parentNode) {
             item.remove();
         }
     };
 
+    // Obtiene el botón que activa el modo de conversación por voz.
     const getVoiceModeButton = () =>
         document.getElementById('chatVoiceModeButton');
 
+    // Obtiene el botón del micrófono para dictado.
     const getVoiceButton = () =>
         document.getElementById('chatVoiceButton');
 
+    // Obtiene el campo donde el usuario escribe el mensaje.
     const getInput = () =>
         document.getElementById('chatInput');
 
+    // Obtiene la capa visual del modo de voz.
     const getVoiceOverlay = () =>
         document.getElementById('chatVoiceMode');
 
+    // Muestra u oculta la interfaz del modo de voz.
     const setVoiceOverlay = open => {
         const overlay = getVoiceOverlay();
         overlay?.classList.toggle('show', open);
         overlay?.setAttribute('aria-hidden', String(!open));
     };
 
+    // Actualiza el estado visible del modo de voz.
     const setVoiceStatus = (status, hint) => {
         const state = document.getElementById('chatVoiceStatus');
         const help = document.getElementById('chatVoiceHint');
@@ -81,16 +92,15 @@
         orb?.classList.toggle('listening', String(status || '').toLowerCase().includes('escuch'));
     };
 
+    // Comprueba si el navegador permite reconocimiento de voz.
     const canUseSpeechRecognition = () =>
         !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 
+    // Comprueba si el navegador permite síntesis de voz.
     const canUseSpeechSynthesis = () =>
         !!window.speechSynthesis;
-
-    // ---------------------------------------------------------
-    // VOZ DE RESPUESTA
-    // ---------------------------------------------------------
-
+    // Reproducción por voz de las respuestas del asistente
+    // Reproduce en voz alta la respuesta del asistente.
     const speak = text => {
         if (!canUseSpeechSynthesis() || !text) return Promise.resolve();
 
@@ -115,11 +125,8 @@
             }
         });
     };
-
-    // ---------------------------------------------------------
-    // ESTADO DE VOZ
-    // ---------------------------------------------------------
-
+    // Estado y controles del modo de voz
+    // Estado compartido del módulo: voiceState.
     const voiceState = {
         active: false,
         listening: false,
@@ -128,6 +135,7 @@
         currentRequest: 0
     };
 
+    // Actualiza el estado visual del botón de modo voz.
     const setVoiceModeButton = active => {
         const button = getVoiceModeButton();
         if (!button) return;
@@ -151,11 +159,8 @@
                 : 'Voz';
         }
     };
-
-    // ---------------------------------------------------------
-    // RECONOCIMIENTO DE VOZ
-    // ---------------------------------------------------------
-
+    // Captura de voz mediante reconocimiento del navegador
+    // Detiene la captura de voz actual.
     const stopListening = () => {
         voiceState.listening = false;
 
@@ -176,6 +181,7 @@
         }
     };
 
+    // Inicia la captura de voz del usuario.
     const startListening = () => {
         if (!voiceState.active || voiceState.processing || voiceState.listening) return;
 
@@ -281,11 +287,8 @@
             voiceButton?.classList.remove('recording');
         }
     };
-
-    // ---------------------------------------------------------
-    // ENVIAR A GEMINI
-    // ---------------------------------------------------------
-
+    // Envío del mensaje al servicio de inteligencia artificial
+    // Envía el mensaje al servicio de inteligencia artificial.
     const sendToAi = async (question, speakResponse = false) => {
         const text = String(question || '').trim();
 
@@ -299,6 +302,7 @@
                     'meta[name="request-verification-token"]'
                 )?.content || '';
 
+            // Estado compartido del módulo: headers.
             const headers = {
                 'Content-Type': 'application/json'
             };
@@ -384,11 +388,7 @@
             }
         }
     };
-
-    // ---------------------------------------------------------
-    // ENVIAR TEXTO
-    // ---------------------------------------------------------
-
+    // Envío de mensajes escritos
     bot.send = () => {
         const input = getInput();
 
@@ -405,14 +405,10 @@
 
         add(esc(text), 'user');
 
-        // TEXTO = SOLO TEXTO
+        // El envío escrito muestra la respuesta sin activar la voz
         sendToAi(text, false);
     };
-
-    // ---------------------------------------------------------
-    // BOTONES DE SUGERENCIAS
-    // ---------------------------------------------------------
-
+    // Acciones rápidas sugeridas para el usuario
     bot.ask = text => {
         const value =
             String(text || '').trim();
@@ -423,14 +419,10 @@
 
         add(esc(value), 'user');
 
-        // SUGERENCIA = SOLO TEXTO
+        // Las sugerencias envían mensajes escritos
         sendToAi(value, false);
     };
-
-    // ---------------------------------------------------------
-    // BOTÓN DE MICRÓFONO NORMAL
-    // ---------------------------------------------------------
-
+    // Botón de micrófono para dictado
     bot.voice = {
         active: false,
 
@@ -497,7 +489,7 @@
                     input.value = text;
                 }
 
-                // MICRÓFONO NORMAL =
+                // El micrófono normal envía el texto reconocido
                 // envía el texto y responde SOLO ESCRITO.
                 bot.send();
             };
@@ -533,11 +525,8 @@
             stopListening();
         }
     };
-
-    // ---------------------------------------------------------
-    // MODO CONVERSACIÓN POR VOZ
-    // ---------------------------------------------------------
-
+    // Flujo de conversación continua por voz
+    // Activa o desactiva el modo de conversación continua por voz.
     const toggleVoiceMode = () => {
         voiceState.active = !voiceState.active;
 
@@ -594,17 +583,15 @@
         setVoiceOverlay(false);
         try { window.speechSynthesis?.cancel(); } catch { }
     };
-
-    // ---------------------------------------------------------
-    // INICIALIZACIÓN
-    // ---------------------------------------------------------
-
+    // Inicialización del chatbot y sus eventos
+    // Evento que conecta una acción del usuario con la lógica del módulo.
     document.addEventListener(
         'DOMContentLoaded',
         () => {
             const voiceButton =
                 getVoiceButton();
 
+            // Evento que conecta una acción del usuario con la lógica del módulo.
             voiceButton?.addEventListener(
                 'click',
                 () => bot.voice.start()
@@ -613,11 +600,13 @@
             const voiceModeButton =
                 getVoiceModeButton();
 
+            // Evento que conecta una acción del usuario con la lógica del módulo.
             voiceModeButton?.addEventListener(
                 'click',
                 toggleVoiceMode
             );
 
+            // Evento que conecta una acción del usuario con la lógica del módulo.
             document.getElementById('chatVoiceModeClose')?.addEventListener(
                 'click',
                 () => bot.stopVoiceMode()

@@ -1,8 +1,10 @@
+
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Carrito";
 }
 
+@* Contenido principal de la página. *@
 <section class="page-shell narrow-page">
     <div class="page-head">
         <div>
@@ -14,6 +16,7 @@
     </div>
 
     <div class="checkout-grid">
+        @* Contenido principal de la página. *@
         <section class="panel">
             <div class="panel-head">
                 <div>
@@ -26,6 +29,7 @@
             <div id="cartItems" class="cart-items"></div>
         </section>
 
+        @* Resumen y acciones secundarias de la vista. *@
         <aside class="panel order-summary">
             <span class="eyebrow">Resumen</span>
             <h3>Total del pedido</h3>
@@ -80,7 +84,9 @@
     </div>
 </section>
 
+@* Scripts necesarios para el funcionamiento de esta vista. *@
 @section Scripts {
+    @* Datos que la vista expone al JavaScript. *@
     <script>
         document.addEventListener('DOMContentLoaded', () => ESFERestaurante.cart.init());
     </script>
