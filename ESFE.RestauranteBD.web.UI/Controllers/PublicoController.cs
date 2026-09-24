@@ -1,11 +1,10 @@
-
 using Microsoft.AspNetCore.Mvc;
 
 namespace ESFE.RestauranteBD.web.UI.Controllers;
 
-public class GestionDeMenu1Controller : Controller
+public sealed class PublicoController : Controller
 {
-    // El menú también se puede consultar sin iniciar sesión.
+    // Muestra la portada pública. Aquí todavía no se puede comprar ni reservar.
     [HttpGet]
     public IActionResult Index() => View();
 }

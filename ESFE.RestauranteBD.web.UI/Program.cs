@@ -19,6 +19,7 @@ builder.Services.AddHttpClient("AI", client =>
     client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json");
 });
 builder.Services.AddSingleton<GeminiAssistantService>();
+builder.Services.AddSingleton<ChatOrderAgent>();
 builder.Services.AddSingleton<EmailService>();
 
 // Mantiene la cuenta abierta solo cuando el usuario lo pidió.
@@ -73,6 +74,7 @@ app.Use(async (context, next) =>
 {
     var path = context.Request.Path.Value ?? string.Empty;
     var isPublic = path == "/"
+                   || path.StartsWith("/Publico", StringComparison.OrdinalIgnoreCase)
                    || path.StartsWith("/IniciarSesion1", StringComparison.OrdinalIgnoreCase)
                    || path.StartsWith("/GestionDeMenu1", StringComparison.OrdinalIgnoreCase)
                    || path.StartsWith("/MenuDigital1", StringComparison.OrdinalIgnoreCase)
@@ -137,8 +139,7 @@ app.Use(async (context, next) =>
 
 app.Use(async (context, next) =>
 {
-    // Las APIs manejan su propia autenticación y permisos.
-    
+    // Las API controlan sus propios permisos y respuestas 401/403.
     if (context.Request.Path.StartsWithSegments("/api"))
     {
         await next();
@@ -147,7 +148,8 @@ app.Use(async (context, next) =>
 
     var controller = context.Request.RouteValues["controller"]?.ToString() ?? string.Empty;
 
-    if (controller.Equals("IniciarSesion1", StringComparison.OrdinalIgnoreCase)
+    if (controller.Equals("Publico", StringComparison.OrdinalIgnoreCase)
+        || controller.Equals("IniciarSesion1", StringComparison.OrdinalIgnoreCase)
         || controller.Equals("GestionDeMenu1", StringComparison.OrdinalIgnoreCase)
         || controller.Equals("MenuDigital1", StringComparison.OrdinalIgnoreCase)
         || controller.Equals("Configuracion1", StringComparison.OrdinalIgnoreCase))
@@ -182,7 +184,7 @@ app.Use(async (context, next) =>
 
 // Activa las rutas definidas directamente en los controladores de la API.
 app.MapControllers();
-app.MapControllerRoute(name: "default", pattern: "{controller=GestionDeMenu1}/{action=Index}/{id?}");
+app.MapControllerRoute(name: "default", pattern: "{controller=Publico}/{action=Index}/{id?}");
 app.Run();
 
 static string[] ControllersForRole(string role)

@@ -131,27 +131,38 @@
 
         updatePasswordRules();
 
-        // Da una respuesta visual clara cuando el servidor termina de revisar el código.
+        // Da una respuesta clara cuando el servidor termina de revisar el código.
         const resultOverlay = document.querySelector("[data-auth-result]");
         const resultState = document.body?.dataset.codeResult;
+        const resultNext = document.body?.dataset.codeResultNext || "login";
         if (resultOverlay && resultState) {
             const title = resultOverlay.querySelector("[data-auth-result-title]");
             const text = resultOverlay.querySelector("[data-auth-result-text]");
+
+            // Durante el resultado ocultamos las pantallas para que el check nunca quede encima de otro formulario.
+            document.querySelectorAll("[data-auth-panel]").forEach(panel => panel.classList.add("hidden"));
+            document.querySelector(".login-tabs")?.classList.add("hidden");
+            document.querySelector("[data-auth-chrome]")?.classList.add("hidden");
+            document.querySelectorAll(".auth-page .alert-error, .auth-page .alert-success").forEach(message => message.hidden = true);
+
             resultOverlay.hidden = false;
-            resultOverlay.dataset.state = "loading";
-            if (title) title.textContent = "Comprobando";
-            if (text) text.textContent = "Validando tu código de seguridad.";
+            resultOverlay.dataset.state = resultState === "success" ? "success" : "error";
+            if (title) title.textContent = resultState === "success" ? "Verificación correcta" : "Código no válido";
+            if (text) text.textContent = resultState === "success"
+                ? (resultNext === "resetPassword" ? "La identidad quedó confirmada. Ahora puedes crear tu nueva contraseña." : "Tu correo quedó confirmado. Ya puedes iniciar sesión.")
+                : "Revisa los seis dígitos e inténtalo nuevamente.";
 
-            window.setTimeout(() => {
-                resultOverlay.dataset.state = resultState === "success" ? "success" : "error";
-                if (title) title.textContent = resultState === "success" ? "Código correcto" : "Código no válido";
-                if (text) text.textContent = resultState === "success" ? "La verificación terminó correctamente." : "Revisa los seis dígitos e inténtalo nuevamente.";
-            }, 520);
-
+            const delay = resultState === "success" ? 2100 : 1900;
             window.setTimeout(() => {
                 resultOverlay.hidden = true;
                 resultOverlay.dataset.state = "";
-            }, 1450);
+
+                if (resultState === "success") {
+                    setTab(resultNext);
+                } else {
+                    setTab(resultNext);
+                }
+            }, delay);
         }
     });
 
@@ -201,7 +212,28 @@
                 boxes.find(box => !box.value)?.focus();
                 return;
             }
+
+            // Primero movemos las seis casillas y luego enviamos el formulario.
+            // Así el usuario ve la verificación en pantalla antes de cambiar de etapa.
+            if (entry.dataset.animating === 'true') return;
+            event.preventDefault();
+            entry.dataset.animating = 'true';
             entry.classList.add("is-checking");
+            const progress = entry.querySelector('[data-code-progress]');
+            if (progress) progress.hidden = false;
+
+            const submitButton = event.submitter || entry.closest('form')?.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.dataset.originalText = submitButton.textContent || '';
+                submitButton.textContent = 'Verificando…';
+            }
+
+            window.setTimeout(() => {
+                const form = entry.closest('form');
+                if (!form) return;
+                HTMLFormElement.prototype.submit.call(form);
+            }, 1550);
         });
 
         boxes[0].focus();

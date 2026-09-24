@@ -38,8 +38,9 @@
     <link rel="stylesheet" href="~/css/final-signature.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/professional-refinement.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/responsive-final.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/final-experience.css" asp-append-version="true" />
 </head>
-<body class="login-body auth-page auth-step-@(activeTab)" data-auth-step="@(activeTab)" data-login-url="@Url.Action("Index", "IniciarSesion1")" data-code-result="@((ViewBag.CodeVerificationState as string) ?? "")" style="--accent:@appSettings.PrimaryColor;--accent2:@appSettings.PrimaryDarkColor;--accent-soft:@appSettings.PrimarySoftColor;--bg:@appSettings.BackgroundColor;--white:@appSettings.SurfaceColor;--ink:@appSettings.TextColor;--muted:@appSettings.MutedColor;--line:@appSettings.LineColor;">
+<body class="login-body auth-page auth-step-@(activeTab)" data-auth-step="@(activeTab)" data-login-url="@Url.Action("Index", "IniciarSesion1")" data-code-result="@((ViewBag.CodeVerificationState as string) ?? "")" data-code-result-next="@((ViewBag.CodeVerificationNext as string) ?? activeTab)" style="--accent:@appSettings.PrimaryColor;--accent2:@appSettings.PrimaryDarkColor;--accent-soft:@appSettings.PrimarySoftColor;--bg:@appSettings.BackgroundColor;--white:@appSettings.SurfaceColor;--ink:@appSettings.TextColor;--muted:@appSettings.MutedColor;--line:@appSettings.LineColor;">
     <div class="login-bg-glow glow-one"></div>
     <div class="login-bg-glow glow-two"></div>
 
@@ -81,10 +82,16 @@
 
         <section class="login-card login-card-professional">
             <div class="auth-result-overlay" data-auth-result hidden aria-live="polite">
-                <div class="auth-result-orb" data-auth-result-orb>
-                    <span class="auth-result-spinner"></span>
-                    <svg class="auth-result-icon auth-result-success" viewBox="0 0 64 64" fill="none" aria-hidden="true"><circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="4"/><path d="m19 33 8 8 18-19" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    <svg class="auth-result-icon auth-result-error" viewBox="0 0 64 64" fill="none" aria-hidden="true"><circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="4"/><path d="m22 22 20 20M42 22 22 42" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg>
+                <div class="auth-result-stage" data-auth-result-stage>
+                    <div class="auth-verification-tiles" aria-hidden="true">
+                        <span data-result-tile>•</span><span data-result-tile>•</span><span data-result-tile>•</span>
+                        <span data-result-tile>•</span><span data-result-tile>•</span><span data-result-tile>•</span>
+                    </div>
+                    <div class="auth-verification-dots" aria-hidden="true">
+                        <i></i><i></i><i></i>
+                    </div>
+                    <div class="auth-result-circle auth-result-success" aria-hidden="true"><span class="auth-result-mark auth-result-check"></span></div>
+                    <div class="auth-result-circle auth-result-error" aria-hidden="true"><span class="auth-result-mark auth-result-cross"></span></div>
                 </div>
                 <strong data-auth-result-title>Comprobando</strong>
                 <span data-auth-result-text>Validando tu código de seguridad.</span>
@@ -277,6 +284,7 @@
                         </div>
                         <input class="verification-code-input code-hidden-input" name="code" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code" aria-hidden="true" tabindex="-1" required />
                         <small>El código tiene 6 dígitos y vence en 10 minutos.</small>
+                        <span class="verification-progress" data-code-progress hidden aria-live="polite">Verificando <i></i><i></i><i></i></span>
                     </div>
 
                     <button class="primary-btn large full login-submit" type="submit"><span class="btn-icon">✓</span>Confirmar correo</button>

@@ -174,6 +174,7 @@ public class IniciarSesion1Controller : Controller
 
             ViewBag.Success = "Correo confirmado correctamente. Ya puedes iniciar sesión.";
             ViewBag.CodeVerificationState = "success";
+            ViewBag.CodeVerificationNext = "login";
             ViewBag.ActiveTab = "login";
             ViewBag.Email = email;
             return View("Index");
@@ -294,6 +295,7 @@ public class IniciarSesion1Controller : Controller
             HttpContext.Session.SetString("PasswordResetVerified", email);
             ViewBag.ActiveTab = "resetPassword";
             ViewBag.CodeVerificationState = "success";
+            ViewBag.CodeVerificationNext = "resetPassword";
             ViewBag.RecoveryEmail = email;
             return View("Index");
         }
@@ -416,6 +418,7 @@ public class IniciarSesion1Controller : Controller
     {
         ViewBag.Error = message;
         ViewBag.CodeVerificationState = "error";
+        ViewBag.CodeVerificationNext = "verify";
         ViewBag.ActiveTab = "verify";
         ViewBag.VerificationEmail = email;
         return View("Index");
@@ -426,6 +429,7 @@ public class IniciarSesion1Controller : Controller
     {
         ViewBag.Error = message;
         ViewBag.CodeVerificationState = "error";
+        ViewBag.CodeVerificationNext = "resetCode";
         ViewBag.ActiveTab = "resetCode";
         ViewBag.RecoveryEmail = email;
         return View("Index");

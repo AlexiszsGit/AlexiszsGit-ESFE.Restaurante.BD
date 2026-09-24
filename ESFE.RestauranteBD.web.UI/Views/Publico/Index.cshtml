@@ -1,0 +1,31 @@
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Bienvenido";
+    var settings = AppSettingsStore.Current;
+}
+
+<section class="public-landing page-shell">
+    <div class="public-landing-hero">
+        <div class="public-landing-copy">
+            <span class="eyebrow">Bienvenido</span>
+            <h1>Descubre el menú a tu ritmo.</h1>
+            <p>Explora los platos, ingredientes y precios y descubre todo lo que la casa tiene para ofrecerte.</p>
+            <div class="public-landing-actions">
+                <a asp-controller="GestionDeMenu1" asp-action="Index" class="primary-btn large public-menu-entry" aria-label="Ver menú completo">Ver menú</a>
+            </div>
+            <div class="public-landing-trust">
+                <span><i></i> Catálogo disponible</span>
+                <span><i></i> Explora por categorías</span>
+                <span><i></i> Experiencia segura</span>
+            </div>
+        </div>
+        <div class="public-landing-visual" aria-hidden="true">
+            <div class="public-landing-glow"></div>
+            <div class="public-landing-card">
+                <span class="eyebrow">@settings.RestaurantName</span>
+                <strong>Una carta hecha para descubrir.</strong>
+                <span>Consulta cada plato antes de decidir.</span>
+            </div>
+        </div>
+    </div>
+</section>

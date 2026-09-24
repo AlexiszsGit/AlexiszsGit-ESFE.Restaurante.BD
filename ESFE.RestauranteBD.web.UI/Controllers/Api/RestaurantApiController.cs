@@ -24,13 +24,16 @@ public sealed class RestaurantApiController : ControllerBase
     { "Dueno", "Administrador", "Cocina", "Barra", "Delivery" };
     private readonly GeminiAssistantService _assistant;
     private readonly EmailService _emailService;
+    private readonly ChatOrderAgent _chatOrderAgent;
 
     public RestaurantApiController(
         GeminiAssistantService assistant,
-        EmailService emailService)
+        EmailService emailService,
+        ChatOrderAgent chatOrderAgent)
     {
         _assistant = assistant;
         _emailService = emailService;
+        _chatOrderAgent = chatOrderAgent;
     }
 
     [HttpGet("system/status")]
@@ -623,22 +626,38 @@ public sealed class RestaurantApiController : ControllerBase
     {
         var email = HttpContext.Session.GetString("UsuarioLogueado");
         if (!string.IsNullOrWhiteSpace(email) && UserStore.TryGet(email, out var user) && user is not null && user.Activo && user.EmailVerified)
+        {
+            var actionResult = _chatOrderAgent.Process(
+                user,
+                request.Message ?? string.Empty,
+                request.Cart,
+                request.Draft);
+
+            var answer = await _assistant.AskAsync(
+                user,
+                request.Message ?? string.Empty,
+                request.Language,
+                cancellationToken,
+                actionResult.SystemNote);
+
             return Ok(new
             {
-                answer = await _assistant.AskAsync(
-                    user,
-                    request.Message ?? string.Empty,
-                    request.Language,
-                    cancellationToken),
-                role = user.Rol
+                answer,
+                role = user.Rol,
+                actions = actionResult.Actions,
+                draft = actionResult.Draft
             });
+        }
+
         return Ok(new
         {
             answer = await _assistant.AskPublicAsync(
                 request.Message ?? string.Empty,
                 request.Language,
                 cancellationToken),
-            role = "Publico"
+            role = "Publico",
+            actions = Array.Empty<object>(),
+            draft = new ChatOrderAgent.ChatDraft()
         });
     }
 }
@@ -687,4 +706,6 @@ public sealed class ChatRequest
     // Procesa el mensaje recibido desde la interfaz.
     public string? Message { get; set; }
     public string? Language { get; set; }
+    public JsonElement Cart { get; set; }
+    public JsonElement Draft { get; set; }
 }

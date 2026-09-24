@@ -114,8 +114,13 @@
             try {
                 window.speechSynthesis.cancel();
 
+                const speechText = String(text)
+                    .replace(/[\*`_#•]+/g, ' ')
+                    .replace(/\s{2,}/g, ' ')
+                    .trim();
+
                 const utterance =
-                    new SpeechSynthesisUtterance(String(text));
+                    new SpeechSynthesisUtterance(speechText);
 
                 utterance.lang = currentChatLocale();
                 utterance.rate = 1;
@@ -138,6 +143,8 @@
         listening: false,
         processing: false,
         recognition: null,
+        transcript: '',
+        restartOnEnd: true,
         currentRequest: 0
     };
 
@@ -169,6 +176,9 @@
     // Detiene la captura de voz actual.
     const stopListening = () => {
         voiceState.listening = false;
+        voiceState.restartOnEnd = false;
+        voiceState.transcript = '';
+        clearTimeout(voiceState.voicePauseTimer);
 
         try {
             voiceState.recognition?.stop();
@@ -187,92 +197,80 @@
         }
     };
 
-    // Inicia la captura de voz del usuario.
+    // Inicia la captura de voz del usuario en modo conversación continua.
     const startListening = () => {
         if (!voiceState.active || voiceState.processing || voiceState.listening) return;
 
         if (!canUseSpeechRecognition()) {
-            add(
-                'Este navegador no tiene reconocimiento de voz disponible.'
-            );
+            add('Este navegador no tiene reconocimiento de voz disponible.');
             voiceState.active = false;
             setVoiceModeButton(false);
             return;
         }
 
-        stopListening();
-
-        const SpeechRecognition =
-            window.SpeechRecognition ||
-            window.webkitSpeechRecognition;
-
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
 
         recognition.lang = currentChatLocale();
-        recognition.interimResults = false;
-        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.continuous = true;
         recognition.maxAlternatives = 1;
 
         voiceState.recognition = recognition;
         voiceState.listening = true;
-        setVoiceStatus('Escuchando...', 'Habla normalmente con el asistente.');
+        voiceState.restartOnEnd = true;
+        voiceState.transcript = '';
+        setVoiceStatus('Escuchando...', 'Habla normalmente. La conversación seguirá sin cortar la escucha entre frases.');
 
         const voiceButton = getVoiceButton();
-
         voiceButton?.classList.add('recording');
-        voiceButton?.setAttribute(
-            'aria-label',
-            'Detener escucha'
-        );
+        voiceButton?.setAttribute('aria-label', 'Detener escucha');
 
         recognition.onresult = event => {
-            const text =
-                event.results?.[0]?.[0]?.transcript?.trim() || '';
-
-            voiceState.listening = false;
-
-            voiceButton?.classList.remove('recording');
-
-            if (!text) {
-                if (voiceState.active) {
-                    setTimeout(startListening, 250);
-                }
-                return;
+            let finalText = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const piece = event.results[i]?.[0]?.transcript?.trim() || '';
+                if (event.results[i]?.isFinal && piece) finalText += `${piece} `;
             }
 
-            const input = getInput();
+            if (!finalText.trim()) return;
 
-            if (input) {
-                input.value = text;
-            }
+            voiceState.transcript = `${voiceState.transcript} ${finalText}`.trim();
+            clearTimeout(voiceState.voicePauseTimer);
+            voiceState.voicePauseTimer = window.setTimeout(() => {
+                const text = voiceState.transcript.trim();
+                if (!text || voiceState.processing || !voiceState.active) return;
 
-            // Evita que onend vuelva a activar el micrófono mientras Gemini responde.
-            voiceState.processing = true;
-            setVoiceStatus('Procesando...', 'Estoy preparando la respuesta.');
-            sendToAi(text, true);
+                voiceState.transcript = '';
+                voiceState.listening = false;
+                voiceState.restartOnEnd = false;
+
+                try { recognition.stop(); } catch { }
+
+                voiceButton?.classList.remove('recording');
+                const input = getInput();
+                if (input) input.value = text;
+
+                voiceState.processing = true;
+                setVoiceStatus('Procesando...', 'Estoy preparando la respuesta.');
+                sendToAi(text, true);
+            }, 650);
         };
 
         recognition.onerror = event => {
             voiceState.listening = false;
             voiceButton?.classList.remove('recording');
 
-            if (
-                event.error === 'not-allowed' ||
-                event.error === 'service-not-allowed'
-            ) {
-                add(
-                    'El navegador no permitió usar el micrófono.'
-                );
-
+            if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                add('El navegador no permitió usar el micrófono.');
                 voiceState.active = false;
                 setVoiceModeButton(false);
                 setVoiceOverlay(false);
-
                 return;
             }
 
-            if (voiceState.active) {
-                setTimeout(startListening, 500);
+            if (voiceState.active && !voiceState.processing) {
+                setVoiceStatus('Escuchando...', 'La escucha se está reconectando.');
             }
         };
 
@@ -280,8 +278,8 @@
             voiceState.listening = false;
             voiceButton?.classList.remove('recording');
 
-            if (voiceState.active && !voiceState.processing) {
-                setTimeout(startListening, 300);
+            if (voiceState.active && voiceState.restartOnEnd && !voiceState.processing) {
+                window.setTimeout(() => startListening(), 180);
             }
         };
 
@@ -293,6 +291,36 @@
             voiceButton?.classList.remove('recording');
         }
     };
+    // Aplica las acciones que el asistente ejecutó sobre la interfaz real.
+    const applyAssistantActions = actions => {
+        if (!Array.isArray(actions)) return;
+        for (const action of actions) {
+            if (!action || typeof action !== 'object') continue;
+            if (action.type === 'cart.replace') {
+                const incoming = Array.isArray(action.cart) ? action.cart : [];
+                const catalog = window.ESFERestaurante?.catalogProducts?.() || [];
+                const next = incoming.map(item => {
+                    const dbId = Number(item.dbId || 0);
+                    const product = catalog.find(p => Number(p.dbId || 0) === dbId || String(p.name).toLowerCase() === String(item.name || '').toLowerCase());
+                    if (!product) return null;
+                    return {productId:product.id,dbId:product.dbId||dbId,name:product.name,price:Number(product.price||item.price||0),image:product.image,qty:Math.max(1,Math.min(20,Number(item.qty||1))),ingredients:Array.isArray(product.ingredients)?product.ingredients:[]};
+                }).filter(Boolean);
+                window.ESFERestaurante?.cart?.replaceItems?.(next);
+                window.dispatchEvent(new CustomEvent('esfe:assistant-cart-updated'));
+            }
+            if (action.type === 'checkout.open') {
+                try {
+                    sessionStorage.setItem('esfe_order_type',String(action.orderType||'Para llevar'));
+                    sessionStorage.setItem('esfe_payment_method',String(action.method||'Efectivo'));
+                    sessionStorage.setItem('esfe_assistant_auto_submit',action.autoSubmit?'1':'0');
+                    if(action.phone) sessionStorage.setItem('esfe_delivery_phone',String(action.phone));
+                    if(action.address) sessionStorage.setItem('esfe_delivery_address',String(action.address));
+                    window.setTimeout(()=>{window.location.href='/ProcesarPago1/Index';},260);
+                } catch { }
+            }
+        }
+    };
+
     // Envío del mensaje al servicio de inteligencia artificial
     // Envía el mensaje al servicio de inteligencia artificial.
     const sendToAi = async (question, speakResponse = false) => {
@@ -325,7 +353,9 @@
                     headers,
                     body: JSON.stringify({
                         message: text,
-                        language: currentChatLocale().split('-')[0]
+                        language: currentChatLocale().split('-')[0],
+                        cart: window.ESFERestaurante?.cart?.getItems?.() || [],
+                        draft: (()=>{try{return JSON.parse(localStorage.getItem('esfe_chat_order_draft')||'{}')}catch{return {}}})()
                     })
                 }
             );
@@ -337,6 +367,8 @@
             }
 
             const data = await response.json();
+            try { localStorage.setItem('esfe_chat_order_draft',JSON.stringify(data?.draft||{})); } catch { }
+            applyAssistantActions(data?.actions);
 
             const answer =
                 String(data?.answer || '').trim();
@@ -351,7 +383,8 @@
                 if (speakResponse) {
                     voiceState.processing = false;
                     if (voiceState.active) {
-                        setTimeout(startListening, 500);
+                        voiceState.restartOnEnd = true;
+                        setTimeout(startListening, 350);
                     }
                 }
 
@@ -370,7 +403,8 @@
             if (speakResponse) {
                 voiceState.processing = false;
                 if (voiceState.active) {
-                    setTimeout(startListening, 250);
+                    voiceState.restartOnEnd = true;
+                    setTimeout(startListening, 180);
                 }
             }
         }
@@ -613,9 +647,14 @@
                 toggleVoiceMode
             );
 
-            // Mensaje inicial para que el chat no se vea vacío al abrirlo.
+            // Mensaje inicial con el nombre o el rol para que se sienta personal.
             const messages = document.getElementById('chatMessages');
             if (messages && !messages.children.length) {
+                const name = String(document.body?.dataset.userName || '').trim();
+                const role = String(document.body?.dataset.role || '').trim().toLowerCase();
+                const roleNames = { administrador: 'admin', dueno: 'admin', barra: 'barra', cocina: 'cocina', repartidor: 'repartidor', cliente: 'cliente' };
+                const who = role === 'administrador' || role === 'dueno' ? roleNames[role] : (name || roleNames[role] || 'usuario');
+                const greeting = `Hola, ${who}.`;
                 messages.innerHTML = `
                     <div class="chat-empty-state">
                         <div>
@@ -625,8 +664,8 @@
                                     <path d="M9 12h.01M15 12h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                 </svg>
                             </span>
-                            <strong>Hola, estoy listo para ayudarte</strong>
-                            <p>Puedo orientarte con el menú, pedidos, reservas y pagos. Escribe una pregunta o usa tu voz.</p>
+                            <strong>${esc(greeting)}</strong>
+                            <p>Estoy aquí para ayudarte con el menú, pedidos, reservas y pagos.</p>
                         </div>
                     </div>`;
             }

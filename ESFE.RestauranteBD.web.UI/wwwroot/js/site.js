@@ -213,6 +213,14 @@ const ESFERestaurante = (() => {
     function currentUser(){return document.body?.dataset.user || (isAuthenticated()?localStorage.getItem(KEY.user)||'':'')}
     // Obtiene el rol del usuario actual.
     function currentRole(){return (document.body?.dataset.role||'Publico').trim()}
+    // Guarda un estado del usuario en SQL para que las acciones importantes no dependan solo del navegador.
+    async function syncUserStateNow(key,value){
+        try{
+            const token=document.querySelector('meta[name="request-verification-token"]')?.content||'';
+            if(!token || !isAuthenticated()) return;
+            await fetch('/api/state/sync',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','RequestVerificationToken':token},body:JSON.stringify({key,value})});
+        }catch{}
+    }
     // Obtiene las calificaciones guardadas.
     function ratingsGet(){return read(KEY.ratings,[])}
     // Guarda las calificaciones del usuario.
@@ -288,7 +296,7 @@ const ESFERestaurante = (() => {
     // Obtiene los productos del carrito.
     function cartGet(){return read(KEY.cart,[])}
     // Guarda los cambios del carrito.
-    function cartSave(c){write(KEY.cart,c); updateCartBadges();updateNotificationBadges();}
+    function cartSave(c,sync=true){write(KEY.cart,c);if(sync)void syncUserStateNow(KEY.cart,c);updateCartBadges();updateNotificationBadges();}
     // Actualiza los contadores visibles del carrito.
     function updateCartBadges(){const n=cartGet().reduce((s,i)=>s+Number(i.qty),0);document.querySelectorAll('[data-cart-badge]').forEach(e=>e.textContent=n);}
     // Muestra un aviso breve con el resultado de una acción.
@@ -379,7 +387,17 @@ const ESFERestaurante = (() => {
     // Funciones del menú y su búsqueda.
     const menu={
         selected:'Todas',term:'',priceMax:'',sort:'relevance',tag:'Todos',modalCategory:null,modalProduct:null,
-        init(){this.renderCategories();this.bindFilters();this.renderProducts();loadCatalogFromDatabase().then(ok=>{ if(ok){ this.renderCategories(); this.renderCategoryModal(); } });},
+        init(){
+            // Al entrar al menú empezamos siempre en el catálogo general.
+            this.selected='Todas';this.term='';this.priceMax='';this.sort='relevance';this.tag='Todos';
+            this.modalCategory=null;this.modalProduct=null;
+            sessionStorage.removeItem('menuSelectedCategory');
+            sessionStorage.removeItem('menuSearchTerm');
+            document.getElementById('categoryModal')?.classList.add('hidden');
+            document.getElementById('productModal')?.classList.add('hidden');
+            this.renderCategories();this.bindFilters();this.renderProducts();
+            loadCatalogFromDatabase().then(ok=>{ if(ok){ this.renderCategories(); this.renderProducts(); } });
+        },
         bindFilters(){
             // Evento que conecta una acción del usuario con la lógica del módulo.
             document.getElementById('menuSearch')?.addEventListener('input',e=>{this.term=e.target.value.toLowerCase().trim();this.renderCategoryModal();});
@@ -434,7 +452,9 @@ const ESFERestaurante = (() => {
     // Funciones del carrito de compras.
     const cart={
         init(){this.render();this.toggleDeliveryFields();const phone=document.getElementById('deliveryPhone'),address=document.getElementById('deliveryAddress');if(phone&&!phone.value)phone.value=document.body.dataset.phone||'';if(address&&!address.value)address.value=document.body.dataset.address||'';},
-        render(){const box=document.getElementById('cartItems');if(!box)return;let c=cartGet().filter(i=>Number.isInteger(Number(i.qty))&&Number(i.qty)>0).map(i=>({...i,qty:Math.min(20,Number(i.qty))}));cartSave(c);document.getElementById('cartItemSummary').textContent=`${c.reduce((s,i)=>s+i.qty,0)} unidades · ${c.length} productos`;if(!c.length){box.innerHTML=`<div class="empty-state"><span class="ui-icon cart-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M3 4h2l1.7 10.1a2 2 0 0 0 2 1.9h7.8a2 2 0 0 0 1.9-1.5L20 8H7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="19" r="1.4" fill="currentColor"/><circle cx="17" cy="19" r="1.4" fill="currentColor"/></svg></span><strong>Tu carrito está vacío</strong><p>Agrega productos desde el menú.</p><a class="primary-btn" href="/GestionDeMenu1/Index">Ir al menú <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></div>`;this.updateTotals();return;}box.innerHTML=c.map(i=>`<div class="cart-line"><img src="${i.image}" alt="${i.name}" onerror="this.src='/images/productos/piz-pep.jpg' /><!-- IMAGEN DEL PRODUCTO: fotografía del producto, JPG/PNG --><div class="cart-main"><strong>${i.name}</strong><small>${(i.ingredients||[]).slice(0,4).join(' · ')}</small><div class="cart-actions"><div class="qty-control"><button type="button" aria-label="Disminuir cantidad" onclick="ESFERestaurante.cart.adjust('${i.productId}',-1)">−</button><input value="${i.qty}" min="1" type="number" onchange="ESFERestaurante.cart.setQty('${i.productId}',this.value)" aria-label="Cantidad" /><button type="button" aria-label="Aumentar cantidad" onclick="ESFERestaurante.cart.adjust('${i.productId}',1)">+</button></div><button type="button" class="cart-remove-small" title="Eliminar producto" aria-label="Eliminar ${i.name} del carrito" onclick="ESFERestaurante.cart.remove('${i.productId}')"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 7h14M9 7V4h6v3M8 7v13h8V7M10 11v5M14 11v5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span></button></div></div><strong class="line-total">${money(i.price*i.qty)}</strong></div>`).join('');this.updateTotals();},
+        getItems(){return cartGet().map(item=>({...item}));},
+        replaceItems(items){cartSave(Array.isArray(items)?items:[]);this.render();},
+        render(){const box=document.getElementById('cartItems');if(!box)return;let c=cartGet().filter(i=>Number.isInteger(Number(i.qty))&&Number(i.qty)>0).map(i=>({...i,qty:Math.min(20,Number(i.qty))}));cartSave(c,false);document.getElementById('cartItemSummary').textContent=`${c.reduce((s,i)=>s+i.qty,0)} unidades · ${c.length} productos`;if(!c.length){box.innerHTML=`<div class="empty-state"><span class="ui-icon cart-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M3 4h2l1.7 10.1a2 2 0 0 0 2 1.9h7.8a2 2 0 0 0 1.9-1.5L20 8H7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="19" r="1.4" fill="currentColor"/><circle cx="17" cy="19" r="1.4" fill="currentColor"/></svg></span><strong>Tu carrito está vacío</strong><p>Agrega productos desde el menú.</p><a class="primary-btn" href="/GestionDeMenu1/Index">Ir al menú <span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></div>`;this.updateTotals();return;}box.innerHTML=c.map(i=>`<div class="cart-line"><img src="${i.image}" alt="${i.name}" onerror="this.src='/images/productos/piz-pep.jpg' /><!-- IMAGEN DEL PRODUCTO: fotografía del producto, JPG/PNG --><div class="cart-main"><strong>${i.name}</strong><small>${(i.ingredients||[]).slice(0,4).join(' · ')}</small><div class="cart-actions"><div class="qty-control"><button type="button" aria-label="Disminuir cantidad" onclick="ESFERestaurante.cart.adjust('${i.productId}',-1)">−</button><input value="${i.qty}" min="1" type="number" onchange="ESFERestaurante.cart.setQty('${i.productId}',this.value)" aria-label="Cantidad" /><button type="button" aria-label="Aumentar cantidad" onclick="ESFERestaurante.cart.adjust('${i.productId}',1)">+</button></div><button type="button" class="cart-remove-small" title="Eliminar producto" aria-label="Eliminar ${i.name} del carrito" onclick="ESFERestaurante.cart.remove('${i.productId}')"><span class="ui-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 7h14M9 7V4h6v3M8 7v13h8V7M10 11v5M14 11v5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span></button></div></div><strong class="line-total">${money(i.price*i.qty)}</strong></div>`).join('');this.updateTotals();},
         updateTotals(){const c=cartGet();const sub=c.reduce((s,i)=>s+i.price*i.qty,0);const tax=sub*taxRate();document.getElementById('cartSubtotal').textContent=money(sub);document.getElementById('cartTax').textContent=money(tax);document.getElementById('cartTotal').textContent=money(sub+tax);const b=document.getElementById('goPay');if(b)b.disabled=!c.length;},
         adjust(id,d){let c=cartGet();const i=c.find(x=>x.productId===id);if(!i)return;i.qty=Math.max(1,i.qty+d);cartSave(c);this.render();},
         setQty(id,q){let c=cartGet();const i=c.find(x=>x.productId===id);if(!i)return;const value=Number(q);if(!Number.isInteger(value)||value<1||value>20){toast('La cantidad debe ser un número entero entre 1 y 20.','error');this.render();return;}i.qty=value;cartSave(c);this.render();},
@@ -483,7 +503,7 @@ const ESFERestaurante = (() => {
             const valid=this.inOpeningHours(time);let all=read(KEY.reservations,[]);
             if(valid&&all.some(r=>r.tableId===t.id&&r.date===date&&r.time===time&&(r.status==='Confirmada'||r.status==='Atendida')&&!r.noShow)){toast('Esa mesa ya fue reservada','error');return;}
             const reservation={id:uid('RES'),customer:currentUser(),customerName:document.body.dataset.userName||name,customerPhone:document.body.dataset.phone||'',customerDui:document.body.dataset.dui||'',tableId:t.id,table:`Mesa ${String(t.id).padStart(2,'0')}`,name,people,date,time,zone:t.zone,status:valid?'Confirmada':'Fuera de horario',arrived:false,createdAt:new Date().toISOString()};
-            all.push(reservation);write(KEY.reservations,all);this.selected=null;document.getElementById('reserveName').value='';this.render();this.renderList();
+            all.push(reservation);write(KEY.reservations,all);void syncUserStateNow(KEY.reservations,all);this.selected=null;document.getElementById('reserveName').value='';this.render();this.renderList();
             if(!valid){toast('Reserva registrada como fuera de horario. La mesa permanece disponible.','info');}
             else toast(`Reserva confirmada en Mesa ${String(t.id).padStart(2,'0')}`);
             if(sessionStorage.getItem('esfe_return_to_payment')==='1'){sessionStorage.removeItem('esfe_return_to_payment');sessionStorage.setItem('esfe_reservation_id',reservation.id);setTimeout(()=>location.href='/ProcesarPago1/Index',350);}
@@ -579,6 +599,10 @@ const ESFERestaurante = (() => {
             this.subtotal=c.reduce((sum,i)=>sum+i.price*i.qty,0);this.total=Number((this.subtotal*(1+taxRate())).toFixed(2));
             const context=document.getElementById('paymentOrderContext');if(context)context.textContent=orderType==='Domicilio'?`Pedido a domicilio · ${sessionStorage.getItem('esfe_delivery_address')||'Dirección registrada'}`:orderType==='Mesa'?'Consumo en restaurante · reserva vinculada':'Pedido para llevar';
             document.getElementById('paymentTotal').textContent=money(this.total);document.getElementById('paymentTotalAside').textContent=money(this.total);document.getElementById('paymentSubtotal').textContent=money(this.subtotal);document.getElementById('paymentTax').textContent=money(this.total-this.subtotal);document.getElementById('paymentItems').innerHTML=c.map(i=>`<div><span>${i.qty}× ${i.name}</span><strong>${money(i.price*i.qty)}</strong></div>`).join('');this.renderFields();
+            const assistantMethod=sessionStorage.getItem('esfe_payment_method');
+            if(['Efectivo','Tarjeta','Transferencia'].includes(assistantMethod||'')){this.selectMethod(assistantMethod);sessionStorage.removeItem('esfe_payment_method');}
+            if(sessionStorage.getItem('esfe_assistant_auto_submit')==='1' && this.method==='Efectivo'){sessionStorage.removeItem('esfe_assistant_auto_submit');setTimeout(()=>this.complete(),650);}
+
         },
         selectMethod(m){this.method=m;document.querySelectorAll('.payment-method').forEach(b=>b.classList.toggle('active',b.dataset.method===m));this.renderFields();},
         renderFields(){
@@ -618,7 +642,7 @@ const ESFERestaurante = (() => {
                 if(!name||!number||!expiry||!cvv){toast('Completa los datos de la tarjeta para la simulación','error');return;}
                 ref='CARD-'+(number.slice(-4)||'TEST');paymentStatus='Pagado';paymentDetail='Pago con tarjeta registrado en modo demostración';
             }else if(this.method==='Transferencia'){ref=(document.getElementById('transferRef')?.value||'').trim();if(!/^[A-Za-z0-9-]{5,40}$/.test(ref)){toast('Ingresa una referencia de transferencia válida','error');return;}paymentStatus='Pagado';paymentDetail='Transferencia registrada y marcada como pagada';}else{paymentDetail='El cliente pagará en efectivo personalmente al recoger o recibir el pedido';}
-            const id=uid('ORD');const orderType=sessionStorage.getItem('esfe_order_type')||'Mesa';const order={id,customer:currentUser(),customerName:document.body.dataset.userName||currentUser(),customerPhone:document.body.dataset.phone||'',customerDui:document.body.dataset.dui||'',date:new Date().toISOString(),status:'Pendiente',payment:this.method,paymentStatus,paymentRef:ref,paymentDetail,orderType,note:sessionStorage.getItem('esfe_order_note')||'',deliveryPhone:sessionStorage.getItem('esfe_delivery_phone')||'',deliveryAddress:sessionStorage.getItem('esfe_delivery_address')||'',reservationId:sessionStorage.getItem('esfe_reservation_id')||'',subtotal:this.subtotal,tax:Number((this.total-this.subtotal).toFixed(2)),total:this.total,items:c}; if(paymentStatus==='Pagado') order.paidAt=new Date().toISOString();let orders=read(KEY.orders,[]);orders.unshift(order);write(KEY.orders,orders);if(paymentStatus==='Pagado'){let sales=read(KEY.sales,[]);sales.unshift({...order,saleStatus:'Cobrado'});write(KEY.sales,sales);}cartSave([]);['esfe_order_type','esfe_order_note','esfe_delivery_phone','esfe_delivery_address','esfe_reservation_id'].forEach(k=>sessionStorage.removeItem(k));if(paymentStatus==='Pagado'){const invoice=createInvoice(order);addNotification(`Pago confirmado · pedido ${id}. Tu factura digital ${invoice?.invoiceNumber||''} está disponible.`,currentUser(),{type:'factura',orderId:id,title:'Pago confirmado y factura digital',detail:`Factura ${invoice?.invoiceNumber||''} · ${money(order.total)}`,action:'invoice'});}
+            const id=uid('ORD');const orderType=sessionStorage.getItem('esfe_order_type')||'Mesa';const order={id,customer:currentUser(),customerName:document.body.dataset.userName||currentUser(),customerPhone:document.body.dataset.phone||'',customerDui:document.body.dataset.dui||'',date:new Date().toISOString(),status:'Pendiente',payment:this.method,paymentStatus,paymentRef:ref,paymentDetail,orderType,note:sessionStorage.getItem('esfe_order_note')||'',deliveryPhone:sessionStorage.getItem('esfe_delivery_phone')||'',deliveryAddress:sessionStorage.getItem('esfe_delivery_address')||'',reservationId:sessionStorage.getItem('esfe_reservation_id')||'',subtotal:this.subtotal,tax:Number((this.total-this.subtotal).toFixed(2)),total:this.total,items:c}; if(paymentStatus==='Pagado') order.paidAt=new Date().toISOString();let orders=read(KEY.orders,[]);orders.unshift(order);write(KEY.orders,orders);void syncUserStateNow(KEY.orders,orders);if(paymentStatus==='Pagado'){let sales=read(KEY.sales,[]);sales.unshift({...order,saleStatus:'Cobrado'});write(KEY.sales,sales);void syncUserStateNow(KEY.sales,sales);}cartSave([]);['esfe_order_type','esfe_order_note','esfe_delivery_phone','esfe_delivery_address','esfe_reservation_id'].forEach(k=>sessionStorage.removeItem(k));if(paymentStatus==='Pagado'){const invoice=createInvoice(order);addNotification(`Pago confirmado · pedido ${id}. Tu factura digital ${invoice?.invoiceNumber||''} está disponible.`,currentUser(),{type:'factura',orderId:id,title:'Pago confirmado y factura digital',detail:`Factura ${invoice?.invoiceNumber||''} · ${money(order.total)}`,action:'invoice'});}
             else{addNotification(`Pedido ${id} creado. Pago pendiente: se pagará en efectivo al recoger o recibir.`,currentUser(),{type:'pedido',orderId:id,title:'Pedido creado',detail:`Total ${money(order.total)} · Pago pendiente`,action:null});}
             // Aviso operativo: cada área recibe el pedido en su propia bandeja.
             addNotification(`Nuevo pedido ${id}.`,null,{type:'pedido',orderId:id,title:'Nuevo pedido recibido',detail:`${order.items.length} productos · ${money(order.total)} · ${order.orderType||'Pedido'}.`,roles:['Dueno','Administrador','Cocina','Barra'].concat(order.orderType==='Domicilio'?['Delivery']:[])});toast(paymentStatus==='Pagado'?`Pedido ${id} creado y pagado`:`Pedido ${id} creado. Pago en efectivo al recoger.`);setTimeout(()=>location.href='/GestionDePedidos1/Index',500);
@@ -1105,7 +1129,7 @@ const ESFERestaurante = (() => {
     });
 
     function refreshCurrency(){ try{ menu?.render?.(); cart?.render?.(); reservas?.render?.(); orders?.render?.(); dashboard?.render?.(); reports?.render?.(); adminProducts?.render?.(); payment?.render?.(); }catch{} }
-    return {products,catalogProducts,categories,allCategories,tables,money,KEY,localDate,formatDateTime,layout,welcome,chat,menu,cart,reservas,payment,orders,kitchen,ready,reports,dashboard,adminProducts,notifications,addNotification,refreshCurrency,ui:{mostrarToast:toast},invoices:{show:showInvoice,get:getInvoice,create:createInvoice}};
+    return {products,catalogProducts,syncUserStateNow,categories,allCategories,tables,money,KEY,localDate,formatDateTime,layout,welcome,chat,menu,cart,reservas,payment,orders,kitchen,ready,reports,dashboard,adminProducts,notifications,addNotification,refreshCurrency,ui:{mostrarToast:toast},invoices:{show:showInvoice,get:getInvoice,create:createInvoice}};
 
 })();
 // Exponer el centro de la aplicación al ámbito global para que los módulos cargados después
